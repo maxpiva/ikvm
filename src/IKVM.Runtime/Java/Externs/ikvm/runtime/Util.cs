@@ -22,6 +22,7 @@
   
 */
 using System;
+using System.Runtime.ExceptionServices;
 
 using IKVM.Attributes;
 using IKVM.Runtime;

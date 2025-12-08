@@ -24,6 +24,9 @@
 
 using System;
 
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
+
 #if IMPORTER
 using IKVM.Reflection;
 using IKVM.Reflection.Emit;
@@ -34,15 +37,13 @@ using System.Reflection;
 using System.Reflection.Emit;
 #endif
 
-using InstructionFlags = IKVM.Runtime.ClassFile.Method.InstructionFlags;
-
 namespace IKVM.Runtime
 {
 
     static class AtomicReferenceFieldUpdaterEmitter
     {
 
-        internal static bool Emit(RuntimeByteCodeJavaType.FinishContext context, RuntimeJavaType wrapper, CodeEmitter ilgen, ClassFile classFile, int i, ClassFile.Method.Instruction[] code, InstructionFlags[] flags)
+        internal static bool Emit(RuntimeByteCodeJavaType.FinishContext context, RuntimeJavaType wrapper, CodeEmitter ilgen, ClassFile classFile, int i, Instruction[] code, InstructionFlags[] flags)
         {
             if (i >= 3
                 && (flags[i - 0] & InstructionFlags.BranchTarget) == 0

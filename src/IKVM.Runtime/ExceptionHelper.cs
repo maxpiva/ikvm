@@ -960,15 +960,9 @@ namespace IKVM.Runtime
                 {
                     var data = e.Data;
                     if (data != null && !data.IsReadOnly)
-                    {
                         lock (data.SyncRoot)
-                        {
-                            if (!data.Contains(EXCEPTION_DATA_KEY))
-                            {
+                            if (data.Contains(EXCEPTION_DATA_KEY) == false)
                                 data.Add(EXCEPTION_DATA_KEY, new ExceptionInfoHelper(this, e, true));
-                            }
-                        }
-                    }
                 }
 
                 if (nonJavaException && !remap)

@@ -23,9 +23,8 @@
 */
 
 using IKVM.ByteCode;
-
-using Instruction = IKVM.Runtime.ClassFile.Method.Instruction;
-using InstructionFlags = IKVM.Runtime.ClassFile.Method.InstructionFlags;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 namespace IKVM.Runtime
 {
@@ -88,12 +87,12 @@ namespace IKVM.Runtime
             return ma.GetStackTypeWrapper(OpcodeIndex + offset, pos);
         }
 
-        internal ClassFile.ConstantPoolItemMI GetMethodref(int offset)
+        internal ConstantPoolItemMI<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod> GetMethodref(int offset)
         {
             return ClassFile.GetMethodref(Code[OpcodeIndex + offset].Arg1);
         }
 
-        internal ClassFile.ConstantPoolItemFieldref GetFieldref(int offset)
+        internal ConstantPoolItemFieldref<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod> GetFieldref(int offset)
         {
             return ClassFile.GetFieldref(Code[OpcodeIndex + offset].Arg1);
         }
@@ -108,7 +107,7 @@ namespace IKVM.Runtime
             return ClassFile.GetConstantPoolConstantString(new StringConstantHandle(checked((ushort)Code[OpcodeIndex + offset].Arg1)));
         }
 
-        internal ClassFile.ConstantType GetConstantType(int offset)
+        internal ConstantType GetConstantType(int offset)
         {
             return ClassFile.GetConstantPoolConstantType(new ConstantHandle(ConstantKind.Unknown, checked((ushort)Code[OpcodeIndex + offset].Arg1)));
         }

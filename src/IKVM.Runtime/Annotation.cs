@@ -25,8 +25,7 @@ using System;
 using System.Diagnostics;
 
 using IKVM.Attributes;
-
-
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER || EXPORTER
 using IKVM.Reflection;
@@ -36,6 +35,8 @@ using Type = IKVM.Reflection.Type;
 
 using System.Collections;
 using System.Collections.Generic;
+using IKVM.CoreLib.Exceptions;
+
 
 #else
 using System.Reflection;
@@ -69,7 +70,7 @@ namespace IKVM.Runtime
                 {
                     return loader.RetTypeWrapperFromSig(annotationClass.Replace('/', '.'), LoadMode.LoadOrThrow).Annotation;
                 }
-                catch (RetargetableJavaException)
+                catch (TranslatableJavaException)
                 {
 
                 }

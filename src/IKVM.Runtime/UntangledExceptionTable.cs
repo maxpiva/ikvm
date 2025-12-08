@@ -23,14 +23,15 @@
 */
 using System;
 
-using ExceptionTableEntry = IKVM.Runtime.ClassFile.Method.ExceptionTableEntry;
+using IKVM.CoreLib.Linking;
 
 namespace IKVM.Runtime
 {
 
     struct UntangledExceptionTable
     {
-        private readonly ExceptionTableEntry[] exceptions;
+
+        readonly ExceptionTableEntry[] exceptions;
 
         internal UntangledExceptionTable(ExceptionTableEntry[] exceptions)
         {

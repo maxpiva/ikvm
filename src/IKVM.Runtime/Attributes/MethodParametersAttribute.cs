@@ -23,6 +23,8 @@
 */
 using System;
 
+using IKVM.CoreLib.Runtime;
+
 namespace IKVM.Attributes
 {
 

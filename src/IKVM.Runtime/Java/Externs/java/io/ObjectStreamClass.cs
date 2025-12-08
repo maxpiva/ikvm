@@ -23,12 +23,11 @@
 */
 using System;
 using System.Reflection;
-using IKVM.Runtime;
-
-#if !NO_REF_EMIT
 using System.Reflection.Emit;
+using System.Runtime.ExceptionServices;
 
-#endif
+using IKVM.CoreLib.Exceptions;
+using IKVM.Runtime;
 
 namespace IKVM.Java.Externs.java.io
 {
@@ -120,7 +119,7 @@ namespace IKVM.Java.Externs.java.io
             public static float ReadFloat(byte[] buf, int offset)
             {
 #if FIRST_PASS || IMPORTER
-			return 0;
+			    return 0;
 #else
                 return global::java.lang.Float.intBitsToFloat(ReadInt(buf, offset));
 #endif
@@ -136,7 +135,7 @@ namespace IKVM.Java.Externs.java.io
             public static double ReadDouble(byte[] buf, int offset)
             {
 #if FIRST_PASS || IMPORTER
-			return 0;
+			    return 0;
 #else
                 return global::java.lang.Double.longBitsToDouble(ReadLong(buf, offset));
 #endif
@@ -160,9 +159,10 @@ namespace IKVM.Java.Externs.java.io
             {
                 wrapper.Finish();
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(wrapper.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
 
             var type = wrapper.TypeAsTBD;
@@ -245,9 +245,10 @@ namespace IKVM.Java.Externs.java.io
                     {
                         tw.Finish();
                     }
-                    catch (RetargetableJavaException x)
+                    catch (TranslatableJavaException e)
                     {
-                        throw x.ToJava();
+                        ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                        throw null;
                     }
 
                     var dmObjGetter = DynamicMethodUtil.Create("__<ObjFieldGetter>", tw.TypeAsBaseType, true, null, new Type[] { typeof(object), typeof(object[]) });
@@ -272,22 +273,24 @@ namespace IKVM.Java.Externs.java.io
 
                     foreach (global::java.io.ObjectStreamField field in fields)
                     {
-                        RuntimeJavaField fw = GetFieldWrapper(field);
+                        var fw = GetFieldWrapper(field);
                         if (fw == null)
-                        {
                             continue;
-                        }
+
                         fw.ResolveField();
-                        RuntimeJavaType fieldType = fw.FieldTypeWrapper;
+
+                        var fieldType = fw.FieldTypeWrapper;
                         try
                         {
                             fieldType = fieldType.EnsureLoadable(tw.ClassLoader);
                             fieldType.Finish();
                         }
-                        catch (RetargetableJavaException x)
+                        catch (TranslatableJavaException e)
                         {
-                            throw x.ToJava();
+                            ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                            throw null;
                         }
+
                         if (fieldType.IsPrimitive)
                         {
                             // Getter

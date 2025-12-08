@@ -27,13 +27,12 @@ using System.Diagnostics;
 using System.Text;
 
 using IKVM.ByteCode;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER
 using IKVM.Tools.Importer;
 #endif
-
-using ExceptionTableEntry = IKVM.Runtime.ClassFile.Method.ExceptionTableEntry;
-using InstructionFlags = IKVM.Runtime.ClassFile.Method.InstructionFlags;
 
 namespace IKVM.Runtime
 {
@@ -46,7 +45,7 @@ namespace IKVM.Runtime
         readonly RuntimeJavaType _type;
         readonly RuntimeJavaMethod _method;
         readonly ClassFile _classFile;
-        readonly ClassFile.Method _classFileMethod;
+        readonly Method _classFileMethod;
         readonly RuntimeClassLoader _classLoader;
         readonly RuntimeJavaType _thisType;
         readonly InstructionState[] _state;
@@ -80,7 +79,7 @@ namespace IKVM.Runtime
         /// <param name="classLoader"></param>
         /// <exception cref="VerifyError"></exception>
         /// <exception cref="ClassFormatError"></exception>
-        internal MethodAnalyzer(RuntimeContext context, RuntimeJavaType host, RuntimeJavaType type, RuntimeJavaMethod method, ClassFile classFile, ClassFile.Method classFileMethod, RuntimeClassLoader classLoader) :
+        internal MethodAnalyzer(RuntimeContext context, RuntimeJavaType host, RuntimeJavaType type, RuntimeJavaMethod method, ClassFile classFile, Method classFileMethod, RuntimeClassLoader classLoader) :
             this(context)
         {
             if (classFileMethod.VerifyError != null)
@@ -169,12 +168,12 @@ namespace IKVM.Runtime
                         case NormalizedByteCode.__ldc:
                             switch (GetConstantPoolConstantType(code[i].Arg1))
                             {
-                                case ClassFile.ConstantType.Double:
-                                case ClassFile.ConstantType.Float:
-                                case ClassFile.ConstantType.Integer:
-                                case ClassFile.ConstantType.Long:
-                                case ClassFile.ConstantType.String:
-                                case ClassFile.ConstantType.LiveObject:
+                                case ConstantType.Double:
+                                case ConstantType.Float:
+                                case ConstantType.Integer:
+                                case ConstantType.Long:
+                                case ConstantType.String:
+                                case ConstantType.LiveObject:
                                     code[i].PatchOpCode(NormalizedByteCode.__ldc_nothrow);
                                     break;
                             }
@@ -511,34 +510,34 @@ namespace IKVM.Runtime
                                     {
                                         switch (GetConstantPoolConstantType(inst.Arg1))
                                         {
-                                            case ClassFile.ConstantType.Double:
+                                            case ConstantType.Double:
                                                 s.PushDouble();
                                                 break;
-                                            case ClassFile.ConstantType.Float:
+                                            case ConstantType.Float:
                                                 s.PushFloat();
                                                 break;
-                                            case ClassFile.ConstantType.Integer:
+                                            case ConstantType.Integer:
                                                 s.PushInt();
                                                 break;
-                                            case ClassFile.ConstantType.Long:
+                                            case ConstantType.Long:
                                                 s.PushLong();
                                                 break;
-                                            case ClassFile.ConstantType.String:
+                                            case ConstantType.String:
                                                 s.PushType(_context.JavaBase.TypeOfJavaLangString);
                                                 break;
-                                            case ClassFile.ConstantType.LiveObject:
+                                            case ConstantType.LiveObject:
                                                 s.PushType(_context.JavaBase.TypeOfJavaLangObject);
                                                 break;
-                                            case ClassFile.ConstantType.Class:
+                                            case ConstantType.Class:
                                                 if (_classFile.MajorVersion < 49)
                                                     throw new VerifyError("Illegal type in constant pool");
 
                                                 s.PushType(_context.JavaBase.TypeOfJavaLangClass);
                                                 break;
-                                            case ClassFile.ConstantType.MethodHandle:
+                                            case ConstantType.MethodHandle:
                                                 s.PushType(_context.JavaBase.TypeOfJavaLangInvokeMethodHandle);
                                                 break;
-                                            case ClassFile.ConstantType.MethodType:
+                                            case ConstantType.MethodType:
                                                 s.PushType(_context.JavaBase.TypeOfJavaLangInvokeMethodType);
                                                 break;
                                             default:
@@ -1270,7 +1269,7 @@ namespace IKVM.Runtime
             {
                 // invokestatic and invokespecial may be used to invoke interface methods in Java 8
                 // but invokespecial can only invoke methods in the current interface or a directly implemented interface
-                if (invoke == NormalizedByteCode.__invokespecial && cpi is ClassFile.ConstantPoolItemInterfaceMethodref)
+                if (invoke == NormalizedByteCode.__invokespecial && cpi is ConstantPoolItemInterfaceMethodref)
                 {
                     if (cpi.GetClassType() == _host)
                     {
@@ -1282,7 +1281,7 @@ namespace IKVM.Runtime
                     }
                 }
             }
-            else if ((cpi is ClassFile.ConstantPoolItemInterfaceMethodref) != (invoke == NormalizedByteCode.__invokeinterface))
+            else if ((cpi is ConstantPoolItemInterfaceMethodref) != (invoke == NormalizedByteCode.__invokeinterface))
             {
                 throw new VerifyError("Illegal constant pool index");
             }
@@ -1394,7 +1393,7 @@ namespace IKVM.Runtime
                 stack.PopType(args[j]);
         }
 
-        static void OptimizationPass(CodeInfo codeInfo, ClassFile classFile, ClassFile.Method method, UntangledExceptionTable exceptions, RuntimeJavaType wrapper, RuntimeClassLoader classLoader)
+        static void OptimizationPass(CodeInfo codeInfo, ClassFile classFile, Method method, UntangledExceptionTable exceptions, RuntimeJavaType wrapper, RuntimeClassLoader classLoader)
         {
             // optimization pass
             if (classLoader.RemoveAsserts)
@@ -1455,7 +1454,7 @@ namespace IKVM.Runtime
                             case NormalizedByteCode.__ldc:
                                 switch (_classFile.GetConstantPoolConstantType(instructions[i].Arg1))
                                 {
-                                    case ClassFile.ConstantType.Class:
+                                    case ConstantType.Class:
                                         {
                                             var tw = _classFile.GetConstantPoolClassType(instructions[i].Arg1);
                                             if (tw.IsUnloadable)
@@ -1463,7 +1462,7 @@ namespace IKVM.Runtime
 
                                             break;
                                         }
-                                    case ClassFile.ConstantType.MethodType:
+                                    case ConstantType.MethodType:
                                         {
                                             var cpi = _classFile.GetConstantPoolConstantMethodType(instructions[i].Arg1);
                                             var args = cpi.GetArgTypes();
@@ -1476,7 +1475,7 @@ namespace IKVM.Runtime
 
                                             break;
                                         }
-                                    case ClassFile.ConstantType.MethodHandle:
+                                    case ConstantType.MethodHandle:
                                         PatchLdcMethodHandle(ref instructions[i]);
                                         break;
                                 }
@@ -1560,7 +1559,7 @@ namespace IKVM.Runtime
             }
         }
 
-        void PatchLdcMethodHandle(ref ClassFile.Method.Instruction instr)
+        void PatchLdcMethodHandle(ref Instruction instr)
         {
             var cpi = _classFile.GetConstantPoolConstantMethodHandle(instr.Arg1);
             if (cpi.GetClassType().IsUnloadable)
@@ -1673,7 +1672,7 @@ namespace IKVM.Runtime
             return sb.ToString();
         }
 
-        internal static InstructionFlags[] ComputePartialReachability(CodeInfo codeInfo, ClassFile.Method.Instruction[] instructions, UntangledExceptionTable exceptions, int initialInstructionIndex, bool skipFaultBlocks)
+        internal static InstructionFlags[] ComputePartialReachability(CodeInfo codeInfo, Instruction[] instructions, UntangledExceptionTable exceptions, int initialInstructionIndex, bool skipFaultBlocks)
         {
             var flags = new InstructionFlags[instructions.Length];
             flags[initialInstructionIndex] |= InstructionFlags.Reachable;
@@ -1681,7 +1680,7 @@ namespace IKVM.Runtime
             return flags;
         }
 
-        static void UpdatePartialReachability(InstructionFlags[] flags, CodeInfo codeInfo, ClassFile.Method.Instruction[] instructions, UntangledExceptionTable exceptions, bool skipFaultBlocks)
+        static void UpdatePartialReachability(InstructionFlags[] flags, CodeInfo codeInfo, Instruction[] instructions, UntangledExceptionTable exceptions, bool skipFaultBlocks)
         {
             var done = false;
             while (done == false)
@@ -1712,7 +1711,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static void MarkSuccessors(ClassFile.Method.Instruction[] code, InstructionFlags[] flags, int index)
+        static void MarkSuccessors(Instruction[] code, InstructionFlags[] flags, int index)
         {
             switch (ByteCodeMetaData.GetFlowControl(code[index].NormalizedOpCode))
             {
@@ -1742,7 +1741,7 @@ namespace IKVM.Runtime
             }
         }
 
-        internal static UntangledExceptionTable UntangleExceptionBlocks(RuntimeContext context, ClassFile classFile, ClassFile.Method method)
+        internal static UntangledExceptionTable UntangleExceptionBlocks(RuntimeContext context, ClassFile classFile, Method method)
         {
             var instructions = method.Instructions;
             var ar = new List<ExceptionTableEntry>(method.ExceptionTable);
@@ -2034,7 +2033,7 @@ namespace IKVM.Runtime
                 NormalizedByteCode.__lreturn;
         }
 
-        static bool AnalyzePotentialFaultBlocks(CodeInfo codeInfo, ClassFile.Method method, UntangledExceptionTable exceptions)
+        static bool AnalyzePotentialFaultBlocks(CodeInfo codeInfo, Method method, UntangledExceptionTable exceptions)
         {
             var code = method.Instructions;
             var changed = false;
@@ -2104,7 +2103,7 @@ namespace IKVM.Runtime
             return changed;
         }
 
-        static void ConvertFinallyBlocks(CodeInfo codeInfo, ClassFile.Method method, UntangledExceptionTable exceptions)
+        static void ConvertFinallyBlocks(CodeInfo codeInfo, Method method, UntangledExceptionTable exceptions)
         {
             var code = method.Instructions;
             var flags = ComputePartialReachability(codeInfo, code, exceptions, 0, false);
@@ -2156,7 +2155,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static bool IsSynchronizedBlockHandler(ClassFile.Method.Instruction[] code, int index)
+        static bool IsSynchronizedBlockHandler(Instruction[] code, int index)
         {
             return
                 code[index].NormalizedOpCode == NormalizedByteCode.__astore &&
@@ -2181,7 +2180,7 @@ namespace IKVM.Runtime
             return exception.startIndex < end && exception.endIndex > start;
         }
 
-        static bool MatchFinallyBlock(CodeInfo codeInfo, ClassFile.Method.Instruction[] code, UntangledExceptionTable exceptions, int faultHandler, int exitHandler, out int exitHandlerEnd, out int faultHandlerEnd)
+        static bool MatchFinallyBlock(CodeInfo codeInfo, Instruction[] code, UntangledExceptionTable exceptions, int faultHandler, int exitHandler, out int exitHandlerEnd, out int faultHandlerEnd)
         {
             exitHandlerEnd = -1;
             faultHandlerEnd = -1;
@@ -2215,7 +2214,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static bool MatchInstructions(ClassFile.Method.Instruction[] code, int i, int j)
+        static bool MatchInstructions(Instruction[] code, int i, int j)
         {
             if (code[i].NormalizedOpCode != code[j].NormalizedOpCode)
                 return false;
@@ -2252,7 +2251,7 @@ namespace IKVM.Runtime
             return true;
         }
 
-        static bool IsReachableFromOutsideTryBlock(CodeInfo codeInfo, ClassFile.Method.Instruction[] code, UntangledExceptionTable exceptions, ExceptionTableEntry tryBlock, int instructionIndex)
+        static bool IsReachableFromOutsideTryBlock(CodeInfo codeInfo, Instruction[] code, UntangledExceptionTable exceptions, ExceptionTableEntry tryBlock, int instructionIndex)
         {
             var flags = new InstructionFlags[code.Length];
             flags[0] |= InstructionFlags.Reachable;
@@ -2266,7 +2265,7 @@ namespace IKVM.Runtime
             return (flags[instructionIndex] & InstructionFlags.Reachable) != 0;
         }
 
-        static bool TryFindSingleTryBlockExit(ClassFile.Method.Instruction[] code, InstructionFlags[] flags, UntangledExceptionTable exceptions, ExceptionTableEntry exception, int exceptionIndex, out int exit)
+        static bool TryFindSingleTryBlockExit(Instruction[] code, InstructionFlags[] flags, UntangledExceptionTable exceptions, ExceptionTableEntry exception, int exceptionIndex, out int exit)
         {
             exit = -1;
             var fail = false;
@@ -2334,14 +2333,14 @@ namespace IKVM.Runtime
             }
         }
 
-        void ConditionalPatchNoClassDefFoundError(ref ClassFile.Method.Instruction instruction, RuntimeJavaType tw)
+        void ConditionalPatchNoClassDefFoundError(ref Instruction instruction, RuntimeJavaType tw)
         {
             var loader = _type.ClassLoader;
             if (loader.DisableDynamicBinding)
                 SetHardError(loader, ref instruction, HardError.NoClassDefFoundError, "{0}", tw.Name);
         }
 
-        void SetHardError(RuntimeClassLoader classLoader, ref ClassFile.Method.Instruction instruction, HardError hardError, string message, params object[] args)
+        void SetHardError(RuntimeClassLoader classLoader, ref Instruction instruction, HardError hardError, string message, params object[] args)
         {
             var text = string.Format(message, args);
 
@@ -2381,7 +2380,7 @@ namespace IKVM.Runtime
             instruction.SetHardError(hardError, AllocErrorMessage(text));
         }
 
-        void PatchInvoke(RuntimeJavaType wrapper, ref ClassFile.Method.Instruction instr, StackState stack)
+        void PatchInvoke(RuntimeJavaType wrapper, ref Instruction instr, StackState stack)
         {
             var cpi = GetMethodref(instr.Arg1);
             var invoke = instr.NormalizedOpCode;
@@ -2543,7 +2542,7 @@ namespace IKVM.Runtime
             return str.Replace('.', '/');
         }
 
-        void PatchFieldAccess(RuntimeJavaType wrapper, RuntimeJavaMethod mw, ref ClassFile.Method.Instruction instr, StackState stack)
+        void PatchFieldAccess(RuntimeJavaType wrapper, RuntimeJavaMethod mw, ref Instruction instr, StackState stack)
         {
             var cpi = GetFieldref(instr.Arg1);
             bool isStatic;
@@ -2718,7 +2717,7 @@ namespace IKVM.Runtime
             return index;
         }
 
-        string CheckLoaderConstraints(ClassFile.ConstantPoolItemMI cpi, RuntimeJavaMethod mw)
+        string CheckLoaderConstraints(ConstantPoolItemMI cpi, RuntimeJavaMethod mw)
         {
 #if NETFRAMEWORK
             if (cpi.GetRetType() != mw.ReturnType && !cpi.GetRetType().IsUnloadable && !mw.ReturnType.IsUnloadable)
@@ -2752,7 +2751,7 @@ namespace IKVM.Runtime
             return null;
         }
 
-        ClassFile.ConstantPoolItemInvokeDynamic GetInvokeDynamic(int index)
+        ConstantPoolItemInvokeDynamic GetInvokeDynamic(int index)
         {
             try
             {
@@ -2786,7 +2785,7 @@ namespace IKVM.Runtime
             throw new VerifyError("Illegal constant pool index");
         }
 
-        ClassFile.ConstantPoolItemMI GetMethodref(int index)
+        ConstantPoolItemMI GetMethodref(int index)
         {
             try
             {
@@ -2818,7 +2817,7 @@ namespace IKVM.Runtime
             throw new VerifyError("Illegal constant pool index");
         }
 
-        ClassFile.ConstantPoolItemFieldref GetFieldref(int index)
+        ConstantPoolItemFieldref GetFieldref(int index)
         {
             try
             {
@@ -2850,7 +2849,7 @@ namespace IKVM.Runtime
             throw new VerifyError("Illegal constant pool index");
         }
 
-        ClassFile.ConstantType GetConstantPoolConstantType(int slot)
+        ConstantType GetConstantPoolConstantType(int slot)
         {
             try
             {

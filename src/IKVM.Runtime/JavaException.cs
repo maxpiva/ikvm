@@ -23,13 +23,15 @@
 */
 using System;
 
+using IKVM.CoreLib.Exceptions;
+
 namespace IKVM.Runtime
 {
 
     /// <summary>
     /// .NET exception that corresponds to a Java exception.
     /// </summary>
-    abstract class RetargetableJavaException : ApplicationException
+    abstract class RetargetableJavaException : TranslatableJavaException
     {
 
         /// <summary>
@@ -322,30 +324,6 @@ namespace IKVM.Runtime
         internal override Exception ToJava()
         {
             return new java.lang.ClassFormatError(Message);
-        }
-
-#endif
-
-    }
-
-    sealed class UnsupportedClassVersionError : ClassFormatError
-    {
-
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        /// <param name="message"></param>
-        internal UnsupportedClassVersionError(string message) :
-            base(message)
-        {
-
-        }
-
-#if !IMPORTER && !FIRST_PASS && !EXPORTER
-
-        internal override Exception ToJava()
-        {
-            return new java.lang.UnsupportedClassVersionError(Message);
         }
 
 #endif

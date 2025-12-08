@@ -26,6 +26,8 @@ using System;
 using System.Collections.Generic;
 
 using IKVM.CoreLib.Diagnostics;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER
 using IKVM.Reflection;
@@ -38,22 +40,20 @@ using System.Reflection;
 using System.Reflection.Emit;
 #endif
 
-using Instruction = IKVM.Runtime.ClassFile.Method.Instruction;
-using InstructionFlags = IKVM.Runtime.ClassFile.Method.InstructionFlags;
-
 namespace IKVM.Runtime
 {
 
     static class Intrinsics
     {
 
-        private delegate bool Emitter(EmitIntrinsicContext eic);
+        delegate bool Emitter(EmitIntrinsicContext eic);
 
-        private struct IntrinsicKey : IEquatable<IntrinsicKey>
+        struct IntrinsicKey : IEquatable<IntrinsicKey>
         {
-            private readonly string className;
-            private readonly string methodName;
-            private readonly string methodSignature;
+
+            readonly string className;
+            readonly string methodName;
+            readonly string methodSignature;
 
             internal IntrinsicKey(string className, string methodName, string methodSignature)
             {
@@ -176,7 +176,7 @@ namespace IKVM.Runtime
                 && (eic.Match(3, NormalizedByteCode.__if_acmpeq) || eic.Match(3, NormalizedByteCode.__if_acmpne))
                 && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
             {
-                ClassFile.ConstantPoolItemMI cpi = eic.GetMethodref(2);
+                ConstantPoolItemMI cpi = eic.GetMethodref(2);
                 if (cpi.Class == "java.lang.Object" && cpi.Name == "getClass" && cpi.Signature == "()Ljava.lang.Class;")
                 {
                     // we can't patch the current opcode, so we have to emit the first call to GetTypeHandle here
@@ -187,7 +187,7 @@ namespace IKVM.Runtime
             }
             // this optimizes obj.getClass() == Xxx.class
             else if (eic.MatchRange(0, 3)
-                && eic.Match(1, NormalizedByteCode.__ldc) && eic.GetConstantType(1) == ClassFile.ConstantType.Class
+                && eic.Match(1, NormalizedByteCode.__ldc) && eic.GetConstantType(1) == ConstantType.Class
                 && (eic.Match(2, NormalizedByteCode.__if_acmpeq) || eic.Match(2, NormalizedByteCode.__if_acmpne)))
             {
                 RuntimeJavaType tw = eic.GetClassLiteral(1);
@@ -1024,7 +1024,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static RuntimeJavaField GetUnsafeField(EmitIntrinsicContext eic, ClassFile.ConstantPoolItemFieldref field)
+        static RuntimeJavaField GetUnsafeField(EmitIntrinsicContext eic, ConstantPoolItemFieldref field)
         {
             if (eic.Caller.DeclaringType.ClassLoader != eic.Method.DeclaringType.Context.JavaBase.TypeOfJavaLangObject.ClassLoader)
             {
@@ -1068,7 +1068,7 @@ namespace IKVM.Runtime
                             {
                                 if (MatchInvokeVirtual(eic, ref method.Instructions[i - 1], "sun.misc.Unsafe", "objectFieldOffset", "(Ljava.lang.reflect.Field;)J") &&
                                     MatchInvokeVirtual(eic, ref method.Instructions[i - 2], "java.lang.Class", "getDeclaredField", "(Ljava.lang.String;)Ljava.lang.reflect.Field;") &&
-                                    MatchLdc(eic, ref method.Instructions[i - 3], ClassFile.ConstantType.String) &&
+                                    MatchLdc(eic, ref method.Instructions[i - 3], ConstantType.String) &&
                                     (method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__aload || method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__ldc) &&
                                     method.Instructions[i - 5].NormalizedOpCode == NormalizedByteCode.__getstatic && eic.ClassFile.GetFieldref(method.Instructions[i - 5].Arg1).Signature == "Lsun.misc.Unsafe;")
                                 {
@@ -1105,7 +1105,7 @@ namespace IKVM.Runtime
                                     {
                                         if (method.Instructions[j].NormalizedOpCode == NormalizedByteCode.__astore &&
                                             method.Instructions[j].Arg1 == method.Instructions[i - 4].Arg1 &&
-                                            MatchLdc(eic, ref method.Instructions[j - 1], ClassFile.ConstantType.Class) &&
+                                            MatchLdc(eic, ref method.Instructions[j - 1], ConstantType.Class) &&
                                             eic.ClassFile.GetConstantPoolClassType(method.Instructions[j - 1].Arg1) == eic.Caller.DeclaringType)
                                         {
                                             var fieldName = eic.ClassFile.GetConstantPoolConstantString(method.Instructions[i - 3].Arg1);
@@ -1164,7 +1164,7 @@ namespace IKVM.Runtime
             return false;
         }
 
-        static bool MatchLdc(EmitIntrinsicContext eic, ref Instruction instr, ClassFile.ConstantType constantType)
+        static bool MatchLdc(EmitIntrinsicContext eic, ref Instruction instr, ConstantType constantType)
         {
             return (instr.NormalizedOpCode == NormalizedByteCode.__ldc || instr.NormalizedOpCode == NormalizedByteCode.__ldc_nothrow) && eic.ClassFile.GetConstantPoolConstantType(instr.NormalizedArg1) == constantType;
         }

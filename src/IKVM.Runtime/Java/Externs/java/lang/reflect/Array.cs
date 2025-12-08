@@ -22,7 +22,9 @@
   
 */
 using System;
+using System.Runtime.ExceptionServices;
 
+using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 
 namespace IKVM.Java.Externs.java.lang.reflect
@@ -590,31 +592,26 @@ namespace IKVM.Java.Externs.java.lang.reflect
         public static object newArray(global::java.lang.Class componentType, int length)
         {
             if (componentType == null)
-            {
                 throw new global::java.lang.NullPointerException();
-            }
             if (componentType == global::java.lang.Void.TYPE)
-            {
                 throw new global::java.lang.IllegalArgumentException();
-            }
             if (length < 0)
-            {
                 throw new global::java.lang.NegativeArraySizeException();
-            }
+
             try
             {
-                RuntimeJavaType wrapper = RuntimeJavaType.FromClass(componentType);
+                var wrapper = RuntimeJavaType.FromClass(componentType);
                 wrapper.Finish();
                 object obj = global::System.Array.CreateInstance(wrapper.TypeAsArrayType, length);
                 if (wrapper.IsGhost || wrapper.IsGhostArray)
-                {
-                    IKVM.Runtime.GhostTag.SetTag(obj, wrapper.MakeArrayType(1));
-                }
+                    GhostTag.SetTag(obj, wrapper.MakeArrayType(1));
+
                 return obj;
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
             catch (NotSupportedException x)
             {
@@ -627,37 +624,33 @@ namespace IKVM.Java.Externs.java.lang.reflect
         public static object multiNewArray(global::java.lang.Class componentType, int[] dimensions)
         {
             if (componentType == null || dimensions == null)
-            {
                 throw new global::java.lang.NullPointerException();
-            }
             if (componentType == global::java.lang.Void.TYPE)
-            {
                 throw new global::java.lang.IllegalArgumentException();
-            }
             if (dimensions.Length == 0 || dimensions.Length > 255)
-            {
                 throw new global::java.lang.IllegalArgumentException();
-            }
+
             try
             {
-                RuntimeJavaType wrapper = RuntimeJavaType.FromClass(componentType).MakeArrayType(dimensions.Length);
+                var wrapper = RuntimeJavaType.FromClass(componentType).MakeArrayType(dimensions.Length);
                 wrapper.Finish();
-                object obj = IKVM.Runtime.ByteCodeHelper.multianewarray(wrapper.TypeAsArrayType.TypeHandle, dimensions);
+
+                var obj = ByteCodeHelper.multianewarray(wrapper.TypeAsArrayType.TypeHandle, dimensions);
                 if (wrapper.IsGhostArray)
-                {
-                    IKVM.Runtime.GhostTag.SetTag(obj, wrapper);
-                }
+                    GhostTag.SetTag(obj, wrapper);
+
                 return obj;
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
-            catch (NotSupportedException x)
+            catch (NotSupportedException e)
             {
                 // This happens when you try to create an array from TypedReference, ArgIterator, ByRef,
                 // RuntimeArgumentHandle or an open generic type.
-                throw new global::java.lang.IllegalArgumentException(x.Message);
+                throw new global::java.lang.IllegalArgumentException(e.Message);
             }
         }
 

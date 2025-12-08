@@ -940,7 +940,7 @@ namespace IKVM.Reflection.Reader
             return null;
         }
 
-        internal Stream GetManifestResourceStream(string resourceName)
+        internal Stream? GetManifestResourceStream(string resourceName)
         {
             for (int i = 0; i < ManifestResourceTable.records.Length; i++)
             {

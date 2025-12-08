@@ -24,10 +24,12 @@
 using System;
 using System.Buffers;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 
 using IKVM.ByteCode;
 using IKVM.ByteCode.Encoding;
+using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 
 using sun.nio.ch;
@@ -149,7 +151,7 @@ namespace IKVM.Java.Externs.java.lang
             try
             {
                 var runtimeClassLoader = JVM.Context.ClassLoaderFactory.GetClassLoaderWrapper(self);
-                var classFile = new IKVM.Runtime.ClassFile(JVM.Context, JVM.Context.Diagnostics, clazz, name, runtimeClassLoader.ClassFileParseOptions, null);
+                var classFile = new ClassFile(JVM.Context, clazz, name, runtimeClassLoader.ClassFileParseOptions, null);
                 if (name != null && classFile.Name != name)
                     throw new global::java.lang.NoClassDefFoundError(name + " (wrong name: " + classFile.Name + ")");
 
@@ -159,9 +161,10 @@ namespace IKVM.Java.Externs.java.lang
 
                 return type.ClassObject;
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
         }
 
@@ -192,9 +195,10 @@ namespace IKVM.Java.Externs.java.lang
             {
                 return JVM.Context.ClassLoaderFactory.GetBootstrapClassLoader().TryLoadClassByName(name)?.ClassObject;
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
 #endif
         }

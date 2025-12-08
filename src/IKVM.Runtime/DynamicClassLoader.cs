@@ -28,6 +28,8 @@ using System.Runtime.Serialization;
 using IKVM.CoreLib.Diagnostics;
 
 using static System.Diagnostics.DebuggableAttribute;
+using IKVM.CoreLib.Linking;
+
 
 #if IMPORTER
 using IKVM.Reflection;

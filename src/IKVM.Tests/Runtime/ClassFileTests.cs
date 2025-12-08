@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 
+using IKVM.CoreLib.Linking;
 using IKVM.Runtime;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,7 +8,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace IKVM.Tests.Runtime
 {
 
-    [TestClass]
+    using ClassFile = ClassFile<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod>;
+
+        [TestClass]
     public class ClassFileTests
     {
 

@@ -23,8 +23,10 @@
 */
 using System;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 using IKVM.CoreLib.Diagnostics;
+using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 using IKVM.Runtime.Accessors.Java.Lang;
 
@@ -59,7 +61,7 @@ namespace IKVM.Java.Externs.ikvm.runtime
             try
             {
                 if (ClassLoaderAccessor.InvokeCheckName(_this, name) == false)
-                    throw new ClassNotFoundException(name);
+                    throw new IKVM.Runtime.ClassNotFoundException(name);
 
                 var wrapper = (RuntimeAssemblyClassLoader)JVM.Context.ClassLoaderFactory.GetClassLoaderWrapper(_this);
                 var tw = wrapper.LoadClass(name);
@@ -73,20 +75,11 @@ namespace IKVM.Java.Externs.ikvm.runtime
                 JVM.Context.Diagnostics.GenericClassLoadingInfo($"Loaded class \"{name}\" from {_this}");
                 return tw.ClassObject;
             }
-            catch (ClassNotFoundException x)
+            catch (TranslatableJavaException e)
             {
-                JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {x.Message}");
-                throw new global::java.lang.ClassNotFoundException(x.Message);
-            }
-            catch (ClassLoadingException x)
-            {
-                JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {x.Message}");
-                throw x.InnerException;
-            }
-            catch (RetargetableJavaException x)
-            {
-                JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {x.Message}");
-                throw x.ToJava();
+                JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {e.Message}");
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
 #endif
         }

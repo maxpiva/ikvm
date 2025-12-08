@@ -23,9 +23,14 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 
+using IKVM.Attributes;
+using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 using IKVM.Runtime.Accessors.Java.Lang;
+
+using java.lang;
 
 namespace IKVM.Java.Externs.java.lang
 {
@@ -86,18 +91,15 @@ namespace IKVM.Java.Externs.java.lang
                 {
                     javaType = JVM.Context.ClassLoaderFactory.GetClassLoaderWrapper(loader).LoadClassByName(name);
                 }
-                catch (ClassNotFoundException e)
+                catch (IKVM.Runtime.ClassNotFoundException e)
                 {
                     global::java.lang.Throwable.suppressFillInStackTrace = true;
                     throw new global::java.lang.ClassNotFoundException(e.Message);
                 }
-                catch (ClassLoadingException e)
-                {
-                    throw e.InnerException;
-                }
                 catch (RetargetableJavaException e)
                 {
-                    throw e.ToJava();
+                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                    throw null;
                 }
             }
 
@@ -110,9 +112,10 @@ namespace IKVM.Java.Externs.java.lang
                 {
                     javaType.Finish();
                 }
-                catch (RetargetableJavaException e)
+                catch (TranslatableJavaException e)
                 {
-                    throw e.ToJava();
+                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                    throw null;
                 }
 
                 javaType.RunClassInit();
@@ -318,7 +321,7 @@ namespace IKVM.Java.Externs.java.lang
         {
             // the 0x7FFF mask comes from JVM_ACC_WRITTEN_FLAGS in hotspot\src\share\vm\utilities\accessFlags.hpp
             // masking out ACC_SUPER comes from instanceKlass::compute_modifier_flags() in hotspot\src\share\vm\oops\instanceKlass.cpp
-            const int mask = 0x7FFF & (int)~IKVM.Attributes.Modifiers.Super;
+            const int mask = 0x7FFF & (int)~Modifiers.Super;
             return (int)RuntimeJavaType.FromClass(thisClass).ReflectiveModifiers & mask;
         }
 
@@ -340,6 +343,9 @@ namespace IKVM.Java.Externs.java.lang
 
         public static object[] getEnclosingMethod0(global::java.lang.Class thisClass)
         {
+#if FIRST_PASS
+            throw new NotImplementedException();
+#else
             try
             {
                 var type = RuntimeJavaType.FromClass(thisClass);
@@ -351,14 +357,19 @@ namespace IKVM.Java.Externs.java.lang
 
                 return [type.ClassLoader.LoadClassByName(enc[0]).ClassObject, enc[1], enc[2]?.Replace('.', '/')];
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
+#endif
         }
 
         public static global::java.lang.Class getDeclaringClass0(global::java.lang.Class thisClass)
         {
+#if FIRST_PASS
+            throw new NotImplementedException();
+#else
             try
             {
                 var type = RuntimeJavaType.FromClass(thisClass);
@@ -370,7 +381,7 @@ namespace IKVM.Java.Externs.java.lang
 
                 declaringType = declaringType.EnsureLoadable(type.ClassLoader);
                 if (declaringType.IsAccessibleFrom(type) == false)
-                    throw new IllegalAccessError(string.Format("tried to access class {0} from class {1}", declaringType.Name, type.Name));
+                    throw new IKVM.Runtime.IllegalAccessError(string.Format("tried to access class {0} from class {1}", declaringType.Name, type.Name));
 
                 declaringType.Finish();
 
@@ -378,12 +389,14 @@ namespace IKVM.Java.Externs.java.lang
                     if (declaringTypeInnerType.Name == type.Name && declaringTypeInnerType.EnsureLoadable(declaringType.ClassLoader) == type)
                         return declaringType.ClassObject;
 
-                throw new IncompatibleClassChangeError(string.Format("{0} and {1} disagree on InnerClasses attribute", declaringType.Name, type.Name));
+                throw new IKVM.Runtime.IncompatibleClassChangeError(string.Format("{0} and {1} disagree on InnerClasses attribute", declaringType.Name, type.Name));
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
+#endif
         }
 
         public static global::java.security.ProtectionDomain getProtectionDomain0(global::java.lang.Class thisClass)
@@ -512,9 +525,9 @@ namespace IKVM.Java.Externs.java.lang
             {
                 type.Finish();
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
             }
 
             return AnnotationsToMap(type.ClassLoader, type.GetDeclaredAnnotations());
@@ -552,9 +565,9 @@ namespace IKVM.Java.Externs.java.lang
 
                 return list.ToArray();
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -570,10 +583,10 @@ namespace IKVM.Java.Externs.java.lang
                 type.Finish();
 
                 if (type.HasVerifyError)
-                    throw new VerifyError();
+                    throw new IKVM.Runtime.VerifyError();
 
                 if (type.HasClassFormatError)
-                    throw new ClassFormatError(type.Name);
+                    throw new IKVM.Runtime.ClassFormatError(type.Name);
 
                 var methods = type.GetMethods();
                 var list = new List<global::java.lang.reflect.Method>(methods.Length);
@@ -586,9 +599,9 @@ namespace IKVM.Java.Externs.java.lang
 
                 return list.ToArray();
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -604,10 +617,10 @@ namespace IKVM.Java.Externs.java.lang
                 type.Finish();
 
                 if (type.HasVerifyError)
-                    throw new VerifyError();
+                    throw new IKVM.Runtime.VerifyError();
 
                 if (type.HasClassFormatError)
-                    throw new ClassFormatError(type.Name);
+                    throw new IKVM.Runtime.ClassFormatError(type.Name);
 
                 var methods = type.GetMethods();
                 var list = new List<global::java.lang.reflect.Constructor>(methods.Length);
@@ -621,9 +634,9 @@ namespace IKVM.Java.Externs.java.lang
 
                 return list.ToArray();
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -644,7 +657,7 @@ namespace IKVM.Java.Externs.java.lang
                 {
                     var innerType = innerTypes[i].EnsureLoadable(type.ClassLoader);
                     if (innerType.IsAccessibleFrom(type) == false)
-                        throw new IllegalAccessError(string.Format("tried to access class {0} from class {1}", innerType.Name, type.Name));
+                        throw new IKVM.Runtime.IllegalAccessError(string.Format("tried to access class {0} from class {1}", innerType.Name, type.Name));
 
                     innerType.Finish();
                     list[i] = innerType.ClassObject;
@@ -652,9 +665,9 @@ namespace IKVM.Java.Externs.java.lang
 
                 return list;
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }

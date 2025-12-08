@@ -29,6 +29,7 @@ using System.Runtime.CompilerServices;
 
 using IKVM.Attributes;
 using IKVM.ByteCode;
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER || EXPORTER
 using IKVM.Reflection;
@@ -44,6 +45,9 @@ using System.Reflection;
 
 using IKVM.Java.Externs.java.lang.invoke;
 using IKVM.Runtime.Accessors.Java.Lang;
+using IKVM.CoreLib.Exceptions;
+
+using System.Runtime.ExceptionServices;
 
 #endif
 
@@ -219,9 +223,10 @@ namespace IKVM.Runtime
                 wrapper.Finish();
                 return wrapper;
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                throw e.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
 #endif
         }
@@ -300,9 +305,10 @@ namespace IKVM.Runtime
 
                 Interlocked.CompareExchange(ref cache, global::java.lang.invoke.MethodType.methodType(loader.RetTypeWrapperFromSig(sig, LoadMode.LoadOrThrow).ClassObject, ptypes), null);
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                throw e.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
 #endif
         }
@@ -351,9 +357,10 @@ namespace IKVM.Runtime
                         return global::java.lang.invoke.MethodHandleNatives.linkMethodHandleConstant(callerID.getCallerClass(), kind, refc, name, mt);
                 }
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                throw x.ToJava();
+                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
+                throw null;
             }
 #endif
         }

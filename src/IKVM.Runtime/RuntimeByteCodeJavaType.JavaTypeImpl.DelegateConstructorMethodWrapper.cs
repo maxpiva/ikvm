@@ -23,6 +23,9 @@
 */
 using System;
 
+using IKVM.Attributes;
+using IKVM.CoreLib.Linking;
+
 #if IMPORTER
 using IKVM.Reflection;
 using IKVM.Reflection.Emit;
@@ -53,8 +56,8 @@ namespace IKVM.Runtime
                 /// </summary>
                 /// <param name="tw"></param>
                 /// <param name="m"></param>
-                internal DelegateConstructorMethodWrapper(RuntimeByteCodeJavaType tw, ClassFile.Method m) :
-                    base(tw, m.Name, m.Signature, null, null, null, m.Modifiers, MemberFlags.None)
+                internal DelegateConstructorMethodWrapper(RuntimeByteCodeJavaType tw, Method m) :
+                    base(tw, m.Name, m.Signature, null, null, null, (Modifiers)m.AccessFlags, MemberFlags.None)
                 {
 
                 }
