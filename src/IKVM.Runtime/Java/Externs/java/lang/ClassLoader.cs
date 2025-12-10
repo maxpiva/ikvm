@@ -22,17 +22,11 @@
   
 */
 using System;
-using System.Buffers;
 using System.Linq;
-using System.Runtime.ExceptionServices;
-using System.Runtime.InteropServices;
 
 using IKVM.ByteCode;
-using IKVM.ByteCode.Encoding;
 using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
-
-using sun.nio.ch;
 
 namespace IKVM.Java.Externs.java.lang
 {

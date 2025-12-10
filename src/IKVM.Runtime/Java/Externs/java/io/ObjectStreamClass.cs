@@ -24,7 +24,6 @@
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Runtime.ExceptionServices;
 
 using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;

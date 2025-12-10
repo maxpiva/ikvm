@@ -1559,7 +1559,24 @@ namespace IKVM.Java.Externs.sun.misc
             try
             {
                 if (cpPatches is not null)
-                    throw new NotImplementedException("Unpack the constant pool patches here into a format the ClassFile understands");
+                {
+                    var temp = new object[cpPatches.Length];
+
+                    for (int i = 0; i < cpPatches.Length; i++)
+                    {
+                        temp[i] = cpPatches[i] switch
+                        {
+                            global::java.lang.Class clazz => RuntimeJavaType.FromClass(clazz),
+                            global::java.lang.Integer integer_ => integer_.intValue(),
+                            global::java.lang.Long long_ => long_.longValue(),
+                            global::java.lang.Float float_ => float_.floatValue(),
+                            global::java.lang.Double double_ => double_.doubleValue(),
+                            _ => cpPatches[i],
+                        };
+                    }
+
+                    cpPatches = temp;
+                }
 
                 var tw = RuntimeJavaType.FromClass(hostClass);
                 var cl = tw.ClassLoader;

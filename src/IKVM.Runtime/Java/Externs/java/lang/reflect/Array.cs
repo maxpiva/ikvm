@@ -22,7 +22,6 @@
   
 */
 using System;
-using System.Runtime.ExceptionServices;
 
 using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;

@@ -23,9 +23,7 @@
 */
 using System;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 
-using IKVM.CoreLib.Diagnostics;
 using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 using IKVM.Runtime.Accessors.Java.Lang;

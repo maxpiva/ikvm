@@ -23,7 +23,6 @@
 */
 using System;
 using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
 
 using IKVM.Attributes;
 using IKVM.CoreLib.Exceptions;
@@ -93,6 +92,10 @@ namespace IKVM.Java.Externs.java.lang
                 {
                     global::java.lang.Throwable.suppressFillInStackTrace = true;
                     throw new global::java.lang.ClassNotFoundException(e.Message);
+                }
+                catch (ClassLoadingException e)
+                {
+                    throw e.InnerException;
                 }
                 catch (TranslatableJavaException e)
                 {
@@ -577,10 +580,10 @@ namespace IKVM.Java.Externs.java.lang
                 type.Finish();
 
                 if (type.HasVerifyError)
-                    throw new IKVM.Runtime.VerifyError();
+                    throw new VerifyError();
 
                 if (type.HasClassFormatError)
-                    throw new IKVM.Runtime.ClassFormatError(type.Name);
+                    throw new ClassFormatError(type.Name);
 
                 var methods = type.GetMethods();
                 var list = new List<global::java.lang.reflect.Method>(methods.Length);
@@ -611,10 +614,10 @@ namespace IKVM.Java.Externs.java.lang
                 type.Finish();
 
                 if (type.HasVerifyError)
-                    throw new IKVM.Runtime.VerifyError();
+                    throw new VerifyError();
 
                 if (type.HasClassFormatError)
-                    throw new IKVM.Runtime.ClassFormatError(type.Name);
+                    throw new ClassFormatError(type.Name);
 
                 var methods = type.GetMethods();
                 var list = new List<global::java.lang.reflect.Constructor>(methods.Length);
