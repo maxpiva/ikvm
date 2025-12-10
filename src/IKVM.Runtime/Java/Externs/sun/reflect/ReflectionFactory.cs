@@ -789,8 +789,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
             }
 
@@ -961,8 +960,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
             }
 
@@ -1012,8 +1010,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
 
                 DynamicMethod dm = DynamicMethodUtil.Create("__<SerializationCtor>", constructor.DeclaringType.TypeAsBaseType, true, typeof(object), null);
@@ -2072,8 +2069,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
 
                 fw.ResolveField();
@@ -2120,8 +2116,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
 
                 fw.ResolveField();
@@ -2230,7 +2225,7 @@ namespace IKVM.Java.Externs.sun.reflect
         public static global::sun.reflect.FieldAccessor newFieldAccessor(object thisFactory, global::java.lang.reflect.Field field, bool overrideAccessCheck)
         {
 #if FIRST_PASS
-		return null;
+            return null;
 #else
             // we look at the modifiers of the Field object to allow Unsafe to give us a fake Field take doesn't have the final flag set
             int modifiers = field.getModifiers();
@@ -2250,7 +2245,7 @@ namespace IKVM.Java.Externs.sun.reflect
         public static global::sun.reflect.MethodAccessor newMethodAccessor(object thisFactory, global::java.lang.reflect.Method method)
         {
 #if FIRST_PASS
-		return null;
+            return null;
 #else
             RuntimeJavaMethod mw = RuntimeJavaMethod.FromExecutable(method);
 #if !NO_REF_EMIT
@@ -2266,7 +2261,7 @@ namespace IKVM.Java.Externs.sun.reflect
         public static global::sun.reflect.ConstructorAccessor newConstructorAccessor0(object thisFactory, global::java.lang.reflect.Constructor constructor)
         {
 #if FIRST_PASS
-		return null;
+            return null;
 #else
             RuntimeJavaMethod mw = RuntimeJavaMethod.FromExecutable(constructor);
             if (ActivatorConstructorAccessor.IsSuitable(mw))
@@ -2290,7 +2285,7 @@ namespace IKVM.Java.Externs.sun.reflect
         public static global::sun.reflect.ConstructorAccessor newConstructorAccessorForSerialization(global::java.lang.Class classToInstantiate, global::java.lang.reflect.Constructor constructorToCall)
         {
 #if FIRST_PASS
-		return null;
+            return null;
 #else
             try
             {

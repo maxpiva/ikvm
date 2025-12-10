@@ -30,8 +30,6 @@ using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 using IKVM.Runtime.Accessors.Java.Lang;
 
-using java.lang;
-
 namespace IKVM.Java.Externs.java.lang
 {
 
@@ -91,15 +89,14 @@ namespace IKVM.Java.Externs.java.lang
                 {
                     javaType = JVM.Context.ClassLoaderFactory.GetClassLoaderWrapper(loader).LoadClassByName(name);
                 }
-                catch (IKVM.Runtime.ClassNotFoundException e)
+                catch (ClassNotFoundException e)
                 {
                     global::java.lang.Throwable.suppressFillInStackTrace = true;
                     throw new global::java.lang.ClassNotFoundException(e.Message);
                 }
-                catch (RetargetableJavaException e)
+                catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
             }
 
@@ -114,8 +111,7 @@ namespace IKVM.Java.Externs.java.lang
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
 
                 javaType.RunClassInit();
@@ -359,8 +355,7 @@ namespace IKVM.Java.Externs.java.lang
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -381,7 +376,7 @@ namespace IKVM.Java.Externs.java.lang
 
                 declaringType = declaringType.EnsureLoadable(type.ClassLoader);
                 if (declaringType.IsAccessibleFrom(type) == false)
-                    throw new IKVM.Runtime.IllegalAccessError(string.Format("tried to access class {0} from class {1}", declaringType.Name, type.Name));
+                    throw new IllegalAccessError(string.Format("tried to access class {0} from class {1}", declaringType.Name, type.Name));
 
                 declaringType.Finish();
 
@@ -389,12 +384,11 @@ namespace IKVM.Java.Externs.java.lang
                     if (declaringTypeInnerType.Name == type.Name && declaringTypeInnerType.EnsureLoadable(declaringType.ClassLoader) == type)
                         return declaringType.ClassObject;
 
-                throw new IKVM.Runtime.IncompatibleClassChangeError(string.Format("{0} and {1} disagree on InnerClasses attribute", declaringType.Name, type.Name));
+                throw new IncompatibleClassChangeError(string.Format("{0} and {1} disagree on InnerClasses attribute", declaringType.Name, type.Name));
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -482,9 +476,9 @@ namespace IKVM.Java.Externs.java.lang
                     {
                         map.put(a.annotationType(), FreezeOrWrapAttribute(a));
                     }
-                    else if (obj is IKVM.Attributes.DynamicAnnotationAttribute)
+                    else if (obj is DynamicAnnotationAttribute)
                     {
-                        a = (global::java.lang.annotation.Annotation)JVM.NewAnnotation(loader.GetJavaClassLoader(), ((IKVM.Attributes.DynamicAnnotationAttribute)obj).Definition);
+                        a = (global::java.lang.annotation.Annotation)JVM.NewAnnotation(loader.GetJavaClassLoader(), ((DynamicAnnotationAttribute)obj).Definition);
                         if (a != null)
                             map.put(a.annotationType(), a);
                     }
@@ -527,7 +521,7 @@ namespace IKVM.Java.Externs.java.lang
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 
             return AnnotationsToMap(type.ClassLoader, type.GetDeclaredAnnotations());
@@ -567,7 +561,7 @@ namespace IKVM.Java.Externs.java.lang
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -601,7 +595,7 @@ namespace IKVM.Java.Externs.java.lang
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -636,7 +630,7 @@ namespace IKVM.Java.Externs.java.lang
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -657,7 +651,7 @@ namespace IKVM.Java.Externs.java.lang
                 {
                     var innerType = innerTypes[i].EnsureLoadable(type.ClassLoader);
                     if (innerType.IsAccessibleFrom(type) == false)
-                        throw new IKVM.Runtime.IllegalAccessError(string.Format("tried to access class {0} from class {1}", innerType.Name, type.Name));
+                        throw new IllegalAccessError(string.Format("tried to access class {0} from class {1}", innerType.Name, type.Name));
 
                     innerType.Finish();
                     list[i] = innerType.ClassObject;
@@ -667,14 +661,14 @@ namespace IKVM.Java.Externs.java.lang
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
 
         public static bool desiredAssertionStatus0(global::java.lang.Class clazz)
         {
-            return IKVM.Runtime.Assertions.IsEnabled(RuntimeJavaType.FromClass(clazz));
+            return Assertions.IsEnabled(RuntimeJavaType.FromClass(clazz));
         }
 
     }

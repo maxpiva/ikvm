@@ -61,7 +61,7 @@ namespace IKVM.Java.Externs.ikvm.runtime
             try
             {
                 if (ClassLoaderAccessor.InvokeCheckName(_this, name) == false)
-                    throw new IKVM.Runtime.ClassNotFoundException(name);
+                    throw new ClassNotFoundException(name);
 
                 var wrapper = (RuntimeAssemblyClassLoader)JVM.Context.ClassLoaderFactory.GetClassLoaderWrapper(_this);
                 var tw = wrapper.LoadClass(name);
@@ -78,8 +78,7 @@ namespace IKVM.Java.Externs.ikvm.runtime
             catch (TranslatableJavaException e)
             {
                 JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {e.Message}");
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }

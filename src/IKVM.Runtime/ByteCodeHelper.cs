@@ -225,8 +225,7 @@ namespace IKVM.Runtime
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -307,8 +306,7 @@ namespace IKVM.Runtime
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -359,8 +357,7 @@ namespace IKVM.Runtime
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 #endif
         }
@@ -1322,7 +1319,7 @@ namespace IKVM.Runtime
 #if FIRST_PASS
             throw new NotImplementedException();
 #else
-            return JVM.Context.ExceptionHelper.MapException<T>(x, (mode & MapFlags.NoRemapping) == 0, (mode & MapFlags.Unused) != 0);
+            return JVM.Context.ExceptionHelper.MapException<Exception, T>(x, (mode & MapFlags.NoRemapping) == 0, (mode & MapFlags.Unused) != 0);
 #endif
         }
 

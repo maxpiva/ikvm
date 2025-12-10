@@ -880,12 +880,15 @@ namespace IKVM.Runtime
                         {
                             ilGenerator.BeginCatchBlock(finish.Context.Types.Exception);
                         }
-                        BranchCookie bc = new BranchCookie(this, 1, exc.handlerIndex);
+
+                        var bc = new BranchCookie(this, 1, exc.handlerIndex);
                         prevBlock.AddExitHack(bc);
-                        Instruction handlerInstr = code[handlerIndex];
+                        var handlerInstr = code[handlerIndex];
+
                         bool unusedException = (handlerInstr.NormalizedOpCode == NormalizedByteCode.__pop ||
                             (handlerInstr.NormalizedOpCode == NormalizedByteCode.__astore &&
                             localVars.GetLocalVar(handlerIndex) == null));
+
                         int mapFlags = unusedException ? 2 : 0;
                         if (mapSafe && unusedException)
                         {
@@ -894,12 +897,12 @@ namespace IKVM.Runtime
                         else if (mapSafe)
                         {
                             ilGenerator.EmitLdc_I4(mapFlags | 1);
-                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(excType));
+                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(finish.Context.Types.Exception, excType));
                         }
                         else if (exceptionTypeWrapper == finish.Context.JavaBase.TypeOfjavaLangThrowable)
                         {
                             ilGenerator.EmitLdc_I4(mapFlags);
-                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(finish.Context.Types.Exception));
+                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(finish.Context.Types.Exception, finish.Context.Types.Exception));
                         }
                         else
                         {

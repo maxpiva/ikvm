@@ -101,8 +101,7 @@ namespace IKVM.Runtime
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
             }
 

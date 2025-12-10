@@ -161,8 +161,7 @@ namespace IKVM.Java.Externs.java.io
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(wrapper.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw wrapper.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
 
             var type = wrapper.TypeAsTBD;
@@ -247,8 +246,7 @@ namespace IKVM.Java.Externs.java.io
                     }
                     catch (TranslatableJavaException e)
                     {
-                        ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                        throw null;
+                        throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                     }
 
                     var dmObjGetter = DynamicMethodUtil.Create("__<ObjFieldGetter>", tw.TypeAsBaseType, true, null, new Type[] { typeof(object), typeof(object[]) });
@@ -287,8 +285,7 @@ namespace IKVM.Java.Externs.java.io
                         }
                         catch (TranslatableJavaException e)
                         {
-                            ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                            throw null;
+                            throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                         }
 
                         if (fieldType.IsPrimitive)

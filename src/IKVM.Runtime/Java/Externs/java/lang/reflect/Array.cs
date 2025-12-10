@@ -610,8 +610,7 @@ namespace IKVM.Java.Externs.java.lang.reflect
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
             catch (NotSupportedException x)
             {
@@ -643,8 +642,7 @@ namespace IKVM.Java.Externs.java.lang.reflect
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
             catch (NotSupportedException e)
             {

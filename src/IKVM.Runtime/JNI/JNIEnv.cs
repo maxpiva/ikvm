@@ -231,8 +231,7 @@ namespace IKVM.Runtime.JNI
                 }
                 catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                 }
             }
             catch (Exception e)
@@ -359,8 +358,7 @@ namespace IKVM.Runtime.JNI
                     }
                     catch (TranslatableJavaException e)
                     {
-                        ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                        throw null;
+                        throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
                     }
                 }
                 else
@@ -636,8 +634,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
         }
 
@@ -745,8 +742,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TargetInvocationException e)
             {
-                ExceptionDispatchInfo.Capture(ikvm.runtime.Util.mapException(e.InnerException)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<Exception, Exception>(e.InnerException, true, false);
             }
         }
 
@@ -893,8 +889,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
         }
 
@@ -1268,10 +1263,9 @@ namespace IKVM.Runtime.JNI
 
                 throw new java.lang.NoSuchFieldError($"{(isStatic ? "Static" : "Instance")} field '{n}' with signature '{s}' not found in class '{tw.Name}'");
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
             }
         }
 
@@ -2791,7 +2785,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false));
+                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false));
                 return JNI_ERR;
             }
             catch (Exception e)
@@ -2821,9 +2815,9 @@ namespace IKVM.Runtime.JNI
 
                 return JNI_OK;
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<global::java.lang.Throwable>(e, true, false));
+                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false));
                 return JNI_ERR;
             }
             catch (Exception e)
