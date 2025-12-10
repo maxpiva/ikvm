@@ -789,7 +789,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
             }
 
@@ -960,7 +960,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
             }
 
@@ -1010,7 +1010,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
 
                 DynamicMethod dm = DynamicMethodUtil.Create("__<SerializationCtor>", constructor.DeclaringType.TypeAsBaseType, true, typeof(object), null);
@@ -2069,7 +2069,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
 
                 fw.ResolveField();
@@ -2116,7 +2116,7 @@ namespace IKVM.Java.Externs.sun.reflect
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
 
                 fw.ResolveField();

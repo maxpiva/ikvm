@@ -897,12 +897,12 @@ namespace IKVM.Runtime
                         else if (mapSafe)
                         {
                             ilGenerator.EmitLdc_I4(mapFlags | 1);
-                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(finish.Context.Types.Exception, excType));
+                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(excType));
                         }
                         else if (exceptionTypeWrapper == finish.Context.JavaBase.TypeOfjavaLangThrowable)
                         {
                             ilGenerator.EmitLdc_I4(mapFlags);
-                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(finish.Context.Types.Exception, finish.Context.Types.Exception));
+                            ilGenerator.Emit(OpCodes.Call, finish.Context.ByteCodeHelperMethods.MapException.MakeGenericMethod(finish.Context.Types.Exception));
                         }
                         else
                         {

@@ -231,7 +231,7 @@ namespace IKVM.Runtime.JNI
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
             }
             catch (Exception e)
@@ -358,7 +358,7 @@ namespace IKVM.Runtime.JNI
                     }
                     catch (TranslatableJavaException e)
                     {
-                        throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                        throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                     }
                 }
                 else
@@ -634,7 +634,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -742,7 +742,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TargetInvocationException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<Exception, Exception>(e.InnerException, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e.InnerException, true, false);
             }
         }
 
@@ -889,7 +889,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -1265,7 +1265,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -2785,7 +2785,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false));
+                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false));
                 return JNI_ERR;
             }
             catch (Exception e)
@@ -2817,7 +2817,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TranslatableJavaException e)
             {
-                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false));
+                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false));
                 return JNI_ERR;
             }
             catch (Exception e)

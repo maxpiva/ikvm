@@ -608,15 +608,15 @@ namespace IKVM.Java.Externs.java.lang.reflect
 
                 return obj;
             }
-            catch (TranslatableJavaException e)
-            {
-                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
-            }
             catch (NotSupportedException x)
             {
                 // This happens when you try to create an array from TypedReference, ArgIterator, ByRef,
                 // RuntimeArgumentHandle or an open generic type.
                 throw new global::java.lang.IllegalArgumentException(x.Message);
+            }
+            catch (TranslatableJavaException e)
+            {
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -640,15 +640,15 @@ namespace IKVM.Java.Externs.java.lang.reflect
 
                 return obj;
             }
-            catch (TranslatableJavaException e)
-            {
-                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
-            }
             catch (NotSupportedException e)
             {
                 // This happens when you try to create an array from TypedReference, ArgIterator, ByRef,
                 // RuntimeArgumentHandle or an open generic type.
                 throw new global::java.lang.IllegalArgumentException(e.Message);
+            }
+            catch (TranslatableJavaException e)
+            {
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 

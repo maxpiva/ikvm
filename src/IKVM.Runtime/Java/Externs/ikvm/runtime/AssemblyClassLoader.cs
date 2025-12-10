@@ -75,10 +75,20 @@ namespace IKVM.Java.Externs.ikvm.runtime
                 JVM.Context.Diagnostics.GenericClassLoadingInfo($"Loaded class \"{name}\" from {_this}");
                 return tw.ClassObject;
             }
+            catch (ClassNotFoundException x)
+            {
+                JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {x.Message}");
+                throw new global::java.lang.ClassNotFoundException(x.Message);
+            }
+            catch (ClassLoadingException x)
+            {
+                JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {x.Message}");
+                throw x.InnerException;
+            }
             catch (TranslatableJavaException e)
             {
                 JVM.Context.Diagnostics.GenericClassLoadingInfo($"Failed to load class \"{name}\" from {_this}: {e.Message}");
-                throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
 #endif
         }

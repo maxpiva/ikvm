@@ -869,7 +869,7 @@ namespace IKVM.Runtime
             throw new NotImplementedException();
 #else
             var wrapped = false;
-            var r = MapException<Exception, Exception>(t.InnerException, true, false);
+            var r = MapException<Exception>(t.InnerException, true, false);
             if (r is not java.lang.Error)
             {
                 // Forwarding "r" as cause only doesn't make it available in the debugger details
@@ -912,200 +912,78 @@ namespace IKVM.Runtime
         }
 
         /// <summary>
-        /// Implements the known extension mapping. This was formally in Throwable.__mapImpl().
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        [HideFromJava]
-        static internal Exception MapExceptionImpl<TSource>(TSource e)
-            where TSource : Exception
-        {
-#if FIRST_PASS
-            throw new NotImplementedException();
-#else
-            if (e is NullReferenceException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.NullPointerException();
-            }
-
-            if (e is ArgumentNullException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.NullPointerException();
-            }
-
-            if (e is IndexOutOfRangeException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.ArrayIndexOutOfBoundsException();
-            }
-
-            if (e is ArgumentOutOfRangeException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.StringIndexOutOfBoundsException();
-            }
-
-            if (e is InvalidCastException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.ClassCastException(e.Message);
-            }
-
-            if (e is TypeInitializationException)
-                return e;
-
-            if (e is SynchronizationLockException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.IllegalMonitorStateException();
-            }
-
-            if (e is OutOfMemoryException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.OutOfMemoryError();
-            }
-
-            if (e is DivideByZeroException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.ArithmeticException("/ by zero");
-            }
-
-            if (e is ArrayTypeMismatchException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.ArrayStoreException();
-            }
-
-            if (e is StackOverflowException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.StackOverflowError();
-            }
-
-            if (e is ThreadAbortException e2)
-            {
-                if (e2.ExceptionState is not global::java.lang.ThreadDeath threadDeath1)
-                {
-                    global::java.lang.Throwable.suppressFillInStackTrace = true;
-                    threadDeath1 = new global::java.lang.ThreadDeath();
-                }
-
-                try
-                {
-#pragma warning disable SYSLIB0006 // Type or member is obsolete
-                    System.Threading.Thread.ResetAbort();
-#pragma warning restore SYSLIB0006 // Type or member is obsolete
-                }
-                catch (ThreadStateException)
-                {
-
-                }
-
-                return threadDeath1;
-            }
-
-            if (e is OverflowException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.NegativeArraySizeException();
-            }
-
-            if (e is RetargetableJavaException e3)
-            {
-                return e3.ToJava();
-            }
-
-            if (e is ClassFormatException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.ClassFormatError(e.Message);
-            }
-
-            if (e is UnsupportedClassVersionException)
-            {
-                global::java.lang.Throwable.suppressFillInStackTrace = true;
-                return new global::java.lang.UnsupportedClassVersionError(e.Message);
-            }
-
-            return e;
-#endif
-        }
-
-        /// <summary>
         /// Maps the given exception to a form suitable for exposure to Java code.
         /// </summary>
         /// <typeparam name="TTarget"></typeparam>
         /// <param name="e"></param>
         /// <param name="remap"></param>
         /// <param name="unused"></param>
-        /// <returns></returns>
-        [HideFromJava]
-        internal TTarget MapException<TSource, TTarget>(TSource e, bool remap, bool unused)
-            where TSource : Exception
-            where TTarget : Exception
+        /// <returns></returns>[HideFromJava]
+        internal T MapException<T>(Exception e, bool remap, bool unused)
+            where T : Exception
         {
 #if FIRST_PASS
             throw new NotImplementedException();
 #else
-            var t = (Exception)e;
+            var org = e;
             var nonJavaException = e is not Throwable;
             if (nonJavaException && remap)
             {
                 if (e is TypeInitializationException tie)
-                    return (TTarget)MapTypeInitializeException(tie, typeof(TTarget));
+                    return (T)MapTypeInitializeException(tie, typeof(T));
 
                 exceptions.TryGetValue(e, out var obj);
                 var remapped = obj;
                 if (remapped == null)
                 {
-                    remapped = MapExceptionImpl(e);
+                    remapped = Throwable.__mapImpl(e);
                     if (remapped == e)
                         exceptions.Add(e, NOT_REMAPPED);
                     else
                         exceptions.Add(e, remapped);
 
-                    t = remapped;
+                    e = remapped;
                 }
                 else if (remapped != NOT_REMAPPED)
                 {
-                    t = remapped;
+                    e = remapped;
                 }
             }
 
-            if (IsInstanceOfType<TTarget>(t, remap))
+            if (IsInstanceOfType<T>(e, remap))
             {
-                if (t is Throwable tx)
+                if (e is Throwable t)
                 {
-                    if (!unused && tx.tracePart1 == null && tx.tracePart2 == null && tx.stackTrace == Throwable.UNASSIGNED_STACK)
+                    if (!unused && t.tracePart1 == null && t.tracePart2 == null && t.stackTrace == Throwable.UNASSIGNED_STACK)
                     {
-                        tx.tracePart1 = new StackTrace(t, true);
-                        tx.tracePart2 = new StackTrace(true);
+                        t.tracePart1 = new StackTrace(org, true);
+                        t.tracePart2 = new StackTrace(true);
                     }
-
-                    if (tx != e)
+                    if (t != org)
                     {
-                        tx.original = e;
-                        exceptions.Remove(e);
+                        t.original = org;
+                        exceptions.Remove(org);
                     }
                 }
                 else
                 {
-                    var data = t.Data;
+                    var data = e.Data;
                     if (data != null && !data.IsReadOnly)
+                    {
                         lock (data.SyncRoot)
-                            if (data.Contains(EXCEPTION_DATA_KEY) == false)
-                                data.Add(EXCEPTION_DATA_KEY, new ExceptionInfoHelper(this, t, true));
+                        {
+                            if (!data.Contains(EXCEPTION_DATA_KEY))
+                            {
+                                data.Add(EXCEPTION_DATA_KEY, new ExceptionInfoHelper(this, e, true));
+                            }
+                        }
+                    }
                 }
 
                 if (nonJavaException && !remap)
-                    exceptions.Add(t, NOT_REMAPPED);
+                    exceptions.Add(e, NOT_REMAPPED);
 
-                return (TTarget)t;
+                return (T)e;
             }
 
             return null;
