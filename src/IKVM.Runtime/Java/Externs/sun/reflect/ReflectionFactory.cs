@@ -23,13 +23,6 @@
 */
 using System;
 using System.Reflection;
-#if !NO_REF_EMIT
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
-
-
-#endif
 using System.Runtime.Serialization;
 using System.Security;
 
@@ -37,6 +30,11 @@ using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime;
 using IKVM.Runtime.Accessors.Java.Lang;
 using IKVM.Runtime.Util.Java.Security;
+
+#if !NO_REF_EMIT
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+#endif
 
 namespace IKVM.Java.Externs.sun.reflect
 {

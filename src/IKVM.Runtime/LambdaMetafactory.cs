@@ -29,7 +29,6 @@ using IKVM.ByteCode;
 using IKVM.CoreLib.Linking;
 using IKVM.CoreLib.Runtime;
 
-
 #if IMPORTER
 using IKVM.Reflection;
 using IKVM.Reflection.Emit;

@@ -24,18 +24,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Collections.Concurrent;
-using System.Runtime.ExceptionServices;
+
 using IKVM.CoreLib.Exceptions;
 
-
-
 #if IMPORTER
-using IKVM.Reflection;
-using IKVM.Reflection.Emit;
 using IKVM.Tools.Importer;
-
-using Type = IKVM.Reflection.Type;
-using ProtectionDomain = System.Object;
 #else
 using System.Reflection;
 #endif

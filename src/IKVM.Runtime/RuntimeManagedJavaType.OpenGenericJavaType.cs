@@ -24,7 +24,6 @@
 using System;
 
 using IKVM.Attributes;
-using IKVM.CoreLib.Runtime;
 
 #if IMPORTER || EXPORTER
 using Type = IKVM.Reflection.Type;

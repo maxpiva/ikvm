@@ -2274,22 +2274,22 @@ namespace IKVM.Tools.Importer
             {
                 var mwSuppressFillInStackTrace = rcontext.JavaBase.TypeOfjavaLangThrowable.GetMethod("__<suppressFillInStackTrace>", "()V", false);
                 mwSuppressFillInStackTrace.Link();
+                ilgen.Emit(OpCodes.Ldarg_0);
+                ilgen.Emit(OpCodes.Callvirt, rcontext.CompilerFactory.GetTypeMethod);
 
                 for (int i = 0; i < map.Length; i++)
                 {
-                    // load exception, try to cast, null if failed
-                    ilgen.Emit(OpCodes.Ldarg_0);
-                    ilgen.Emit(OpCodes.Isinst, rcontext.Resolver.ResolveCoreType(map[i].Source).AsReflection());
-
-                    // compare to null
-                    var label = ilgen.DefineLabel();
                     ilgen.Emit(OpCodes.Dup);
-                    ilgen.Emit(OpCodes.Ldnull);
+                    ilgen.Emit(OpCodes.Ldtoken, rcontext.Resolver.ResolveCoreType(map[i].Source).AsReflection());
+                    ilgen.Emit(OpCodes.Call, rcontext.CompilerFactory.GetTypeFromHandleMethod);
                     ilgen.Emit(OpCodes.Ceq);
-                    ilgen.EmitBrtrue(label);
-
+                    var label = ilgen.DefineLabel();
+                    ilgen.EmitBrfalse(label);
+                    ilgen.Emit(OpCodes.Pop);
                     if (map[i].Code != null)
                     {
+                        ilgen.Emit(OpCodes.Ldarg_0);
+
                         if (map[i].Code.Instructions.Length > 0)
                         {
                             foreach (var instr in map[i].Code.Instructions)
@@ -2306,28 +2306,23 @@ namespace IKVM.Tools.Importer
                     }
                     else
                     {
-                        // cast exception is not relevant
-                        ilgen.Emit(OpCodes.Pop);
-
-                        // create new exception
                         var tw = context.ClassLoader.LoadClassByName(map[i].Destination);
                         var mw = tw.GetMethod("<init>", "()V", false);
                         mw.Link();
                         mwSuppressFillInStackTrace.EmitCall(ilgen);
                         mw.EmitNewobj(ilgen);
-                        
-                        // return new exception
                         ilgen.Emit(OpCodes.Ret);
                     }
 
                     ilgen.MarkLabel(label);
-                    ilgen.Emit(OpCodes.Pop);
                 }
 
+                ilgen.Emit(OpCodes.Pop);
                 ilgen.Emit(OpCodes.Ldarg_0);
                 ilgen.Emit(OpCodes.Ret);
             }
         }
+
 
         internal void LoadMapXml()
         {

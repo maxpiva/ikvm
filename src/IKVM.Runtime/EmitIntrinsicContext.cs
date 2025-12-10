@@ -87,12 +87,12 @@ namespace IKVM.Runtime
             return ma.GetStackTypeWrapper(OpcodeIndex + offset, pos);
         }
 
-        internal ConstantPoolItemMI<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod> GetMethodref(int offset)
+        internal ConstantPoolItemMI GetMethodref(int offset)
         {
             return ClassFile.GetMethodref(Code[OpcodeIndex + offset].Arg1);
         }
 
-        internal ConstantPoolItemFieldref<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod> GetFieldref(int offset)
+        internal ConstantPoolItemFieldref GetFieldref(int offset)
         {
             return ClassFile.GetFieldref(Code[OpcodeIndex + offset].Arg1);
         }

@@ -21,8 +21,6 @@
   jeroen@frijters.net
   
 */
-using System;
-
 using IKVM.Attributes;
 
 #if IMPORTER || EXPORTER

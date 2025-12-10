@@ -28,10 +28,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Security;
-using System.Threading;
 
 using IKVM.Attributes;
-using IKVM.CoreLib.Linking;
 
 using Interlocked = System.Threading.Interlocked;
 using MethodBase = System.Reflection.MethodBase;

@@ -22,7 +22,6 @@
   
 */
 using IKVM.Attributes;
-using IKVM.CoreLib.Runtime;
 
 namespace IKVM.Runtime
 {

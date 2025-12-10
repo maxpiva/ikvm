@@ -23,10 +23,9 @@
 */
 using System;
 
-using IKVM.CoreLib.Linking;
-
 namespace IKVM.Runtime
 {
+
     /// <summary>
     /// Provides instances of <see cref="MethodAnalyzer"/>.
     /// </summary>

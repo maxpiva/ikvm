@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
+using IKVM.CoreLib.Diagnostics;
 using IKVM.Attributes;
 using IKVM.Runtime.Syntax;
 using IKVM.ByteCode;
@@ -36,7 +37,6 @@ using IKVM.Reflection;
 using IKVM.Reflection.Emit;
 
 using Type = IKVM.Reflection.Type;
-using IKVM.CoreLib.Diagnostics;
 
 #else
 using System.Reflection;

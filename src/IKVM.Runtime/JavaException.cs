@@ -99,7 +99,7 @@ namespace IKVM.Runtime
 
         internal override Exception ToJava()
         {
-            if (!(InnerException is java.lang.Error) && !(InnerException is java.lang.RuntimeException))
+            if (InnerException is not java.lang.Error and not java.lang.RuntimeException)
                 return new java.lang.NoClassDefFoundError(Message.Replace('.', '/')).initCause(InnerException);
 
             return InnerException;

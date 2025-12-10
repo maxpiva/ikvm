@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -1447,7 +1446,7 @@ namespace IKVM.Java.Externs.sun.misc
                 }
                 catch (TranslatableJavaException e)
                 {
-                    throw JVM.Context.ExceptionHelper.MapException<TranslatableJavaException, global::java.lang.Throwable>(e, true, false);
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
 
                 tw.RunClassInit();

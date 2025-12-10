@@ -26,6 +26,7 @@ using System.Diagnostics;
 
 using IKVM.Attributes;
 using IKVM.CoreLib.Runtime;
+using IKVM.CoreLib.Exceptions;
 
 #if IMPORTER || EXPORTER
 using IKVM.Reflection;
@@ -33,18 +34,9 @@ using IKVM.Reflection.Emit;
 
 using Type = IKVM.Reflection.Type;
 
-using System.Collections;
-using System.Collections.Generic;
-using IKVM.CoreLib.Exceptions;
-
-
 #else
 using System.Reflection;
 using System.Reflection.Emit;
-#endif
-
-#if IMPORTER
-using IKVM.Tools.Importer;
 #endif
 
 namespace IKVM.Runtime
