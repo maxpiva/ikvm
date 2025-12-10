@@ -107,7 +107,7 @@ namespace IKVM.Runtime
                 }
                 else if (mi.Name == "writeReplace")
                 {
-                    methods.Add(new RuntimeTypicalJavaMethod(this, "writeReplace", "()Ljava.lang.Object;", mi, Context.JavaBase.TypeOfJavaLangObject, Array.Empty<RuntimeJavaType>(), Modifiers.Private | Modifiers.Final, MemberFlags.None));
+                    methods.Add(new RuntimeTypicalJavaMethod(this, "writeReplace", "()Ljava.lang.Object;", mi, Context.JavaBase.TypeOfJavaLangObject, [], Modifiers.Private | Modifiers.Final, MemberFlags.None));
                 }
             }
 

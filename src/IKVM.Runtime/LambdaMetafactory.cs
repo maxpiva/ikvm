@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 
 using IKVM.ByteCode;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER
 using IKVM.Reflection;
@@ -36,7 +38,6 @@ using Type = IKVM.Reflection.Type;
 #else
 using System.Reflection;
 using System.Reflection.Emit;
-
 #endif
 
 namespace IKVM.Runtime
@@ -59,7 +60,7 @@ namespace IKVM.Runtime
         /// <param name="cpi"></param>
         /// <param name="ilgen"></param>
         /// <returns></returns>
-        internal static bool Emit(RuntimeByteCodeJavaType.FinishContext context, ClassFile classFile, int constantPoolIndex, ClassFile.ConstantPoolItemInvokeDynamic cpi, CodeEmitter ilgen)
+        internal static bool Emit(RuntimeByteCodeJavaType.FinishContext context, ClassFile classFile, int constantPoolIndex, ConstantPoolItemInvokeDynamic cpi, CodeEmitter ilgen)
         {
             var bsm = classFile.GetBootstrapMethod(cpi.BootstrapMethod);
 
@@ -92,7 +93,7 @@ namespace IKVM.Runtime
         /// <param name="bsm"></param>
         /// <param name="ilgen"></param>
         /// <returns></returns>
-        bool EmitImpl(RuntimeByteCodeJavaType.FinishContext context, ClassFile classFile, ClassFile.ConstantPoolItemInvokeDynamic cpi, ClassFile.BootstrapMethod bsm, CodeEmitter ilgen)
+        bool EmitImpl(RuntimeByteCodeJavaType.FinishContext context, ClassFile classFile, ConstantPoolItemInvokeDynamic cpi, BootstrapMethod bsm, CodeEmitter ilgen)
         {
             if (HasUnloadable(cpi))
             {
@@ -102,7 +103,7 @@ namespace IKVM.Runtime
 
             var serializable = false;
             var markers = Array.Empty<RuntimeJavaType>();
-            ClassFile.ConstantPoolItemMethodType[] bridges = null;
+            ConstantPoolItemMethodType[] bridges = null;
 
             // argument count >3 indicates altMetafactory call
             // scan for flags, markers and bridges
@@ -127,7 +128,7 @@ namespace IKVM.Runtime
 
                 if ((flags & AltFlags.Bridges) != 0)
                 {
-                    bridges = new ClassFile.ConstantPoolItemMethodType[classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(argpos++))];
+                    bridges = new ConstantPoolItemMethodType[classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(argpos++))];
                     for (int i = 0; i < bridges.Length; i++)
                     {
                         bridges[i] = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.GetArgument(argpos++));
@@ -143,7 +144,7 @@ namespace IKVM.Runtime
             var samMethodType = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.GetArgument(0));
             var implMethod = classFile.GetConstantPoolConstantMethodHandle((MethodHandleConstantHandle)bsm.GetArgument(1));
             var instantiatedMethodType = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.GetArgument(2));
-            if (HasUnloadable(samMethodType) || HasUnloadable((ClassFile.ConstantPoolItemMI)implMethod.MemberConstantPoolItem) || HasUnloadable(instantiatedMethodType))
+            if (HasUnloadable(samMethodType) || HasUnloadable((ConstantPoolItemMI)implMethod.MemberConstantPoolItem) || HasUnloadable(instantiatedMethodType))
             {
                 Fail("bsm args has unloadable");
                 return false;
@@ -262,7 +263,7 @@ namespace IKVM.Runtime
         /// <param name="args"></param>
         /// <param name="implParameters"></param>
         /// <returns></returns>
-        static bool CheckConstraints(ClassFile.ConstantPoolItemMethodType instantiatedMethodType, ClassFile.ConstantPoolItemMethodType methodType, RuntimeJavaType[] args, RuntimeJavaType[] implParameters)
+        static bool CheckConstraints(ConstantPoolItemMethodType instantiatedMethodType, ConstantPoolItemMethodType methodType, RuntimeJavaType[] args, RuntimeJavaType[] implParameters)
         {
             if (!IsSubTypeOf(instantiatedMethodType, methodType))
             {
@@ -301,7 +302,7 @@ namespace IKVM.Runtime
             return true;
         }
 
-        static RuntimeJavaType[] GetImplParameters(ClassFile.ConstantPoolItemMethodHandle implMethod)
+        static RuntimeJavaType[] GetImplParameters(ConstantPoolItemMethodHandle implMethod)
         {
             var mw = (RuntimeJavaMethod)implMethod.Member;
             var parameters = mw.GetParameters();
@@ -311,7 +312,7 @@ namespace IKVM.Runtime
             return ArrayUtil.Concat(mw.DeclaringType, parameters);
         }
 
-        static RuntimeJavaType GetImplReturnType(ClassFile.ConstantPoolItemMethodHandle implMethod)
+        static RuntimeJavaType GetImplReturnType(ConstantPoolItemMethodHandle implMethod)
         {
             return implMethod.Kind == MethodHandleKind.NewInvokeSpecial ? implMethod.Member.DeclaringType : ((RuntimeJavaMethod)implMethod.Member).ReturnType;
         }
@@ -440,7 +441,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static bool IsSubTypeOf(ClassFile.ConstantPoolItemMethodType instantiatedMethodType, ClassFile.ConstantPoolItemMethodType samMethodType)
+        static bool IsSubTypeOf(ConstantPoolItemMethodType instantiatedMethodType, ConstantPoolItemMethodType samMethodType)
         {
             var T = instantiatedMethodType.GetArgTypes();
             var U = samMethodType.GetArgTypes();
@@ -469,7 +470,7 @@ namespace IKVM.Runtime
         /// <param name="instantiatedMethodType"></param>
         /// <param name="serializable"></param>
         /// <returns></returns>
-        static MethodBuilder CreateConstructorAndDispatch(RuntimeByteCodeJavaType.FinishContext context, ClassFile.ConstantPoolItemInvokeDynamic cpi, TypeBuilder tb, List<RuntimeJavaMethod> methods, RuntimeJavaType[] implParameters, ClassFile.ConstantPoolItemMethodType samMethodType, ClassFile.ConstantPoolItemMethodHandle implMethod, ClassFile.ConstantPoolItemMethodType instantiatedMethodType, bool serializable)
+        static MethodBuilder CreateConstructorAndDispatch(RuntimeByteCodeJavaType.FinishContext context, ConstantPoolItemInvokeDynamic cpi, TypeBuilder tb, List<RuntimeJavaMethod> methods, RuntimeJavaType[] implParameters, ConstantPoolItemMethodType samMethodType, ConstantPoolItemMethodHandle implMethod, ConstantPoolItemMethodType instantiatedMethodType, bool serializable)
         {
             var args = cpi.GetArgTypes();
 
@@ -570,8 +571,8 @@ namespace IKVM.Runtime
                     }
                     ilgen.Emit(OpCodes.Stelem, context.Context.Types.Object);
                 }
-                RuntimeJavaMethod ctorSerializedLambda = context.Context.ClassLoaderFactory.LoadClassCritical("java.lang.invoke.SerializedLambda").GetMethod(StringConstants.INIT,
-                    "(Ljava.lang.Class;Ljava.lang.String;Ljava.lang.String;Ljava.lang.String;ILjava.lang.String;Ljava.lang.String;Ljava.lang.String;Ljava.lang.String;[Ljava.lang.Object;)V", false);
+
+                var ctorSerializedLambda = context.Context.ClassLoaderFactory.LoadClassCritical("java.lang.invoke.SerializedLambda").GetMethod(StringConstants.INIT, "(Ljava.lang.Class;Ljava.lang.String;Ljava.lang.String;Ljava.lang.String;ILjava.lang.String;Ljava.lang.String;Ljava.lang.String;Ljava.lang.String;[Ljava.lang.Object;)V", false);
                 ctorSerializedLambda.Link();
                 ctorSerializedLambda.EmitNewobj(ilgen);
                 ilgen.Emit(OpCodes.Ret);
@@ -600,7 +601,7 @@ namespace IKVM.Runtime
         /// <param name="instantiatedMethodType"></param>
         /// <param name="capturedFields"></param>
         /// <exception cref="InvalidOperationException"></exception>
-        static void EmitDispatch(RuntimeByteCodeJavaType.FinishContext context, RuntimeJavaType[] args, TypeBuilder tb, RuntimeJavaMethod interfaceMethod, RuntimeJavaType[] implParameters, ClassFile.ConstantPoolItemMethodHandle implMethod, ClassFile.ConstantPoolItemMethodType instantiatedMethodType, FieldBuilder[] capturedFields)
+        static void EmitDispatch(RuntimeByteCodeJavaType.FinishContext context, RuntimeJavaType[] args, TypeBuilder tb, RuntimeJavaMethod interfaceMethod, RuntimeJavaType[] implParameters, ConstantPoolItemMethodHandle implMethod, ConstantPoolItemMethodType instantiatedMethodType, FieldBuilder[] capturedFields)
         {
             var mb = interfaceMethod.GetDefineMethodHelper().DefineMethod(context.TypeWrapper, tb, interfaceMethod.Name, MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.NewSlot | MethodAttributes.Final);
             if (interfaceMethod.Name != interfaceMethod.RealName)
@@ -866,7 +867,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static bool IsSupportedImplMethod(ClassFile.ConstantPoolItemMethodHandle implMethod, RuntimeJavaType caller, RuntimeJavaType[] captured, ClassFile.ConstantPoolItemMethodType instantiatedMethodType)
+        static bool IsSupportedImplMethod(ConstantPoolItemMethodHandle implMethod, RuntimeJavaType caller, RuntimeJavaType[] captured, ConstantPoolItemMethodType instantiatedMethodType)
         {
             switch (implMethod.Kind)
             {
@@ -913,7 +914,7 @@ namespace IKVM.Runtime
             return tw.IsInterface && !tw.IsGhost && tw.IsAccessibleFrom(caller) && !tw.Context.Serialization.IsISerializable(tw);
         }
 
-        static bool CheckSupportedInterfaces(RuntimeJavaType caller, RuntimeJavaType tw, RuntimeJavaType[] markers, ClassFile.ConstantPoolItemMethodType[] bridges, out RuntimeJavaMethod[] methodList)
+        static bool CheckSupportedInterfaces(RuntimeJavaType caller, RuntimeJavaType tw, RuntimeJavaType[] markers, ConstantPoolItemMethodType[] bridges, out RuntimeJavaMethod[] methodList)
         {
             // we don't need to check for unloadable, because we already did that while validating the invoke signature
             if (!IsSupportedInterface(tw, caller))
@@ -957,7 +958,7 @@ namespace IKVM.Runtime
             return false;
         }
 
-        static bool GatherAllInterfaceMethods(RuntimeJavaType tw, ClassFile.ConstantPoolItemMethodType[] bridges, Dictionary<MethodKey, RuntimeJavaMethod> methods, ref int abstractMethodCount, ref int bridgeMethodCount)
+        static bool GatherAllInterfaceMethods(RuntimeJavaType tw, ConstantPoolItemMethodType[] bridges, Dictionary<MethodKey, RuntimeJavaMethod> methods, ref int abstractMethodCount, ref int bridgeMethodCount)
         {
             foreach (var mw in tw.GetMethods())
             {
@@ -1009,9 +1010,9 @@ namespace IKVM.Runtime
             return true;
         }
 
-        static bool IsBridge(RuntimeJavaMethod mw, ClassFile.ConstantPoolItemMethodType[] bridges)
+        static bool IsBridge(RuntimeJavaMethod mw, ConstantPoolItemMethodType[] bridges)
         {
-            foreach (ClassFile.ConstantPoolItemMethodType bridge in bridges)
+            foreach (ConstantPoolItemMethodType bridge in bridges)
                 if (bridge.Signature == mw.Signature)
                     return true;
 
@@ -1024,7 +1025,7 @@ namespace IKVM.Runtime
             return (objectMethod = mw.DeclaringType.Context.JavaBase.TypeOfJavaLangObject.GetMethod(mw.Name, mw.Signature, false)) != null && objectMethod.IsPublic;
         }
 
-        static bool MatchSignatures(RuntimeJavaMethod interfaceMethod, ClassFile.ConstantPoolItemMethodType samMethodType)
+        static bool MatchSignatures(RuntimeJavaMethod interfaceMethod, ConstantPoolItemMethodType samMethodType)
         {
             return interfaceMethod.ReturnType == samMethodType.GetRetType() && MatchTypes(interfaceMethod.GetParameters(), samMethodType.GetArgTypes());
         }
@@ -1054,12 +1055,12 @@ namespace IKVM.Runtime
         /// <param name="classFile"></param>
         /// <param name="bsm"></param>
         /// <returns></returns>
-        static bool IsLambdaMetafactory(ClassFile classFile, ClassFile.BootstrapMethod bsm)
+        static bool IsLambdaMetafactory(ClassFile classFile, BootstrapMethod bsm)
         {
             return bsm.ArgumentCount == 3 &&
-                classFile.GetConstantPoolConstantType(bsm.GetArgument(0)) == ClassFile.ConstantType.MethodType &&
-                classFile.GetConstantPoolConstantType(bsm.GetArgument(1)) == ClassFile.ConstantType.MethodHandle &&
-                classFile.GetConstantPoolConstantType(bsm.GetArgument(2)) == ClassFile.ConstantType.MethodType &&
+                classFile.GetConstantPoolConstantType(bsm.GetArgument(0)) == ConstantType.MethodType &&
+                classFile.GetConstantPoolConstantType(bsm.GetArgument(1)) == ConstantType.MethodHandle &&
+                classFile.GetConstantPoolConstantType(bsm.GetArgument(2)) == ConstantType.MethodType &&
                 classFile.GetConstantPoolConstantMethodHandle(bsm.BootstrapMethodIndex) is { Kind: MethodHandleKind.InvokeStatic, Member: not null } mh &&
                 IsLambdaMetafactory(mh.Member);
         }
@@ -1085,22 +1086,22 @@ namespace IKVM.Runtime
             Mask = Serializable | Markers | Bridges
         }
 
-        private static bool IsLambdaAltMetafactory(ClassFile classFile, ClassFile.BootstrapMethod bsm)
+        private static bool IsLambdaAltMetafactory(ClassFile classFile, BootstrapMethod bsm)
         {
-            ClassFile.ConstantPoolItemMethodHandle mh;
+            ConstantPoolItemMethodHandle mh;
             AltFlags flags;
             int argpos = 4;
             return bsm.ArgumentCount >= 4
                 && (mh = classFile.GetConstantPoolConstantMethodHandle(bsm.BootstrapMethodIndex)).Kind == MethodHandleKind.InvokeStatic
                 && mh.Member != null
                 && IsLambdaAltMetafactory(mh.Member)
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(0)) == ClassFile.ConstantType.MethodType
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(1)) == ClassFile.ConstantType.MethodHandle
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(2)) == ClassFile.ConstantType.MethodType
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(3)) == ClassFile.ConstantType.Integer
+                && classFile.GetConstantPoolConstantType(bsm.GetArgument(0)) == ConstantType.MethodType
+                && classFile.GetConstantPoolConstantType(bsm.GetArgument(1)) == ConstantType.MethodHandle
+                && classFile.GetConstantPoolConstantType(bsm.GetArgument(2)) == ConstantType.MethodType
+                && classFile.GetConstantPoolConstantType(bsm.GetArgument(3)) == ConstantType.Integer
                 && ((flags = (AltFlags)classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(3))) & ~AltFlags.Mask) == 0
-                && ((flags & AltFlags.Markers) == 0 || CheckOptionalArgs(classFile, bsm, ClassFile.ConstantType.Class, ref argpos))
-                && ((flags & AltFlags.Bridges) == 0 || CheckOptionalArgs(classFile, bsm, ClassFile.ConstantType.MethodType, ref argpos))
+                && ((flags & AltFlags.Markers) == 0 || CheckOptionalArgs(classFile, bsm, ConstantType.Class, ref argpos))
+                && ((flags & AltFlags.Bridges) == 0 || CheckOptionalArgs(classFile, bsm, ConstantType.MethodType, ref argpos))
                 && argpos == bsm.ArgumentCount;
         }
 
@@ -1111,12 +1112,12 @@ namespace IKVM.Runtime
                 && mw.DeclaringType.Name == "java.lang.invoke.LambdaMetafactory";
         }
 
-        static bool CheckOptionalArgs(ClassFile classFile, ClassFile.BootstrapMethod bsm, ClassFile.ConstantType type, ref int argpos)
+        static bool CheckOptionalArgs(ClassFile classFile, BootstrapMethod bsm, ConstantType type, ref int argpos)
         {
             if (bsm.ArgumentCount - argpos < 1)
                 return false;
 
-            if (classFile.GetConstantPoolConstantType(bsm.GetArgument(argpos)) != ClassFile.ConstantType.Integer)
+            if (classFile.GetConstantPoolConstantType(bsm.GetArgument(argpos)) != ConstantType.Integer)
                 return false;
 
             int count = classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(argpos++));
@@ -1130,17 +1131,17 @@ namespace IKVM.Runtime
             return true;
         }
 
-        private static bool HasUnloadable(ClassFile.ConstantPoolItemInvokeDynamic cpi)
+        private static bool HasUnloadable(ConstantPoolItemInvokeDynamic cpi)
         {
             return HasUnloadable(cpi.GetArgTypes()) || cpi.GetRetType().IsUnloadable;
         }
 
-        private static bool HasUnloadable(ClassFile.ConstantPoolItemMethodType cpi)
+        private static bool HasUnloadable(ConstantPoolItemMethodType cpi)
         {
             return HasUnloadable(cpi.GetArgTypes()) || cpi.GetRetType().IsUnloadable;
         }
 
-        private static bool HasUnloadable(ClassFile.ConstantPoolItemMI cpi)
+        private static bool HasUnloadable(ConstantPoolItemMI cpi)
         {
             return HasUnloadable(cpi.GetArgTypes()) || cpi.GetRetType().IsUnloadable;
         }
@@ -1154,6 +1155,7 @@ namespace IKVM.Runtime
                     return true;
                 }
             }
+
             return false;
         }
     }

@@ -28,6 +28,8 @@ using System.Diagnostics;
 using IKVM.Attributes;
 
 using System.Text;
+using IKVM.CoreLib.Runtime;
+
 
 
 #if IMPORTER || EXPORTER

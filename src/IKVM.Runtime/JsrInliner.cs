@@ -25,8 +25,8 @@ using System;
 using System.Collections.Generic;
 
 using IKVM.ByteCode;
-
-using InstructionFlags = IKVM.Runtime.ClassFile.Method.InstructionFlags;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 namespace IKVM.Runtime
 {
@@ -37,23 +37,23 @@ namespace IKVM.Runtime
     sealed class JsrInliner
     {
 
-        internal static void InlineJsrs(RuntimeClassLoader classLoader, RuntimeJavaMethod mw, ClassFile classFile, ClassFile.Method m)
+        internal static void InlineJsrs(RuntimeClassLoader classLoader, RuntimeJavaMethod mw, ClassFile classFile, Method m)
         {
             JsrInliner inliner;
 
             do
             {
-                var codeCopy = (ClassFile.Method.Instruction[])m.Instructions.Clone();
+                var codeCopy = (Instruction[])m.Instructions.Clone();
                 var flags = new InstructionFlags[codeCopy.Length];
                 var ma = new JsrMethodAnalyzer(mw, classFile, m, classLoader, flags);
                 inliner = new JsrInliner(codeCopy, flags, m, ma);
             } while (inliner.InlineJsrs());
         }
 
-        ClassFile.Method.Instruction[] codeCopy;
+        Instruction[] codeCopy;
         int codeLength;
         InstructionFlags[] flags;
-        readonly ClassFile.Method m;
+        readonly Method m;
         readonly JsrMethodAnalyzer ma;
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace IKVM.Runtime
         /// <param name="flags"></param>
         /// <param name="m"></param>
         /// <param name="ma"></param>
-        JsrInliner(ClassFile.Method.Instruction[] codeCopy, InstructionFlags[] flags, ClassFile.Method m, JsrMethodAnalyzer ma)
+        JsrInliner(Instruction[] codeCopy, InstructionFlags[] flags, Method m, JsrMethodAnalyzer ma)
         {
             this.codeCopy = codeCopy;
             codeLength = codeCopy.Length;
@@ -72,7 +72,7 @@ namespace IKVM.Runtime
             this.ma = ma;
         }
 
-        void Add(ClassFile.Method.Instruction instr)
+        void Add(Instruction instr)
         {
             if (codeLength == codeCopy.Length)
             {
@@ -107,12 +107,12 @@ namespace IKVM.Runtime
                 }
             }
 
-            var exceptions = new List<ClassFile.Method.ExceptionTableEntry>(m.ExceptionTable);
+            var exceptions = new List<ExceptionTableEntry>(m.ExceptionTable);
             foreach (var sub in subs)
                 sub.DoExceptions(m.ExceptionTable, exceptions);
 
             m.ExceptionTable = exceptions.ToArray();
-            var instr = new ClassFile.Method.Instruction();
+            var instr = new Instruction();
             instr.SetTermNop(0xFFFF);
             Add(instr);
             Array.Resize(ref codeCopy, codeLength);
@@ -148,14 +148,14 @@ namespace IKVM.Runtime
                     branchMap[i] = i;
             }
 
-            void Emit(ClassFile.Method.Instruction instr)
+            void Emit(Instruction instr)
             {
                 inliner.Add(instr);
             }
 
             void EmitGoto(int targetIndex)
             {
-                var instr = new ClassFile.Method.Instruction();
+                var instr = new Instruction();
                 instr.PatchOpCode(NormalizedByteCode.__goto, targetIndex);
                 instr.SetPC(-1);
                 Emit(instr);
@@ -168,7 +168,7 @@ namespace IKVM.Runtime
                 // start with a pre-amble to load a dummy return address on the stack and to branch to the subroutine
                 {
                     // TODO consider exception handling around these instructions
-                    var instr = new ClassFile.Method.Instruction();
+                    var instr = new Instruction();
                     instr.PatchOpCode(NormalizedByteCode.__aconst_null);
                     instr.SetPC(inliner.m.Instructions[subroutineIndex].PC);
                     Emit(instr);
@@ -279,7 +279,7 @@ namespace IKVM.Runtime
                 return branchMap[index];
             }
 
-            internal void DoExceptions(ClassFile.Method.ExceptionTableEntry[] table, List<ClassFile.Method.ExceptionTableEntry> newExceptions)
+            internal void DoExceptions(ExceptionTableEntry[] table, List<ExceptionTableEntry> newExceptions)
             {
                 foreach (var entry in table)
                 {
@@ -287,7 +287,7 @@ namespace IKVM.Runtime
                     int end = MapExceptionStartEnd(entry.endIndex);
                     if (start != end)
                     {
-                        var newEntry = new ClassFile.Method.ExceptionTableEntry(start, end, branchMap[entry.handlerIndex], entry.catchType, entry.ordinal);
+                        var newEntry = new ExceptionTableEntry(start, end, branchMap[entry.handlerIndex], entry.catchType, entry.ordinal);
                         newExceptions.Add(newEntry);
                     }
                 }
@@ -365,7 +365,7 @@ namespace IKVM.Runtime
             /// <exception cref="ClassFormatError"></exception>
             /// <exception cref="InvalidOperationException"></exception>
             /// <exception cref="NotImplementedException"></exception>
-            internal JsrMethodAnalyzer(RuntimeJavaMethod mw, ClassFile classFile, ClassFile.Method method, RuntimeClassLoader classLoader, InstructionFlags[] flags)
+            internal JsrMethodAnalyzer(RuntimeJavaMethod mw, ClassFile classFile, Method method, RuntimeClassLoader classLoader, InstructionFlags[] flags)
             {
                 if (method.VerifyError != null)
                     throw new VerifyError(method.VerifyError);
@@ -610,20 +610,20 @@ namespace IKVM.Runtime
                                         {
                                             switch (GetConstantPoolConstantType(instr.Arg1))
                                             {
-                                                case ClassFile.ConstantType.Double:
+                                                case ConstantType.Double:
                                                     s.PushWidePrimitive();
                                                     break;
-                                                case ClassFile.ConstantType.Float:
+                                                case ConstantType.Float:
                                                     s.PushPrimitive();
                                                     break;
-                                                case ClassFile.ConstantType.Integer:
+                                                case ConstantType.Integer:
                                                     s.PushPrimitive();
                                                     break;
-                                                case ClassFile.ConstantType.Long:
+                                                case ConstantType.Long:
                                                     s.PushWidePrimitive();
                                                     break;
-                                                case ClassFile.ConstantType.String:
-                                                case ClassFile.ConstantType.Class:
+                                                case ConstantType.String:
+                                                case ConstantType.Class:
                                                     s.PushObject();
                                                     break;
                                                 default:
@@ -1298,7 +1298,7 @@ namespace IKVM.Runtime
                 _state[handlerIndex] += ex;
             }
 
-            ClassFile.ConstantPoolItemMI GetMethodref(int index)
+            ConstantPoolItemMI GetMethodref(int index)
             {
                 try
                 {
@@ -1322,7 +1322,7 @@ namespace IKVM.Runtime
                 throw new VerifyError("Illegal constant pool index");
             }
 
-            ClassFile.ConstantPoolItemFieldref GetFieldref(int index)
+            ConstantPoolItemFieldref GetFieldref(int index)
             {
                 try
                 {
@@ -1346,7 +1346,7 @@ namespace IKVM.Runtime
                 throw new VerifyError("Illegal constant pool index");
             }
 
-            ClassFile.ConstantType GetConstantPoolConstantType(int index)
+            ConstantType GetConstantPoolConstantType(int index)
             {
                 try
                 {

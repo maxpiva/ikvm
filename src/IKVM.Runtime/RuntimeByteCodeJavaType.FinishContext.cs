@@ -27,8 +27,9 @@ using System.Diagnostics;
 
 using IKVM.Attributes;
 using IKVM.ByteCode;
+using IKVM.CoreLib.Runtime;
 using IKVM.ByteCode.Decoding;
-using IKVM.CoreLib.Diagnostics;
+using IKVM.CoreLib.Linking;
 
 
 #if IMPORTER
@@ -820,7 +821,7 @@ namespace IKVM.Runtime
 
                         return;
                     }
-                    catch (ClassFormatError)
+                    catch (ClassFormatException)
                     {
 
                     }
@@ -1006,7 +1007,7 @@ namespace IKVM.Runtime
             }
 #endif
 
-            private void AddMethodParameterInfo(ClassFile.Method m, RuntimeJavaMethod mw, MethodBuilder mb, out string[] parameterNames)
+            void AddMethodParameterInfo(Method m, RuntimeJavaMethod mw, MethodBuilder mb, out string[] parameterNames)
             {
                 parameterNames = null;
                 ParameterBuilder[] parameterBuilders = null;
@@ -1034,7 +1035,7 @@ namespace IKVM.Runtime
                 }
 
 #if IMPORTER
-                if ((m.Modifiers & Modifiers.VarArgs) != 0 && !mw.HasCallerID)
+                if (((Modifiers)m.AccessFlags & Modifiers.VarArgs) != 0 && !mw.HasCallerID)
                 {
                     parameterBuilders ??= GetParameterBuilders(mb, mw.GetParameters().Length, null);
                     if (parameterBuilders.Length > 0)
@@ -1611,7 +1612,7 @@ namespace IKVM.Runtime
                     mod.SetCustomAttribute(cab);
                 }
 
-                internal static void Generate(RuntimeByteCodeJavaType.FinishContext context, CodeEmitter ilGenerator, RuntimeByteCodeJavaType wrapper, RuntimeJavaMethod mw, TypeBuilder typeBuilder, ClassFile classFile, ClassFile.Method m, RuntimeJavaType[] args)
+                internal static void Generate(RuntimeByteCodeJavaType.FinishContext context, CodeEmitter ilGenerator, RuntimeByteCodeJavaType wrapper, RuntimeJavaMethod mw, TypeBuilder typeBuilder, ClassFile classFile, Method m, RuntimeJavaType[] args)
                 {
                     TypeBuilder tb = mod.DefineType("__<jni>" + System.Threading.Interlocked.Increment(ref count), TypeAttributes.Public | TypeAttributes.Class);
                     int instance = m.IsStatic ? 0 : 1;
@@ -1681,7 +1682,7 @@ namespace IKVM.Runtime
 
                 MethodInfo MonitorExitMethod => context.Resolver.ResolveCoreType(typeof(System.Threading.Monitor).FullName).AsReflection().GetMethod("Exit", [context.Types.Object]);
 
-                internal void Generate(RuntimeByteCodeJavaType.FinishContext context, CodeEmitter ilGenerator, RuntimeByteCodeJavaType wrapper, RuntimeJavaMethod mw, TypeBuilder typeBuilder, ClassFile classFile, ClassFile.Method m, RuntimeJavaType[] args, bool thruProxy)
+                internal void Generate(RuntimeByteCodeJavaType.FinishContext context, CodeEmitter ilGenerator, RuntimeByteCodeJavaType wrapper, RuntimeJavaMethod mw, TypeBuilder typeBuilder, ClassFile classFile, Method m, RuntimeJavaType[] args, bool thruProxy)
                 {
                     CodeEmitterLocal syncObject = null;
                     if (m.IsSynchronized && m.IsStatic)
@@ -2135,10 +2136,10 @@ namespace IKVM.Runtime
 
             void EmitConstantValueInitialization(RuntimeJavaField[] fields, CodeEmitter ilGenerator)
             {
-                ClassFile.Field[] flds = classFile.Fields;
+                Field[] flds = classFile.Fields;
                 for (int i = 0; i < flds.Length; i++)
                 {
-                    ClassFile.Field f = flds[i];
+                    Field f = flds[i];
                     if (f.IsStatic && !f.IsFinal)
                     {
                         object constant = f.ConstantValue;

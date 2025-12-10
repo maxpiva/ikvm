@@ -31,6 +31,7 @@ using System.Threading;
 
 using IKVM.ByteCode;
 using IKVM.CoreLib.Diagnostics;
+using IKVM.CoreLib.Linking;
 using IKVM.CoreLib.Symbols;
 using IKVM.Reflection;
 using IKVM.Reflection.Emit;
@@ -940,15 +941,15 @@ namespace IKVM.Tools.Importer
 
         static bool EmitStubWarning(RuntimeContext context, StaticCompiler compiler, ImportState options, IDiagnosticHandler diagnostics, byte[] buf)
         {
-            IKVM.Runtime.ClassFile cf = null;
+            ClassFile cf = null;
 
             try
             {
                 try
                 {
-                    cf = new IKVM.Runtime.ClassFile(context, diagnostics, IKVM.ByteCode.Decoding.ClassFile.Read(buf), "<unknown>", ClassFileParseOptions.StaticImport, null);
+                    cf = new ClassFile(context, IKVM.ByteCode.Decoding.ClassFile.Read(buf), "<unknown>", ClassFileParseOptions.StaticImport, null);
                 }
-                catch (ClassFormatError)
+                catch (ClassFormatException)
                 {
                     return false;
                 }
@@ -992,14 +993,14 @@ namespace IKVM.Tools.Importer
             {
                 try
                 {
-                    var name = IKVM.Runtime.ClassFile.GetClassName(data, 0, data.Length, out var stub);
+                    var name = ClassFile.GetClassName(context, data, 0, data.Length, out var stub);
                     if (options.IsExcludedClass(name) || (stub && EmitStubWarning(context, compiler, options, diagnostics, data)))
                     {
                         // we use stubs to add references, but otherwise ignore them
                         return true;
                     }
                 }
-                catch (ClassFormatError)
+                catch (LinkingException)
                 {
 
                 }
@@ -1097,7 +1098,7 @@ namespace IKVM.Tools.Importer
                     byte[] data = ReadAllBytes(fileInfo);
                     try
                     {
-                        var name = IKVM.Runtime.ClassFile.GetClassName(data, 0, data.Length, out var stub);
+                        var name = ClassFile.GetClassName(context, data, 0, data.Length, out var stub);
                         if (options.IsExcludedClass(name))
                             return;
 
@@ -1108,9 +1109,9 @@ namespace IKVM.Tools.Importer
                         options.GetClassesJar().Add(name.Replace('.', '/') + ".class", data, fileInfo);
                         return;
                     }
-                    catch (ClassFormatError x)
+                    catch (ClassFormatException e)
                     {
-                        diagnostics.ClassFormatError(file, x.Message);
+                        diagnostics.ClassFormatError(file, e.Message);
                     }
                 }
 
@@ -1205,7 +1206,7 @@ namespace IKVM.Tools.Importer
             try
             {
                 using var file = File.OpenRead(filename);
-                var cf = new IKVM.Runtime.ClassFile(context, diagnostics, IKVM.ByteCode.Decoding.ClassFile.Read(file), null, ClassFileParseOptions.StaticImport, null);
+                var cf = new ClassFile(context, IKVM.ByteCode.Decoding.ClassFile.Read(file), null, ClassFileParseOptions.StaticImport, null);
                 ArrayAppend(ref annotations, cf.Annotations);
             }
             catch (Exception x)

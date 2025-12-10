@@ -26,7 +26,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-using InstructionFlags = IKVM.Runtime.ClassFile.Method.InstructionFlags;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 namespace IKVM.Runtime
 {
@@ -47,7 +48,7 @@ namespace IKVM.Runtime
         /// <param name="exceptions"></param>
         /// <param name="mw"></param>
         /// <param name="classLoader"></param>
-        internal LocalVarInfo(CodeInfo ma, ClassFile classFile, ClassFile.Method method, UntangledExceptionTable exceptions, RuntimeJavaMethod mw, RuntimeClassLoader classLoader)
+        internal LocalVarInfo(CodeInfo ma, ClassFile classFile, Method method, UntangledExceptionTable exceptions, RuntimeJavaMethod mw, RuntimeClassLoader classLoader)
         {
             var localStoreReaders = FindLocalVariables(ma, mw, classFile, method);
 
@@ -175,7 +176,7 @@ namespace IKVM.Runtime
             allLocalVars = locals.ToArray();
         }
 
-        static void FindLvtEntry(LocalVar lv, ClassFile.Method method, int instructionIndex)
+        static void FindLvtEntry(LocalVar lv, Method method, int instructionIndex)
         {
             var lvt = method.LocalVariableTableAttribute;
             if (lvt != null)
@@ -339,7 +340,7 @@ namespace IKVM.Runtime
 
         }
 
-        static Dictionary<int, string>[] FindLocalVariables(CodeInfo codeInfo, RuntimeJavaMethod mw, ClassFile classFile, ClassFile.Method method)
+        static Dictionary<int, string>[] FindLocalVariables(CodeInfo codeInfo, RuntimeJavaMethod mw, ClassFile classFile, Method method)
         {
             var state = new FindLocalVarState[method.Instructions.Length];
             state[0].changed = true;
@@ -360,7 +361,7 @@ namespace IKVM.Runtime
             return FindLocalVariablesImpl(mw.DeclaringType.Context, codeInfo, classFile, method, state);
         }
 
-        static Dictionary<int, string>[] FindLocalVariablesImpl(RuntimeContext context, CodeInfo codeInfo, ClassFile classFile, ClassFile.Method method, FindLocalVarState[] state)
+        static Dictionary<int, string>[] FindLocalVariablesImpl(RuntimeContext context, CodeInfo codeInfo, ClassFile classFile, Method method, FindLocalVarState[] state)
         {
             var instructions = method.Instructions;
             var exceptions = method.ExceptionTable;
@@ -477,7 +478,7 @@ namespace IKVM.Runtime
             return localStoreReaders;
         }
 
-        static void VisitLocalLoads(RuntimeContext context, CodeInfo codeInfo, ClassFile.Method method, List<LocalVar> locals, Dictionary<long, LocalVar> localByStoreSite, Dictionary<int, string> storeSites, int instructionIndex, bool debug)
+        static void VisitLocalLoads(RuntimeContext context, CodeInfo codeInfo, Method method, List<LocalVar> locals, Dictionary<long, LocalVar> localByStoreSite, Dictionary<int, string> storeSites, int instructionIndex, bool debug)
         {
             Debug.Assert(IsLoadLocal(method.Instructions[instructionIndex].NormalizedOpCode));
 

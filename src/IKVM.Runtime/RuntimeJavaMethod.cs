@@ -23,14 +23,12 @@
 */
 using System;
 using System.Diagnostics;
-
-using IKVM.Attributes;
-
 using System.Linq;
-using IKVM.CoreLib.Diagnostics;
 using System.Threading;
 
-
+using IKVM.Attributes;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER || EXPORTER
 using IKVM.Reflection;
@@ -45,7 +43,9 @@ using System.Reflection.Emit;
 namespace IKVM.Runtime
 {
 
-    abstract class RuntimeJavaMethod : RuntimeJavaMember
+    abstract class RuntimeJavaMethod :
+        RuntimeJavaMember,
+        ILinkingMethod<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod>
     {
 
         MethodBase method;
@@ -604,6 +604,12 @@ namespace IKVM.Runtime
                 return IsProtected && (DeclaringType == DeclaringType.Context.JavaBase.TypeOfJavaLangObject || DeclaringType == DeclaringType.Context.JavaBase.TypeOfjavaLangThrowable) && (Name == StringConstants.CLONE || Name == StringConstants.FINALIZE);
             }
         }
+
+        void ILinkingMethod<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod>.Link(LoadMode mode)
+        {
+            Link(mode);
+        }
+
     }
 
 }

@@ -26,12 +26,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
 using IKVM.ByteCode.Text;
-using IKVM.CoreLib.Diagnostics;
+using IKVM.CoreLib.Exceptions;
 using IKVM.Runtime.Extensions;
 
 namespace IKVM.Runtime.JNI
@@ -228,10 +227,9 @@ namespace IKVM.Runtime.JNI
                     w.RunClassInit(); // spec doesn't say it, but Sun runs the static initializer
                     return pEnv->MakeLocalRef(w.ClassObject);
                 }
-                catch (RetargetableJavaException e)
+                catch (TranslatableJavaException e)
                 {
-                    ExceptionDispatchInfo.Capture(e.ToJava()).Throw();
-                    throw null;
+                    throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                 }
             }
             catch (Exception e)
@@ -353,13 +351,12 @@ namespace IKVM.Runtime.JNI
                     {
                         wrapper.Finish();
                         var cons = (java.lang.reflect.Constructor)mw.ToMethodOrConstructor(false);
-                        JVM.SetPendingException((Exception)cons.newInstance(msg == null ? new object[0] : new object[] { DecodeMUTF8Argument(msg, nameof(msg)) }, env.callerID));
+                        JVM.SetPendingException((Exception)cons.newInstance(msg == null ? [] : [DecodeMUTF8Argument(msg, nameof(msg))], env.callerID));
                         return JNI_OK;
                     }
-                    catch (RetargetableJavaException x)
+                    catch (TranslatableJavaException e)
                     {
-                        ExceptionDispatchInfo.Capture(x.ToJava()).Throw();
-                        throw null;
+                        throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
                     }
                 }
                 else
@@ -633,10 +630,9 @@ namespace IKVM.Runtime.JNI
                 return pEnv->MakeLocalRef(RuntimeHelpers.GetUninitializedObject(wrapper.TypeAsBaseType));
 #endif
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(e.ToJava()).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -744,8 +740,7 @@ namespace IKVM.Runtime.JNI
             }
             catch (TargetInvocationException e)
             {
-                ExceptionDispatchInfo.Capture(ikvm.runtime.Util.mapException(e.InnerException)).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e.InnerException, true, false);
             }
         }
 
@@ -890,10 +885,9 @@ namespace IKVM.Runtime.JNI
 
                 throw new java.lang.NoSuchMethodError($"{methodname}{methodsig}");
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(e.ToJava()).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -1267,10 +1261,9 @@ namespace IKVM.Runtime.JNI
 
                 throw new java.lang.NoSuchFieldError($"{(isStatic ? "Static" : "Instance")} field '{n}' with signature '{s}' not found in class '{tw.Name}'");
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                ExceptionDispatchInfo.Capture(x.ToJava()).Throw();
-                throw null;
+                throw JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false);
             }
         }
 
@@ -2788,9 +2781,9 @@ namespace IKVM.Runtime.JNI
                 }
                 return JNI_OK;
             }
-            catch (RetargetableJavaException e)
+            catch (TranslatableJavaException e)
             {
-                JVM.SetPendingException(e.ToJava());
+                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false));
                 return JNI_ERR;
             }
             catch (Exception e)
@@ -2804,28 +2797,30 @@ namespace IKVM.Runtime.JNI
         {
             try
             {
-                RuntimeJavaType wrapper = RuntimeJavaType.FromClass((java.lang.Class)pEnv->UnwrapRef(clazz));
+                var wrapper = RuntimeJavaType.FromClass((java.lang.Class)pEnv->UnwrapRef(clazz));
                 wrapper.Finish();
+
                 // TODO this won't work when we're putting the JNI methods in jniproxy.dll
-                foreach (FieldInfo fi in wrapper.TypeAsTBD.GetFields(BindingFlags.Static | BindingFlags.NonPublic))
+                foreach (var fi in wrapper.TypeAsTBD.GetFields(BindingFlags.Static | BindingFlags.NonPublic))
                 {
-                    string name = fi.Name;
+                    var name = fi.Name;
                     if (name.StartsWith(METHOD_PTR_FIELD_PREFIX))
                     {
                         JVM.Context.Diagnostics.GenericJniInfo($"Unregistering native method: {wrapper.Name}.{name.Substring(METHOD_PTR_FIELD_PREFIX.Length)}");
                         fi.SetValue(null, IntPtr.Zero);
                     }
                 }
+
                 return JNI_OK;
             }
-            catch (RetargetableJavaException x)
+            catch (TranslatableJavaException e)
             {
-                JVM.SetPendingException(x.ToJava());
+                JVM.SetPendingException(JVM.Context.ExceptionHelper.MapException<Exception>(e, true, false));
                 return JNI_ERR;
             }
-            catch (Exception x)
+            catch (Exception e)
             {
-                JVM.SetPendingException(x);
+                JVM.SetPendingException(e);
                 return JNI_ERR;
             }
         }
