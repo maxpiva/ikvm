@@ -38,10 +38,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemInterfaceMethodref(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, InterfaceMethodrefConstantData data) :
-            base(context, data.Class, data.NameAndType)
+        public ConstantPoolItemInterfaceMethodref(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, InterfaceMethodrefConstantData data) :
+            base(classFile, data.Class, data.NameAndType)
         {
 
         }
@@ -58,7 +58,7 @@ namespace IKVM.CoreLib.Linking
                     method = wrapper.GetInterfaceMethod(Name, Signature);
 
                 // NOTE vmspec 5.4.3.4 clearly states that an interfacemethod may also refer to a method in Object
-                method ??= Context.TypeOfJavaLangObject.GetMethod(Name, Signature, false);
+                method ??= ClassFile.Context.TypeOfJavaLangObject.GetMethod(Name, Signature, false);
 
                 if (method != null)
                     method.Link(mode);

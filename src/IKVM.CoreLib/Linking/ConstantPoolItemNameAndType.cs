@@ -44,10 +44,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemNameAndType(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, NameAndTypeConstantData data) :
-            base(context)
+        public ConstantPoolItemNameAndType(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, NameAndTypeConstantData data) :
+            base(classFile)
         {
             NameHandle = data.Name;
             DescriptorHandle = data.Descriptor;

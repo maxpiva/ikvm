@@ -47,10 +47,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemMethodType(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, MethodTypeConstantData data) :
-            base(context)
+        public ConstantPoolItemMethodType(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, MethodTypeConstantData data) :
+            base(classFile)
         {
             signature = data.Descriptor;
         }

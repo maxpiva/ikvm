@@ -49,10 +49,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemInvokeDynamic(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, InvokeDynamicConstantData data) :
-            base(context)
+        public ConstantPoolItemInvokeDynamic(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, InvokeDynamicConstantData data) :
+            base(classFile)
         {
             _bootstrapMethodAttributeIndex = data.BootstrapMethodAttributeIndex;
             _nameAndTypeHandle = data.NameAndType;

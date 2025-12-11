@@ -53,7 +53,7 @@ namespace IKVM.CoreLib.Linking
         /// <param name="context"></param>
         /// <param name="data"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public ConstantPoolItemClass(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, ClassConstantData data) :
+        public ConstantPoolItemClass(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, ClassConstantData data) :
             base(context)
         {
             _data = data;
@@ -62,11 +62,11 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="name"></param>
         /// <param name="javaType"></param>
-        public ConstantPoolItemClass(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, string name, TLinkingType? javaType) :
-            base(context)
+        public ConstantPoolItemClass(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string name, TLinkingType? javaType) :
+            base(classFile)
         {
             _name = name;
             _javaType = javaType;
@@ -85,7 +85,7 @@ namespace IKVM.CoreLib.Linking
                 // We don't enforce the strict class name rules in the static compiler, since HotSpot doesn't enforce *any* rules on
                 // class names for the system (and boot) class loader. We still need to enforce the 1.5 restrictions, because we
                 // rely on those invariants.
-                if (Context.IsImporter == false && classFile.MajorVersion < 49 && (options & ClassFileParseOptions.RelaxedClassNameValidation) == 0)
+                if (ClassFile.Context.IsImporter == false && classFile.MajorVersion < 49 && (options & ClassFileParseOptions.RelaxedClassNameValidation) == 0)
                 {
                     var prev = _name[0];
                     if (char.IsLetter(prev) || prev == '$' || prev == '_' || prev == '[' || prev == '/')
@@ -150,7 +150,7 @@ namespace IKVM.CoreLib.Linking
         /// <inheritdoc />
         public override void MarkLinkRequired()
         {
-            _javaType ??= Context.TypeOfVerifierNull;
+            _javaType ??= ClassFile.Context.TypeOfVerifierNull;
         }
 
         internal void LinkSelf(TLinkingType thisType)
@@ -161,13 +161,13 @@ namespace IKVM.CoreLib.Linking
         /// <inheritdoc />
         public override void Link(TLinkingType thisType, LoadMode mode)
         {
-            if (ReferenceEquals(_javaType, Context.TypeOfVerifierNull))
+            if (ReferenceEquals(_javaType, ClassFile.Context.TypeOfVerifierNull))
             {
                 var tw = thisType.LoadType(_name, mode | LoadMode.WarnClassNotFound);
 
-                if (Context.IsImporter == false && tw.IsUnloadable == false)
+                if (ClassFile.Context.IsImporter == false && tw.IsUnloadable == false)
                     if (thisType.CheckPackageAccess(tw) == false)
-                        tw = Context.CreateUnloadableType(_name);
+                        tw = ClassFile.Context.CreateUnloadableType(_name);
 
                 _javaType = tw;
             }

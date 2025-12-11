@@ -46,11 +46,11 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="clazz"></param>
         /// <param name="nameAndTypeIndex"></param>
-        public ConstantPoolItemMI(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, ClassConstantHandle clazz, NameAndTypeConstantHandle nameAndTypeIndex) :
-            base(context, clazz, nameAndTypeIndex)
+        public ConstantPoolItemMI(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, ClassConstantHandle clazz, NameAndTypeConstantHandle nameAndTypeIndex) :
+            base(classFile, clazz, nameAndTypeIndex)
         {
 
         }

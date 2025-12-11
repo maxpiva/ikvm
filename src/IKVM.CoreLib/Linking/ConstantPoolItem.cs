@@ -38,21 +38,21 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        readonly ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> _context;
+        readonly ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> _classFile;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
-        protected ConstantPoolItem(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context)
+        /// <param name="classFile"></param>
+        protected ConstantPoolItem(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _classFile = classFile ?? throw new ArgumentNullException(nameof(classFile));
         }
 
         /// <summary>
-        /// Gets the <see cref="ILinkingContext<TLinkingType>"/> that hosts this instance.
+        /// Gets the <see cref="ClassFile{TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod}" /> that hosts this instance.
         /// </summary>
-        public ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> Context => _context;
+        public ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> ClassFile => _classFile;
 
         /// <summary>
         /// Gets the type of constant represented by this item.

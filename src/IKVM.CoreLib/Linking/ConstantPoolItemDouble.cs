@@ -42,10 +42,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemDouble(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, DoubleConstantData data) :
-            base(context)
+        public ConstantPoolItemDouble(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, DoubleConstantData data) :
+            base(classFile)
         {
             _value = data.Value;
         }

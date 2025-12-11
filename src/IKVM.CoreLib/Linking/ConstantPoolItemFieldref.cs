@@ -45,10 +45,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemFieldref(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, FieldrefConstantData data) :
-            base(context, data.Class, data.NameAndType)
+        public ConstantPoolItemFieldref(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, FieldrefConstantData data) :
+            base(classFile, data.Class, data.NameAndType)
         {
 
         }

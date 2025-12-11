@@ -75,7 +75,7 @@ namespace IKVM.CoreLib.Linking
                 try
                 {
                     var decoder = new CodeDecoder(attribute.Code);
-                    var lastIns = default(IKVM.ByteCode.Decoding.Instruction);
+                    var lastIns = default(Instruction);
 
                     // read instructions and parse them into local structure
                     foreach (var instruction in decoder)

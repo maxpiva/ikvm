@@ -41,10 +41,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemMethodref(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, MethodrefConstantData data) :
-            base(context, data.Class, data.NameAndType)
+        public ConstantPoolItemMethodref(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, MethodrefConstantData data) :
+            base(classFile, data.Class, data.NameAndType)
         {
 
         }
@@ -62,7 +62,7 @@ namespace IKVM.CoreLib.Linking
 
                 if (Name != StringConstants.INIT &&
                     thisJavaType.IsInterface == false &&
-                    (Context.AllowNonVirtualCalls == false || (thisJavaType.AccessFlags & ClassFileAccessFlags.Super) == ClassFileAccessFlags.Super) &&
+                    (ClassFile.Context.AllowNonVirtualCalls == false || (thisJavaType.AccessFlags & ClassFileAccessFlags.Super) == ClassFileAccessFlags.Super) &&
                     thisJavaType != javaType &&
                     thisJavaType.IsSubTypeOf(javaType))
                 {

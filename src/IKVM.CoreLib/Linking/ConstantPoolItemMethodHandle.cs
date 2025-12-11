@@ -45,10 +45,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        internal ConstantPoolItemMethodHandle(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, MethodHandleConstantData data) :
-            base(context)
+        internal ConstantPoolItemMethodHandle(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, MethodHandleConstantData data) :
+            base(classFile)
         {
             this.data = data;
         }

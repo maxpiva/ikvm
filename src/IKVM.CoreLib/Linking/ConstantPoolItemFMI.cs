@@ -47,11 +47,11 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="clazz"></param>
         /// <param name="nameAndType"></param>
-        public ConstantPoolItemFMI(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, ClassConstantHandle clazz, NameAndTypeConstantHandle nameAndType) :
-            base(context)
+        public ConstantPoolItemFMI(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, ClassConstantHandle clazz, NameAndTypeConstantHandle nameAndType) :
+            base(classFile)
         {
             _clazzHandle = clazz;
             _nameAndTypeHandle = nameAndType;

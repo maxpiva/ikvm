@@ -42,10 +42,10 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="classFile"></param>
         /// <param name="data"></param>
-        public ConstantPoolItemFloat(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, FloatConstantData data) :
-            base(context)
+        public ConstantPoolItemFloat(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, FloatConstantData data) :
+            base(classFile)
         {
             _value = data.Value;
         }
