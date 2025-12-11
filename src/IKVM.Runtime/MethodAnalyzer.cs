@@ -1683,6 +1683,7 @@ namespace IKVM.Runtime
         static void UpdatePartialReachability(InstructionFlags[] flags, CodeInfo codeInfo, Instruction[] instructions, UntangledExceptionTable exceptions, bool skipFaultBlocks)
         {
             var done = false;
+
             while (done == false)
             {
                 done = true;
