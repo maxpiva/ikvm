@@ -46,7 +46,7 @@ namespace IKVM.CoreLib.Linking
         internal Instruction<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[] _instructions;
         internal ExceptionTableEntry[] _exceptionTable;
         internal int[] _argmap;
-        internal LineNumberTableEntry[] _lineNumberTable;
+        internal LineNumberTable _lineNumberTable;
         internal LocalVariableTableEntry[] _localVariableTable;
 
         /// <summary>
@@ -185,18 +185,12 @@ namespace IKVM.CoreLib.Linking
                     switch (classFile.GetConstantPoolUtf8String(utf8_cp, _attribute.Name))
                     {
                         case AttributeName.LineNumberTable:
-                            var lnt = (LineNumberTableAttribute)_attribute;
                             if ((options & ClassFileParseOptions.LineNumberTable) != 0)
                             {
-                                _lineNumberTable = new LineNumberTableEntry[lnt.LineNumbers.Count];
-                                for (int j = 0; j < lnt.LineNumbers.Count; j++)
-                                {
-                                    var item = lnt.LineNumbers[j];
-                                    _lineNumberTable[j].start_pc = item.StartPc;
-                                    _lineNumberTable[j].line_number = item.LineNumber;
-                                    if (_lineNumberTable[j].start_pc >= attribute.Code.Length)
+                                _lineNumberTable = ((LineNumberTableAttribute)_attribute).LineNumbers;
+                                for (int j = 0; j < _lineNumberTable.Count; j++)
+                                    if (_lineNumberTable[j].StartPc >= attribute.Code.Length)
                                         throw new ClassFormatException("{0} (LineNumberTable has invalid pc)", classFile.Name);
-                                }
                             }
                             break;
                         case AttributeName.LocalVariableTable:

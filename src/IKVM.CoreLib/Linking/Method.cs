@@ -107,7 +107,7 @@ namespace IKVM.CoreLib.Linking
                         if (classFile.MajorVersion < 49)
                             goto default;
 
-                        var signatureAttribute = (IKVM.ByteCode.Decoding.SignatureAttribute)attribute;
+                        var signatureAttribute = (SignatureAttribute)attribute;
                         signature = classFile.GetConstantPoolUtf8String(utf8_cp, signatureAttribute.Signature);
                         break;
                     case AttributeName.RuntimeVisibleAnnotations:
@@ -158,7 +158,7 @@ namespace IKVM.CoreLib.Linking
                         if (classFile.MajorVersion < 49)
                             goto default;
 
-                        var annotationDefaultAttribute = (IKVM.ByteCode.Decoding.AnnotationDefaultAttribute)attribute;
+                        var annotationDefaultAttribute = (AnnotationDefaultAttribute)attribute;
                         low ??= new LowFreqData();
                         low.annotationDefault = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotationElementValue(annotationDefaultAttribute.DefaultValue, classFile, utf8_cp);
 
@@ -217,7 +217,7 @@ namespace IKVM.CoreLib.Linking
                         if (parameters != null)
                             throw new ClassFormatException("{0} (Duplicate MethodParameters attribute)", classFile.Name);
 
-                        var methodParametersAttribute = (IKVM.ByteCode.Decoding.MethodParametersAttribute)attribute;
+                        var methodParametersAttribute = (MethodParametersAttribute)attribute;
                         parameters = ReadMethodParameters(methodParametersAttribute.Parameters, utf8_cp);
 
                         break;
@@ -225,7 +225,7 @@ namespace IKVM.CoreLib.Linking
                         if (classFile.MajorVersion < 52)
                             goto default;
 
-                        var runtimeVisibleTypeAnnotationsAttribute = (IKVM.ByteCode.Decoding.RuntimeVisibleTypeAnnotationsAttribute)attribute;
+                        var runtimeVisibleTypeAnnotationsAttribute = (RuntimeVisibleTypeAnnotationsAttribute)attribute;
                         classFile.CreateUtf8ConstantPoolItems(utf8_cp);
                         runtimeVisibleTypeAnnotations = runtimeVisibleTypeAnnotationsAttribute.TypeAnnotations;
                         break;
@@ -274,9 +274,7 @@ namespace IKVM.CoreLib.Linking
         protected override void ValidateSig(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string descriptor)
         {
             if (!ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.IsValidMethodDescriptor(descriptor))
-            {
                 throw new ClassFormatException("{0} (Method \"{1}\" has invalid signature \"{2}\")", classFile.Name, this.Name, descriptor);
-            }
         }
 
         internal bool IsStrictfp => (accessFlags & ClassFileAccessFlags.Strictfp) != 0;
@@ -325,7 +323,7 @@ namespace IKVM.CoreLib.Linking
             set => code._exceptionTable = value;
         }
 
-        internal LineNumberTableEntry[] LineNumberTableAttribute => code._lineNumberTable;
+        internal LineNumberTable LineNumberTable => code._lineNumberTable;
 
         internal LocalVariableTableEntry[] LocalVariableTableAttribute => code._localVariableTable;
 

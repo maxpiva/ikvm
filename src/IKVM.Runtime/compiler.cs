@@ -128,7 +128,7 @@ namespace IKVM.Runtime
                 Profiler.Leave("MethodAnalyzer");
             }
 
-            if (m.LineNumberTableAttribute != null)
+            if (m.LineNumberTable.Count > 0)
             {
                 if (classLoader.EmitSymbols)
                 {
@@ -136,7 +136,7 @@ namespace IKVM.Runtime
                 }
                 else if (classLoader.EmitStackTraceInfo)
                 {
-                    InstructionFlags[] flags = ComputePartialReachability(0, false);
+                    var flags = ComputePartialReachability(0, false);
                     for (int i = 0; i < m.Instructions.Length; i++)
                     {
                         if ((flags[i] & InstructionFlags.Reachable) == 0)
@@ -360,9 +360,10 @@ namespace IKVM.Runtime
             }
         }
 
-        private struct DupHelper
+        readonly struct DupHelper
         {
-            private enum StackType : byte
+
+            enum StackType : byte
             {
                 Null,
                 New,
@@ -371,73 +372,69 @@ namespace IKVM.Runtime
                 FaultBlockException,
                 Other
             }
-            private readonly Compiler compiler;
-            private readonly StackType[] types;
-            private readonly CodeEmitterLocal[] locals;
 
+            readonly Compiler _compiler;
+            readonly StackType[] _types;
+            readonly CodeEmitterLocal[] _locals;
+
+            /// <summary>
+            /// Initializes a new instance.
+            /// </summary>
+            /// <param name="compiler"></param>
+            /// <param name="count"></param>
             internal DupHelper(Compiler compiler, int count)
             {
-                this.compiler = compiler;
-                types = new StackType[count];
-                locals = new CodeEmitterLocal[count];
+                _compiler = compiler ?? throw new ArgumentNullException(nameof(compiler));
+                _types = new StackType[count];
+                _locals = new CodeEmitterLocal[count];
             }
 
-            internal void Release()
+            internal readonly void Release()
             {
-                foreach (CodeEmitterLocal lb in locals)
-                {
+                foreach (var lb in _locals)
                     if (lb != null)
-                    {
-                        compiler.ilGenerator.ReleaseTempLocal(lb);
-                    }
-                }
+                        _compiler.ilGenerator.ReleaseTempLocal(lb);
             }
 
-            internal int Count
-            {
-                get
-                {
-                    return types.Length;
-                }
-            }
+            internal readonly int Count => _types.Length;
 
-            internal void SetType(int i, RuntimeJavaType type)
+            internal readonly void SetType(int i, RuntimeJavaType type)
             {
-                if (type == compiler.finish.Context.VerifierJavaTypeFactory.Null)
+                if (type == _compiler.finish.Context.VerifierJavaTypeFactory.Null)
                 {
-                    types[i] = StackType.Null;
+                    _types[i] = StackType.Null;
                 }
                 else if (RuntimeVerifierJavaType.IsNew(type))
                 {
                     // new objects aren't really there on the stack
-                    types[i] = StackType.New;
+                    _types[i] = StackType.New;
                 }
                 else if (RuntimeVerifierJavaType.IsThis(type))
                 {
-                    types[i] = StackType.This;
+                    _types[i] = StackType.This;
                 }
-                else if (type == compiler.finish.Context.VerifierJavaTypeFactory.UninitializedThis)
+                else if (type == _compiler.finish.Context.VerifierJavaTypeFactory.UninitializedThis)
                 {
                     // uninitialized references cannot be stored in a local, but we can reload them
-                    types[i] = StackType.UnitializedThis;
+                    _types[i] = StackType.UnitializedThis;
                 }
                 else if (RuntimeVerifierJavaType.IsFaultBlockException(type))
                 {
-                    types[i] = StackType.FaultBlockException;
+                    _types[i] = StackType.FaultBlockException;
                 }
                 else
                 {
-                    types[i] = StackType.Other;
-                    locals[i] = compiler.ilGenerator.AllocTempLocal(compiler.GetLocalBuilderType(type));
+                    _types[i] = StackType.Other;
+                    _locals[i] = _compiler.ilGenerator.AllocTempLocal(_compiler.GetLocalBuilderType(type));
                 }
             }
 
-            internal void Load(int i)
+            internal readonly void Load(int i)
             {
-                switch (types[i])
+                switch (_types[i])
                 {
                     case StackType.Null:
-                        compiler.ilGenerator.Emit(OpCodes.Ldnull);
+                        _compiler.ilGenerator.Emit(OpCodes.Ldnull);
                         break;
                     case StackType.New:
                     case StackType.FaultBlockException:
@@ -445,36 +442,37 @@ namespace IKVM.Runtime
                         break;
                     case StackType.This:
                     case StackType.UnitializedThis:
-                        compiler.ilGenerator.Emit(OpCodes.Ldarg_0);
+                        _compiler.ilGenerator.Emit(OpCodes.Ldarg_0);
                         break;
                     case StackType.Other:
-                        compiler.ilGenerator.Emit(OpCodes.Ldloc, locals[i]);
+                        _compiler.ilGenerator.Emit(OpCodes.Ldloc, _locals[i]);
                         break;
                     default:
                         throw new InvalidOperationException();
                 }
             }
 
-            internal void Store(int i)
+            internal readonly void Store(int i)
             {
-                switch (types[i])
+                switch (_types[i])
                 {
                     case StackType.Null:
                     case StackType.This:
                     case StackType.UnitializedThis:
-                        compiler.ilGenerator.Emit(OpCodes.Pop);
+                        _compiler.ilGenerator.Emit(OpCodes.Pop);
                         break;
                     case StackType.New:
                     case StackType.FaultBlockException:
                         // objects aren't really there on the stack
                         break;
                     case StackType.Other:
-                        compiler.ilGenerator.Emit(OpCodes.Stloc, locals[i]);
+                        _compiler.ilGenerator.Emit(OpCodes.Stloc, _locals[i]);
                         break;
                     default:
                         throw new InvalidOperationException();
                 }
             }
+
         }
 
         internal static void Compile(RuntimeByteCodeJavaType.FinishContext finish, RuntimeJavaType host, RuntimeByteCodeJavaType clazz, RuntimeJavaMethod mw, ClassFile classFile, Method m, CodeEmitter ilGenerator, ref bool nonleaf)
@@ -488,17 +486,17 @@ namespace IKVM.Runtime
 
                     // the very first instruction in the method must have an associated line number, to be able
                     // to step into the method in Visual Studio .NET
-                    var table = m.LineNumberTableAttribute;
-                    if (table != null)
+                    var table = m.LineNumberTable;
+                    if (table.Count > 0)
                     {
                         int firstPC = int.MaxValue;
                         int firstLine = -1;
-                        for (int i = 0; i < table.Length; i++)
+                        for (int i = 0; i < table.Count; i++)
                         {
-                            if (table[i].start_pc < firstPC && table[i].line_number != 0)
+                            if (table[i].StartPc < firstPC && table[i].LineNumber != 0)
                             {
-                                firstLine = table[i].line_number;
-                                firstPC = table[i].start_pc;
+                                firstLine = table[i].LineNumber;
+                                firstPC = table[i].StartPc;
                             }
                         }
 
@@ -507,6 +505,7 @@ namespace IKVM.Runtime
                     }
                 }
             }
+
             Compiler c;
             try
             {
@@ -1008,12 +1007,12 @@ namespace IKVM.Runtime
 
                 if (emitLineNumbers)
                 {
-                    var table = m.LineNumberTableAttribute;
-                    for (int j = 0; j < table.Length; j++)
+                    var table = m.LineNumberTable;
+                    for (int j = 0; j < table.Count; j++)
                     {
-                        if (table[j].start_pc == code[i].PC && table[j].line_number != 0)
+                        if (table[j].StartPc == code[i].PC && table[j].LineNumber != 0)
                         {
-                            ilGenerator.SetLineNumber(table[j].line_number);
+                            ilGenerator.SetLineNumber(table[j].LineNumber);
                             break;
                         }
                     }
@@ -3100,54 +3099,50 @@ namespace IKVM.Runtime
 
             if (needsCast)
             {
-                DupHelper dh = new DupHelper(this, args.Length);
+                var dh = new DupHelper(this, args.Length);
                 for (int i = firstCastArg + 1; i < args.Length; i++)
                 {
-                    RuntimeJavaType tw = ma.GetRawStackTypeWrapper(instructionIndex, args.Length - 1 - i);
+                    var tw = ma.GetRawStackTypeWrapper(instructionIndex, args.Length - 1 - i);
                     if (tw != finish.Context.VerifierJavaTypeFactory.UninitializedThis
                         && !RuntimeVerifierJavaType.IsThis(tw))
-                    {
                         tw = args[i];
-                    }
+
                     dh.SetType(i, tw);
                 }
+
                 for (int i = args.Length - 1; i >= firstCastArg; i--)
                 {
                     if (!args[i].IsUnloadable && !args[i].IsGhost)
                     {
-                        RuntimeJavaType tw = ma.GetStackTypeWrapper(instructionIndex, args.Length - 1 - i);
+                        var tw = ma.GetStackTypeWrapper(instructionIndex, args.Length - 1 - i);
                         if (tw.IsUnloadable || (args[i].IsInterfaceOrInterfaceArray && NeedsInterfaceDownCast(tw, args[i])))
                         {
                             ilGenerator.EmitAssertType(args[i].TypeAsTBD);
                             Profiler.Count("InterfaceDownCast");
                         }
                     }
+
                     if (i != firstCastArg)
                     {
                         dh.Store(i);
                     }
                 }
+
                 if (instanceMethod && args[0].IsUnloadable && !declaringType.IsUnloadable)
                 {
                     if (declaringType.IsInterface)
-                    {
                         ilGenerator.EmitAssertType(declaringType.TypeAsTBD);
-                    }
                     else if (declaringType.IsNonPrimitiveValueType)
-                    {
                         ilGenerator.Emit(OpCodes.Unbox, declaringType.TypeAsTBD);
-                    }
                     else
-                    {
                         ilGenerator.Emit(OpCodes.Castclass, declaringType.TypeAsSignatureType);
-                    }
                 }
+
                 for (int i = firstCastArg; i < args.Length; i++)
                 {
                     if (i != firstCastArg)
-                    {
                         dh.Load(i);
-                    }
+
                     if (!args[i].IsUnloadable && args[i].IsGhost)
                     {
                         if (i == 0 && instanceMethod && !declaringType.IsInterface)
@@ -3167,20 +3162,19 @@ namespace IKVM.Runtime
                         }
                         else
                         {
-                            CodeEmitterLocal ghost = ilGenerator.AllocTempLocal(finish.Context.Types.Object);
+                            var ghost = ilGenerator.AllocTempLocal(finish.Context.Types.Object);
                             ilGenerator.Emit(OpCodes.Stloc, ghost);
-                            CodeEmitterLocal local = ilGenerator.AllocTempLocal(args[i].TypeAsSignatureType);
+                            var local = ilGenerator.AllocTempLocal(args[i].TypeAsSignatureType);
                             ilGenerator.Emit(OpCodes.Ldloca, local);
                             ilGenerator.Emit(OpCodes.Ldloc, ghost);
                             ilGenerator.Emit(OpCodes.Stfld, args[i].GhostRefField);
                             ilGenerator.Emit(OpCodes.Ldloca, local);
                             ilGenerator.ReleaseTempLocal(local);
                             ilGenerator.ReleaseTempLocal(ghost);
+
                             // NOTE when the this argument is a value type, we need the address on the stack instead of the value
                             if (i != 0 || !instanceMethod)
-                            {
                                 ilGenerator.Emit(OpCodes.Ldobj, args[i].TypeAsSignatureType);
-                            }
                         }
                     }
                     else
@@ -3209,6 +3203,7 @@ namespace IKVM.Runtime
                         }
                     }
                 }
+
                 dh.Release();
             }
         }
@@ -3371,7 +3366,7 @@ namespace IKVM.Runtime
                 context.MethodHandleUtil.EmitCallDelegateInvokeMethod(ilgen, delegateType);
                 FromBasic(retType, ilgen);
 #else
-				throw new InvalidOperationException();
+                throw new InvalidOperationException();
 #endif
             }
 
