@@ -98,9 +98,9 @@ namespace IKVM.Runtime
                 // ensure that exception blocks and handlers start and end at instruction boundaries
                 for (int i = 0; i < classFileMethod.ExceptionTable.Length; i++)
                 {
-                    int start = classFileMethod.ExceptionTable[i].startIndex;
-                    int end = classFileMethod.ExceptionTable[i].endIndex;
-                    int handler = classFileMethod.ExceptionTable[i].handlerIndex;
+                    int start = classFileMethod.ExceptionTable[i].StartIndex;
+                    int end = classFileMethod.ExceptionTable[i].EndIndex;
+                    int handler = classFileMethod.ExceptionTable[i].HandlerIndex;
                     if (start >= end || start == -1 || end == -1 || handler <= 0)
                         throw new IndexOutOfRangeException();
                 }
@@ -221,7 +221,7 @@ namespace IKVM.Runtime
 
                             // mark the exception handlers reachable from this instruction
                             for (int j = 0; j < _classFileMethod.ExceptionTable.Length; j++)
-                                if (_classFileMethod.ExceptionTable[j].startIndex <= i && i < _classFileMethod.ExceptionTable[j].endIndex)
+                                if (_classFileMethod.ExceptionTable[j].StartIndex <= i && i < _classFileMethod.ExceptionTable[j].EndIndex)
                                     MergeExceptionHandler(j, ref _state[i]);
 
                             // copy current frame to this frame
@@ -1146,7 +1146,7 @@ namespace IKVM.Runtime
                                 throw new VerifyError("Stack size too large");
 
                             for (int j = 0; j < _classFileMethod.ExceptionTable.Length; j++)
-                                if (_classFileMethod.ExceptionTable[j].endIndex == i + 1)
+                                if (_classFileMethod.ExceptionTable[j].EndIndex == i + 1)
                                     MergeExceptionHandler(j, ref s);
 
                             try
@@ -1201,10 +1201,10 @@ namespace IKVM.Runtime
 
         void MergeExceptionHandler(int exceptionIndex, ref InstructionState curr)
         {
-            var idx = _classFileMethod.ExceptionTable[exceptionIndex].handlerIndex;
+            var idx = _classFileMethod.ExceptionTable[exceptionIndex].HandlerIndex;
             var exp = curr.CopyLocals();
 
-            var catchType = _classFileMethod.ExceptionTable[exceptionIndex].catchType;
+            var catchType = _classFileMethod.ExceptionTable[exceptionIndex].CatchType;
             if (catchType.IsNil)
             {
                 if (_faultTypes.TryGetValue(idx, out var faultType) == false)
@@ -1697,9 +1697,9 @@ namespace IKVM.Runtime
                         // mark the exception handlers reachable from this instruction
                         for (int j = 0; j < exceptions.Length; j++)
                         {
-                            if (exceptions[j].startIndex <= i && i < exceptions[j].endIndex)
+                            if (exceptions[j].StartIndex <= i && i < exceptions[j].EndIndex)
                             {
-                                int idx = exceptions[j].handlerIndex;
+                                int idx = exceptions[j].HandlerIndex;
                                 if (!skipFaultBlocks || !RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(idx, 0)))
                                     flags[idx] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                             }
@@ -1759,11 +1759,11 @@ namespace IKVM.Runtime
             for (int i = 0; i < ar.Count; i++)
             {
                 var ei = ar[i];
-                if (ei.startIndex == ei.handlerIndex && ei.catchType.IsNil)
+                if (ei.StartIndex == ei.HandlerIndex && ei.CatchType.IsNil)
                 {
-                    var index = ei.startIndex;
+                    var index = ei.StartIndex;
                     if (index + 2 < instructions.Length &&
-                        ei.endIndex == index + 2 &&
+                        ei.EndIndex == index + 2 &&
                         instructions[index].NormalizedOpCode == NormalizedByteCode.__aload &&
                         instructions[index + 1].NormalizedOpCode == NormalizedByteCode.__monitorexit &&
                         instructions[index + 2].NormalizedOpCode == NormalizedByteCode.__athrow)
@@ -1773,7 +1773,7 @@ namespace IKVM.Runtime
                         i--;
                     }
                     else if (index + 4 < instructions.Length &&
-                        ei.endIndex == index + 3 &&
+                        ei.EndIndex == index + 3 &&
                         instructions[index].NormalizedOpCode == NormalizedByteCode.__astore &&
                         instructions[index + 1].NormalizedOpCode == NormalizedByteCode.__aload &&
                         instructions[index + 2].NormalizedOpCode == NormalizedByteCode.__monitorexit &&
@@ -1786,7 +1786,7 @@ namespace IKVM.Runtime
                         i--;
                     }
                     else if (index + 1 < instructions.Length &&
-                        ei.endIndex == index + 1 &&
+                        ei.EndIndex == index + 1 &&
                         instructions[index].NormalizedOpCode == NormalizedByteCode.__astore)
                     {
                         // this is the finally guard that javac produces
@@ -1800,12 +1800,12 @@ namespace IKVM.Runtime
             // Here we merge these exception blocks again, because it allows us to generate more efficient code.
             for (int i = 0; i < ar.Count - 1; i++)
             {
-                if (ar[i].endIndex + 1 == ar[i + 1].startIndex &&
-                    ar[i].handlerIndex == ar[i + 1].handlerIndex &&
-                    ar[i].catchType == ar[i + 1].catchType &&
-                    IsReturn(instructions[ar[i].endIndex].NormalizedOpCode))
+                if (ar[i].EndIndex + 1 == ar[i + 1].StartIndex &&
+                    ar[i].HandlerIndex == ar[i + 1].HandlerIndex &&
+                    ar[i].CatchType == ar[i + 1].CatchType &&
+                    IsReturn(instructions[ar[i].EndIndex].NormalizedOpCode))
                 {
-                    ar[i] = new ExceptionTableEntry(ar[i].startIndex, ar[i + 1].endIndex, ar[i].handlerIndex, ar[i].catchType, ar[i].ordinal);
+                    ar[i] = new ExceptionTableEntry(ar[i].StartIndex, ar[i + 1].EndIndex, ar[i].HandlerIndex, ar[i].CatchType, ar[i].Ordinal);
                     ar.RemoveAt(i + 1);
                     i--;
                 }
@@ -1818,15 +1818,15 @@ namespace IKVM.Runtime
                 for (int j = 0; j < ar.Count; j++)
                 {
                     var ej = ar[j];
-                    if (ei.startIndex <= ej.startIndex && ej.startIndex < ei.endIndex)
+                    if (ei.StartIndex <= ej.StartIndex && ej.StartIndex < ei.EndIndex)
                     {
                         // 0006/test.j
-                        if (ej.endIndex > ei.endIndex)
+                        if (ej.EndIndex > ei.EndIndex)
                         {
-                            var emi = new ExceptionTableEntry(ej.startIndex, ei.endIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                            var emj = new ExceptionTableEntry(ej.startIndex, ei.endIndex, ej.handlerIndex, ej.catchType, ej.ordinal);
-                            ei = new ExceptionTableEntry(ei.startIndex, emi.startIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                            ej = new ExceptionTableEntry(emj.endIndex, ej.endIndex, ej.handlerIndex, ej.catchType, ej.ordinal);
+                            var emi = new ExceptionTableEntry(ej.StartIndex, ei.EndIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                            var emj = new ExceptionTableEntry(ej.StartIndex, ei.EndIndex, ej.HandlerIndex, ej.CatchType, ej.Ordinal);
+                            ei = new ExceptionTableEntry(ei.StartIndex, emi.StartIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                            ej = new ExceptionTableEntry(emj.EndIndex, ej.EndIndex, ej.HandlerIndex, ej.CatchType, ej.Ordinal);
                             ar[i] = ei;
                             ar[j] = ej;
                             ar.Insert(j, emj);
@@ -1834,11 +1834,11 @@ namespace IKVM.Runtime
                             goto restart;
                         }
                         // 0007/test.j
-                        else if (j > i && ej.endIndex < ei.endIndex)
+                        else if (j > i && ej.EndIndex < ei.EndIndex)
                         {
-                            var emi = new ExceptionTableEntry(ej.startIndex, ej.endIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                            var eei = new ExceptionTableEntry(ej.endIndex, ei.endIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                            ei = new ExceptionTableEntry(ei.startIndex, emi.startIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
+                            var emi = new ExceptionTableEntry(ej.StartIndex, ej.EndIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                            var eei = new ExceptionTableEntry(ej.EndIndex, ei.EndIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                            ei = new ExceptionTableEntry(ei.StartIndex, emi.StartIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
                             ar[i] = ei;
                             ar.Insert(i + 1, eei);
                             ar.Insert(i + 1, emi);
@@ -1852,8 +1852,8 @@ namespace IKVM.Runtime
             for (int i = 0; i < ar.Count; i++)
             {
                 var ei = ar[i];
-                int start = ei.startIndex;
-                int end = ei.endIndex;
+                int start = ei.StartIndex;
+                int end = ei.EndIndex;
                 for (int j = 0; j < instructions.Length; j++)
                 {
                     if (j < start || j >= end)
@@ -1866,10 +1866,10 @@ namespace IKVM.Runtime
                                 for (int k = -1; k < instructions[j].SwitchEntryCount; k++)
                                 {
                                     int targetIndex = (k == -1 ? instructions[j].DefaultTarget : instructions[j].GetSwitchTargetIndex(k));
-                                    if (ei.startIndex < targetIndex && targetIndex < ei.endIndex)
+                                    if (ei.StartIndex < targetIndex && targetIndex < ei.EndIndex)
                                     {
-                                        var en = new ExceptionTableEntry(targetIndex, ei.endIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                                        ei = new ExceptionTableEntry(ei.startIndex, targetIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
+                                        var en = new ExceptionTableEntry(targetIndex, ei.EndIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                                        ei = new ExceptionTableEntry(ei.StartIndex, targetIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
                                         ar[i] = ei;
                                         ar.Insert(i + 1, en);
                                         goto restart_split;
@@ -1895,10 +1895,10 @@ namespace IKVM.Runtime
                             case NormalizedByteCode.__goto:
                                 {
                                     int targetIndex = instructions[j].Arg1;
-                                    if (ei.startIndex < targetIndex && targetIndex < ei.endIndex)
+                                    if (ei.StartIndex < targetIndex && targetIndex < ei.EndIndex)
                                     {
-                                        var en = new ExceptionTableEntry(targetIndex, ei.endIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                                        ei = new ExceptionTableEntry(ei.startIndex, targetIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
+                                        var en = new ExceptionTableEntry(targetIndex, ei.EndIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                                        ei = new ExceptionTableEntry(ei.StartIndex, targetIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
                                         ar[i] = ei;
                                         ar.Insert(i + 1, en);
                                         goto restart_split;
@@ -1917,10 +1917,10 @@ namespace IKVM.Runtime
                 for (int j = 0; j < ar.Count; j++)
                 {
                     var ej = ar[j];
-                    if (ei.startIndex < ej.handlerIndex && ej.handlerIndex < ei.endIndex)
+                    if (ei.StartIndex < ej.HandlerIndex && ej.HandlerIndex < ei.EndIndex)
                     {
-                        var en = new ExceptionTableEntry(ej.handlerIndex, ei.endIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
-                        ei = new ExceptionTableEntry(ei.startIndex, ej.handlerIndex, ei.handlerIndex, ei.catchType, ei.ordinal);
+                        var en = new ExceptionTableEntry(ej.HandlerIndex, ei.EndIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
+                        ei = new ExceptionTableEntry(ei.StartIndex, ej.HandlerIndex, ei.HandlerIndex, ei.CatchType, ei.Ordinal);
                         ar[i] = ei;
                         ar.Insert(i + 1, en);
                         goto restart_split;
@@ -1932,7 +1932,7 @@ namespace IKVM.Runtime
             for (int i = 0; i < ar.Count; i++)
             {
                 var ei = ar[i];
-                if (ei.startIndex == ei.endIndex)
+                if (ei.StartIndex == ei.EndIndex)
                 {
                     ar.RemoveAt(i);
                     i--;
@@ -1941,7 +1941,7 @@ namespace IKVM.Runtime
                 {
                     // exception blocks that only contain harmless instructions (i.e. instructions that will *never* throw an exception)
                     // are also filtered out (to improve the quality of the generated code)
-                    var exceptionType = ei.catchType.IsNil ? context.JavaBase.TypeOfjavaLangThrowable : classFile.GetConstantPoolClassType(ei.catchType);
+                    var exceptionType = ei.CatchType.IsNil ? context.JavaBase.TypeOfjavaLangThrowable : classFile.GetConstantPoolClassType(ei.CatchType);
                     if (exceptionType.IsUnloadable)
                     {
                         // we can't remove handlers for unloadable types
@@ -1952,8 +1952,8 @@ namespace IKVM.Runtime
                         // asynchronously (and thus appear on any instruction). This is particularly important to ensure that
                         // we run finally blocks when a thread is killed.
                         // Note that even so, we aren't remotely async exception safe.
-                        int start = ei.startIndex;
-                        int end = ei.endIndex;
+                        int start = ei.StartIndex;
+                        int end = ei.EndIndex;
                         for (int j = start; j < end; j++)
                         {
                             switch (instructions[j].NormalizedOpCode)
@@ -1999,8 +1999,8 @@ namespace IKVM.Runtime
                     }
                     else
                     {
-                        int start = ei.startIndex;
-                        int end = ei.endIndex;
+                        int start = ei.StartIndex;
+                        int end = ei.EndIndex;
                         for (int j = start; j < end; j++)
                             if (ByteCodeMetaData.CanThrowException(instructions[j].NormalizedOpCode))
                                 goto next;
@@ -2048,13 +2048,13 @@ namespace IKVM.Runtime
 
                 for (int i = 0; i < exceptions.Length; i++)
                 {
-                    while (exceptions[i].startIndex >= current.endIndex)
+                    while (exceptions[i].StartIndex >= current.EndIndex)
                         current = stack.Pop();
 
-                    Debug.Assert(exceptions[i].startIndex >= current.startIndex && exceptions[i].endIndex <= current.endIndex);
-                    if (exceptions[i].catchType.IsNil && codeInfo.HasState(exceptions[i].handlerIndex) && RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(exceptions[i].handlerIndex, 0)))
+                    Debug.Assert(exceptions[i].StartIndex >= current.StartIndex && exceptions[i].EndIndex <= current.EndIndex);
+                    if (exceptions[i].CatchType.IsNil && codeInfo.HasState(exceptions[i].HandlerIndex) && RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(exceptions[i].HandlerIndex, 0)))
                     {
-                        var flags = ComputePartialReachability(codeInfo, method.Instructions, exceptions, exceptions[i].handlerIndex, true);
+                        var flags = ComputePartialReachability(codeInfo, method.Instructions, exceptions, exceptions[i].HandlerIndex, true);
                         for (int j = 0; j < code.Length; j++)
                         {
                             if ((flags[j] & InstructionFlags.Reachable) != 0)
@@ -2070,24 +2070,24 @@ namespace IKVM.Runtime
                                         goto not_fault_block;
                                     case NormalizedByteCode.__athrow:
                                         for (int k = i + 1; k < exceptions.Length; k++)
-                                            if (exceptions[k].startIndex <= j && j < exceptions[k].endIndex)
+                                            if (exceptions[k].StartIndex <= j && j < exceptions[k].EndIndex)
                                                 goto not_fault_block;
 
-                                        if (RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(j, 0)) && codeInfo.GetRawStackTypeWrapper(j, 0) != codeInfo.GetRawStackTypeWrapper(exceptions[i].handlerIndex, 0))
+                                        if (RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(j, 0)) && codeInfo.GetRawStackTypeWrapper(j, 0) != codeInfo.GetRawStackTypeWrapper(exceptions[i].HandlerIndex, 0))
                                             goto not_fault_block;
 
                                         break;
                                 }
 
-                                if (j < current.startIndex || j >= current.endIndex)
+                                if (j < current.StartIndex || j >= current.EndIndex)
                                     goto not_fault_block;
-                                else if (exceptions[i].startIndex <= j && j < exceptions[i].endIndex)
+                                else if (exceptions[i].StartIndex <= j && j < exceptions[i].EndIndex)
                                     goto not_fault_block;
                                 else
                                     continue;
 
                                 not_fault_block:
-                                RuntimeVerifierJavaType.ClearFaultBlockException(codeInfo.GetRawStackTypeWrapper(exceptions[i].handlerIndex, 0));
+                                RuntimeVerifierJavaType.ClearFaultBlockException(codeInfo.GetRawStackTypeWrapper(exceptions[i].HandlerIndex, 0));
                                 done = false;
                                 changed = true;
                                 break;
@@ -2109,19 +2109,19 @@ namespace IKVM.Runtime
             var flags = ComputePartialReachability(codeInfo, code, exceptions, 0, false);
             for (int i = 0; i < exceptions.Length; i++)
             {
-                if (exceptions[i].catchType.IsNil && codeInfo.HasState(exceptions[i].handlerIndex) && RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(exceptions[i].handlerIndex, 0)))
+                if (exceptions[i].CatchType.IsNil && codeInfo.HasState(exceptions[i].HandlerIndex) && RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(exceptions[i].HandlerIndex, 0)))
                 {
-                    if (IsSynchronizedBlockHandler(code, exceptions[i].handlerIndex) &&
-                        exceptions[i].endIndex - 2 >= exceptions[i].startIndex &&
-                        TryFindSingleTryBlockExit(code, flags, exceptions, new ExceptionTableEntry(exceptions[i].startIndex, exceptions[i].endIndex - 2, exceptions[i].handlerIndex, ClassConstantHandle.Nil, exceptions[i].ordinal), i, out var exit) &&
-                        exit == exceptions[i].endIndex - 2 &&
+                    if (IsSynchronizedBlockHandler(code, exceptions[i].HandlerIndex) &&
+                        exceptions[i].EndIndex - 2 >= exceptions[i].StartIndex &&
+                        TryFindSingleTryBlockExit(code, flags, exceptions, new ExceptionTableEntry(exceptions[i].StartIndex, exceptions[i].EndIndex - 2, exceptions[i].HandlerIndex, ClassConstantHandle.Nil, exceptions[i].Ordinal), i, out var exit) &&
+                        exit == exceptions[i].EndIndex - 2 &&
                         (flags[exit + 1] & InstructionFlags.BranchTarget) == 0 &&
-                        MatchInstructions(code, exit, exceptions[i].handlerIndex + 1) &&
-                        MatchInstructions(code, exit + 1, exceptions[i].handlerIndex + 2) &&
-                        MatchExceptionCoverage(exceptions, i, exceptions[i].handlerIndex + 1, exceptions[i].handlerIndex + 3, exit, exit + 2) &&
-                        exceptions[i].handlerIndex <= ushort.MaxValue)
+                        MatchInstructions(code, exit, exceptions[i].HandlerIndex + 1) &&
+                        MatchInstructions(code, exit + 1, exceptions[i].HandlerIndex + 2) &&
+                        MatchExceptionCoverage(exceptions, i, exceptions[i].HandlerIndex + 1, exceptions[i].HandlerIndex + 3, exit, exit + 2) &&
+                        exceptions[i].HandlerIndex <= ushort.MaxValue)
                     {
-                        code[exit].PatchOpCode(NormalizedByteCode.__goto_finally, exceptions[i].endIndex, (short)exceptions[i].handlerIndex);
+                        code[exit].PatchOpCode(NormalizedByteCode.__goto_finally, exceptions[i].EndIndex, (short)exceptions[i].HandlerIndex);
                         exceptions.SetFinally(i);
                         continue;
                     }
@@ -2133,17 +2133,17 @@ namespace IKVM.Runtime
                         // because we're going to patch it to jump around the exit code
                         !IsReachableFromOutsideTryBlock(codeInfo, code, exceptions, exceptions[i], exit))
                     {
-                        if (MatchFinallyBlock(codeInfo, code, exceptions, exceptions[i].handlerIndex, exit, out var exitHandlerEnd, out var faultHandlerEnd))
+                        if (MatchFinallyBlock(codeInfo, code, exceptions, exceptions[i].HandlerIndex, exit, out var exitHandlerEnd, out var faultHandlerEnd))
                         {
                             if (exit != exitHandlerEnd &&
                                 codeInfo.GetStackHeight(exitHandlerEnd) == 0 &&
-                                MatchExceptionCoverage(exceptions, -1, exceptions[i].handlerIndex, faultHandlerEnd, exit, exitHandlerEnd))
+                                MatchExceptionCoverage(exceptions, -1, exceptions[i].HandlerIndex, faultHandlerEnd, exit, exitHandlerEnd))
                             {
                                 // We use Arg2 (which is a short) to store the handler in the __goto_finally pseudo-opcode,
                                 // so we can only do that if handlerIndex fits in a short (note that we can use the sign bit too).
-                                if (exceptions[i].handlerIndex <= ushort.MaxValue)
+                                if (exceptions[i].HandlerIndex <= ushort.MaxValue)
                                 {
-                                    code[exit].PatchOpCode(NormalizedByteCode.__goto_finally, exitHandlerEnd, (short)exceptions[i].handlerIndex);
+                                    code[exit].PatchOpCode(NormalizedByteCode.__goto_finally, exitHandlerEnd, (short)exceptions[i].HandlerIndex);
                                     exceptions.SetFinally(i);
                                 }
                             }
@@ -2177,7 +2177,7 @@ namespace IKVM.Runtime
 
         static bool ExceptionCovers(ExceptionTableEntry exception, int start, int end)
         {
-            return exception.startIndex < end && exception.endIndex > start;
+            return exception.StartIndex < end && exception.EndIndex > start;
         }
 
         static bool MatchFinallyBlock(CodeInfo codeInfo, Instruction[] code, UntangledExceptionTable exceptions, int faultHandler, int exitHandler, out int exitHandlerEnd, out int faultHandlerEnd)
@@ -2257,7 +2257,7 @@ namespace IKVM.Runtime
             flags[0] |= InstructionFlags.Reachable;
             // We mark the first instruction of the try-block as already processed, so that UpdatePartialReachability will skip the try-block.
             // Note that we can do this, because it is not possible to jump into the middle of a try-block (after the exceptions have been untangled).
-            flags[tryBlock.startIndex] = InstructionFlags.Processed;
+            flags[tryBlock.StartIndex] = InstructionFlags.Processed;
             // We mark the successor instructions of the instruction we're examinining as reachable,
             // to figure out if the code following the handler somehow branches back to it.
             MarkSuccessors(code, flags, instructionIndex);
@@ -2271,14 +2271,14 @@ namespace IKVM.Runtime
             var fail = false;
             var nextIsReachable = false;
 
-            for (int i = exception.startIndex; !fail && i < exception.endIndex; i++)
+            for (int i = exception.StartIndex; !fail && i < exception.EndIndex; i++)
             {
                 if ((flags[i] & InstructionFlags.Reachable) != 0)
                 {
                     nextIsReachable = false;
                     for (int j = 0; j < exceptions.Length; j++)
-                        if (j != exceptionIndex && exceptions[j].startIndex >= exception.startIndex && exception.endIndex <= exceptions[j].endIndex)
-                            UpdateTryBlockExit(exception, exceptions[j].handlerIndex, ref exit, ref fail);
+                        if (j != exceptionIndex && exceptions[j].StartIndex >= exception.StartIndex && exception.EndIndex <= exceptions[j].EndIndex)
+                            UpdateTryBlockExit(exception, exceptions[j].HandlerIndex, ref exit, ref fail);
 
                     switch (ByteCodeMetaData.GetFlowControl(code[i].NormalizedOpCode))
                     {
@@ -2312,14 +2312,14 @@ namespace IKVM.Runtime
             }
 
             if (nextIsReachable)
-                UpdateTryBlockExit(exception, exception.endIndex, ref exit, ref fail);
+                UpdateTryBlockExit(exception, exception.EndIndex, ref exit, ref fail);
 
             return !fail && exit != -1;
         }
 
         static void UpdateTryBlockExit(ExceptionTableEntry exception, int targetIndex, ref int exitIndex, ref bool fail)
         {
-            if (exception.startIndex <= targetIndex && targetIndex < exception.endIndex)
+            if (exception.StartIndex <= targetIndex && targetIndex < exception.EndIndex)
             {
                 // branch stays inside try block
             }

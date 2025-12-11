@@ -52,7 +52,7 @@ namespace IKVM.CoreLib.Linking
 
 
         /// <inheritdoc />
-        public override ConstantType GetConstantType() => ConstantType.Integer;
+        public override ConstantType ConstantType => ConstantType.Integer;
 
         /// <inheritdoc />
         public override object GetRuntimeValue() => _value;

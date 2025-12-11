@@ -38,11 +38,11 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        readonly Utf8ConstantHandle signature;
+        readonly Utf8ConstantHandle _signature;
 
-        string descriptor;
-        TLinkingType[] argTypeWrappers;
-        TLinkingType retTypeWrapper;
+        string _descriptor;
+        TLinkingType[] _argTypeWrappers;
+        TLinkingType _retTypeWrapper;
 
         /// <summary>
         /// Initializes a new instance.
@@ -52,47 +52,47 @@ namespace IKVM.CoreLib.Linking
         public ConstantPoolItemMethodType(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, MethodTypeConstantData data) :
             base(classFile)
         {
-            signature = data.Descriptor;
+            _signature = data.Descriptor;
         }
 
         /// <inheritdoc />
-        public override ConstantType GetConstantType() => ConstantType.MethodType;
+        public override ConstantType ConstantType => ConstantType.MethodType;
 
         /// <inheritdoc />
         public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
         {
-            var descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, signature);
+            var descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, _signature);
             if (descriptor == null || !ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.IsValidMethodDescriptor(descriptor))
                 throw new ClassFormatException("Invalid MethodType signature");
 
-            this.descriptor = string.Intern(descriptor.Replace('/', '.'));
+            this._descriptor = string.Intern(descriptor.Replace('/', '.'));
         }
 
         /// <inheritdoc />
         public override void Link(TLinkingType thisType, LoadMode mode)
         {
             lock (this)
-                if (argTypeWrappers != null)
+                if (_argTypeWrappers != null)
                     return;
 
-            var args = thisType.GetArgTypeListFromSignature(descriptor, mode);
-            var ret = thisType.GetReturnTypeFromSignature(descriptor, mode);
+            var args = thisType.GetArgTypeListFromSignature(_descriptor, mode);
+            var ret = thisType.GetReturnTypeFromSignature(_descriptor, mode);
 
             lock (this)
             {
-                if (argTypeWrappers == null)
+                if (_argTypeWrappers == null)
                 {
-                    argTypeWrappers = args;
-                    retTypeWrapper = ret;
+                    _argTypeWrappers = args;
+                    _retTypeWrapper = ret;
                 }
             }
         }
 
-        public string Signature => descriptor;
+        public string Signature => _descriptor;
 
-        public TLinkingType[] GetArgTypes() => argTypeWrappers;
+        public TLinkingType[] GetArgTypes() => _argTypeWrappers;
 
-        public TLinkingType GetRetType() => retTypeWrapper;
+        public TLinkingType GetRetType() => _retTypeWrapper;
 
     }
 

@@ -39,8 +39,8 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        readonly MethodHandleConstantData data;
-        ConstantPoolItemFMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? cpi;
+        readonly MethodHandleConstantData _data;
+        ConstantPoolItemFMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? _cpi;
 
         /// <summary>
         /// Initializes a new instance.
@@ -50,70 +50,70 @@ namespace IKVM.CoreLib.Linking
         internal ConstantPoolItemMethodHandle(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, MethodHandleConstantData data) :
             base(classFile)
         {
-            this.data = data;
+            this._data = data;
         }
 
         /// <inheritdoc />
-        public override ConstantType GetConstantType() => ConstantType.MethodHandle;
+        public override ConstantType ConstantType => ConstantType.MethodHandle;
 
         /// <inheritdoc />
         public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
         {
-            switch (data.Kind)
+            switch (_data.Kind)
             {
                 case MethodHandleKind.GetField:
                 case MethodHandleKind.GetStatic:
                 case MethodHandleKind.PutField:
                 case MethodHandleKind.PutStatic:
-                    cpi = classFile.GetConstantPoolItem(data.Reference) as ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    _cpi = classFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
                     break;
                 case MethodHandleKind.InvokeSpecial:
                 case MethodHandleKind.InvokeVirtual:
                 case MethodHandleKind.InvokeStatic:
                 case MethodHandleKind.NewInvokeSpecial:
-                    cpi = classFile.GetConstantPoolItem(data.Reference) as ConstantPoolItemMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
-                    if (cpi == null && classFile.MajorVersion >= 52 && (data.Kind is MethodHandleKind.InvokeStatic or MethodHandleKind.InvokeSpecial))
+                    _cpi = classFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    if (_cpi == null && classFile.MajorVersion >= 52 && (_data.Kind is MethodHandleKind.InvokeStatic or MethodHandleKind.InvokeSpecial))
                         goto case MethodHandleKind.InvokeInterface;
                     break;
                 case MethodHandleKind.InvokeInterface:
-                    cpi = classFile.GetConstantPoolItem(data.Reference) as ConstantPoolItemInterfaceMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    _cpi = classFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemInterfaceMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
                     break;
             }
 
-            if (cpi == null)
+            if (_cpi == null)
                 throw new ClassFormatException("Invalid constant pool item MethodHandle");
 
-            if (ReferenceEquals(cpi.Name, StringConstants.INIT) && data.Kind != MethodHandleKind.NewInvokeSpecial)
+            if (ReferenceEquals(_cpi.Name, StringConstants.INIT) && _data.Kind != MethodHandleKind.NewInvokeSpecial)
                 throw new ClassFormatException("Bad method name");
         }
 
         /// <inheritdoc />
         public override void MarkLinkRequired()
         {
-            cpi.MarkLinkRequired();
+            _cpi.MarkLinkRequired();
         }
 
         /// <inheritdoc />
         public override void Link(TLinkingType thisType, LoadMode mode)
         {
-            cpi.Link(thisType, mode);
+            _cpi.Link(thisType, mode);
         }
 
-        public string? Class => cpi.Class;
+        public string? Class => _cpi.Class;
 
-        public string? Name => cpi.Name;
+        public string? Name => _cpi.Name;
 
-        public string? Signature => cpi.Signature;
+        public string? Signature => _cpi.Signature;
 
-        public ConstantPoolItemFMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> MemberConstantPoolItem => cpi;
+        public ConstantPoolItemFMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> MemberConstantPoolItem => _cpi;
 
-        public MethodHandleKind Kind => data.Kind;
+        public MethodHandleKind Kind => _data.Kind;
 
-        public TLinkingMember? Member => cpi.GetMember();
+        public TLinkingMember? Member => _cpi.GetMember();
 
         public TLinkingType GetClassType()
         {
-            return cpi.GetClassType();
+            return _cpi.GetClassType();
         }
 
     }

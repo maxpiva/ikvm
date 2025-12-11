@@ -835,15 +835,15 @@ namespace IKVM.Runtime
 
                     exceptionIndex = block.ExceptionIndex + 1;
                     // skip over exception handlers that are no longer relevant
-                    for (; exceptionIndex < exceptions.Length && exceptions[exceptionIndex].endIndex <= i; exceptionIndex++)
+                    for (; exceptionIndex < exceptions.Length && exceptions[exceptionIndex].EndIndex <= i; exceptionIndex++)
                     {
                     }
 
-                    int handlerIndex = exc.handlerIndex;
+                    int handlerIndex = exc.HandlerIndex;
 
-                    if (exc.catchType.IsNil && RuntimeVerifierJavaType.IsFaultBlockException(ma.GetRawStackTypeWrapper(handlerIndex, 0)))
+                    if (exc.CatchType.IsNil && RuntimeVerifierJavaType.IsFaultBlockException(ma.GetRawStackTypeWrapper(handlerIndex, 0)))
                     {
-                        if (exc.isFinally)
+                        if (exc.IsFinally)
                         {
                             ilGenerator.BeginFinallyBlock();
                         }
@@ -860,14 +860,14 @@ namespace IKVM.Runtime
                     {
                         RuntimeJavaType exceptionTypeWrapper;
                         bool remap;
-                        if (exc.catchType.IsNil)
+                        if (exc.CatchType.IsNil)
                         {
                             exceptionTypeWrapper = finish.Context.JavaBase.TypeOfjavaLangThrowable;
                             remap = true;
                         }
                         else
                         {
-                            exceptionTypeWrapper = classFile.GetConstantPoolClassType(exc.catchType);
+                            exceptionTypeWrapper = classFile.GetConstantPoolClassType(exc.CatchType);
                             remap = exceptionTypeWrapper.IsUnloadable || !exceptionTypeWrapper.IsSubTypeOf(finish.Context.JavaBase.TypeOfCliSystemException);
                         }
                         Type excType = exceptionTypeWrapper.TypeAsExceptionType;
@@ -881,7 +881,7 @@ namespace IKVM.Runtime
                             ilGenerator.BeginCatchBlock(finish.Context.Types.Exception);
                         }
 
-                        var bc = new BranchCookie(this, 1, exc.handlerIndex);
+                        var bc = new BranchCookie(this, 1, exc.HandlerIndex);
                         prevBlock.AddExitHack(bc);
                         var handlerInstr = code[handlerIndex];
 
@@ -979,7 +979,7 @@ namespace IKVM.Runtime
                 // transfer the stack into it
                 // Note that an exception block that *starts* at an unreachable instruction,
                 // is completely unreachable, because it is impossible to branch into an exception block.
-                for (; exceptionIndex < exceptions.Length && exceptions[exceptionIndex].startIndex == i; exceptionIndex++)
+                for (; exceptionIndex < exceptions.Length && exceptions[exceptionIndex].StartIndex == i; exceptionIndex++)
                 {
                     int stackHeight = ma.GetStackHeight(i);
                     if (stackHeight != 0)
@@ -1002,7 +1002,7 @@ namespace IKVM.Runtime
                     }
 
                     blockStack.Push(block);
-                    block = new Block(this, exceptions[exceptionIndex].startIndex, exceptions[exceptionIndex].endIndex, exceptionIndex, new List<object>(), true);
+                    block = new Block(this, exceptions[exceptionIndex].StartIndex, exceptions[exceptionIndex].EndIndex, exceptionIndex, new List<object>(), true);
                     block.MarkLabel(i);
                 }
 
@@ -3884,7 +3884,7 @@ namespace IKVM.Runtime
             {
                 // if the first instruction is unreachable, the entire block is unreachable,
                 // because you can't jump into a block (we've just split the blocks to ensure that)
-                if ((flags[exceptions[i].startIndex] & InstructionFlags.Reachable) != 0)
+                if ((flags[exceptions[i].StartIndex] & InstructionFlags.Reachable) != 0)
                 {
                     list.Add(exceptions[i]);
                 }

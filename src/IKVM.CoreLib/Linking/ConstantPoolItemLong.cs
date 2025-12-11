@@ -51,7 +51,7 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override ConstantType GetConstantType() => ConstantType.Long;
+        public override ConstantType ConstantType => ConstantType.Long;
 
         /// <inheritdoc />
         public override object GetRuntimeValue() => _value;

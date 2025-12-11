@@ -39,15 +39,15 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        internal bool hasJsr;
-        internal string verifyError;
-        internal ushort max_stack;
-        internal ushort max_locals;
-        internal Instruction<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[] instructions;
-        internal ExceptionTableEntry[] exception_table;
-        internal int[] argmap;
-        internal LineNumberTableEntry[] lineNumberTable;
-        internal LocalVariableTableEntry[] localVariableTable;
+        internal bool _hasJsr;
+        internal string _verifyError;
+        internal ushort _maxStack;
+        internal ushort _maxLocals;
+        internal Instruction<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[] _instructions;
+        internal ExceptionTableEntry[] _exceptionTable;
+        internal int[] _argmap;
+        internal LineNumberTableEntry[] _lineNumberTable;
+        internal LocalVariableTableEntry[] _localVariableTable;
 
         /// <summary>
         /// Populates the <see cref="Code"/> structure from the given <see cref="CodeAttribute"/>.
@@ -60,8 +60,8 @@ namespace IKVM.CoreLib.Linking
         /// <exception cref="ClassFormatException"></exception>
         internal void Read(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> method, CodeAttribute attribute, ClassFileParseOptions options)
         {
-            max_stack = attribute.MaxStack;
-            max_locals = attribute.MaxLocals;
+            _maxStack = attribute.MaxStack;
+            _maxLocals = attribute.MaxLocals;
             if (attribute.Code.Length == 0 || attribute.Code.Length > 65535)
                 throw new ClassFormatException("Invalid method Code length {1} in class file {0}", classFile.Name, attribute.Code.Length);
 
@@ -83,7 +83,7 @@ namespace IKVM.CoreLib.Linking
                         lastIns = instruction;
 
                         _instructions[instructionCount].Read(instruction, classFile);
-                        hasJsr |= _instructions[instructionCount].NormalizedOpCode == NormalizedByteCode.__jsr;
+                        _hasJsr |= _instructions[instructionCount].NormalizedOpCode == NormalizedByteCode.__jsr;
                         instructionCount++;
                     }
 
@@ -92,31 +92,31 @@ namespace IKVM.CoreLib.Linking
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    verifyError = e.Message;
+                    _verifyError = e.Message;
                 }
                 catch (LinkingException e)
                 {
-                    verifyError = e.Message;
+                    _verifyError = e.Message;
                 }
                 catch (ByteCodeException e)
                 {
-                    verifyError = e.Message;
+                    _verifyError = e.Message;
                 }
 
                 // copy from temporary array into properly sized array
-                instructions = new Instruction<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[instructionCount];
-                Array.Copy(_instructions, 0, instructions, 0, instructionCount);
+                this._instructions = new Instruction<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[instructionCount];
+                Array.Copy(_instructions, 0, this._instructions, 0, instructionCount);
 
                 // build the pcIndexMap
-                var pcIndexMap = new int[instructions[instructionCount - 1].PC + 1];
+                var pcIndexMap = new int[this._instructions[instructionCount - 1].PC + 1];
                 pcIndexMap.AsSpan().Fill(-1);
                 for (int i = 0; i < instructionCount - 1; i++)
-                    pcIndexMap[instructions[i].PC] = i;
+                    pcIndexMap[this._instructions[i].PC] = i;
 
                 // convert branch offsets to indexes
                 for (int i = 0; i < instructionCount - 1; i++)
                 {
-                    switch (instructions[i].NormalizedOpCode)
+                    switch (this._instructions[i].NormalizedOpCode)
                     {
                         case NormalizedByteCode.__ifeq:
                         case NormalizedByteCode.__ifne:
@@ -136,17 +136,17 @@ namespace IKVM.CoreLib.Linking
                         case NormalizedByteCode.__ifnonnull:
                         case NormalizedByteCode.__goto:
                         case NormalizedByteCode.__jsr:
-                            this.instructions[i].SetTargetIndex(pcIndexMap[this.instructions[i].Arg1 + this.instructions[i].PC]);
+                            this._instructions[i].SetTargetIndex(pcIndexMap[this._instructions[i].Arg1 + this._instructions[i].PC]);
                             break;
                         case NormalizedByteCode.__tableswitch:
                         case NormalizedByteCode.__lookupswitch:
-                            this.instructions[i].MapSwitchTargets(pcIndexMap);
+                            this._instructions[i].MapSwitchTargets(pcIndexMap);
                             break;
                     }
                 }
 
                 // read exception table
-                exception_table = new ExceptionTableEntry[attribute.ExceptionTable.Count];
+                _exceptionTable = new ExceptionTableEntry[attribute.ExceptionTable.Count];
                 for (int i = 0; i < attribute.ExceptionTable.Count; i++)
                 {
                     var handler = attribute.ExceptionTable[i];
@@ -177,7 +177,7 @@ namespace IKVM.CoreLib.Linking
                     }
 
                     var handlerIndex = pcIndexMap[handler_pc];
-                    exception_table[i] = new ExceptionTableEntry(startIndex, endIndex, handlerIndex, catch_type, i);
+                    _exceptionTable[i] = new ExceptionTableEntry(startIndex, endIndex, handlerIndex, catch_type, i);
                 }
 
                 foreach (var _attribute in attribute.Attributes)
@@ -188,13 +188,13 @@ namespace IKVM.CoreLib.Linking
                             var lnt = (IKVM.ByteCode.Decoding.LineNumberTableAttribute)_attribute;
                             if ((options & ClassFileParseOptions.LineNumberTable) != 0)
                             {
-                                lineNumberTable = new LineNumberTableEntry[lnt.LineNumbers.Count];
+                                _lineNumberTable = new LineNumberTableEntry[lnt.LineNumbers.Count];
                                 for (int j = 0; j < lnt.LineNumbers.Count; j++)
                                 {
                                     var item = lnt.LineNumbers[j];
-                                    lineNumberTable[j].start_pc = item.StartPc;
-                                    lineNumberTable[j].line_number = item.LineNumber;
-                                    if (lineNumberTable[j].start_pc >= attribute.Code.Length)
+                                    _lineNumberTable[j].start_pc = item.StartPc;
+                                    _lineNumberTable[j].line_number = item.LineNumber;
+                                    if (_lineNumberTable[j].start_pc >= attribute.Code.Length)
                                         throw new ClassFormatException("{0} (LineNumberTable has invalid pc)", classFile.Name);
                                 }
                             }
@@ -203,15 +203,15 @@ namespace IKVM.CoreLib.Linking
                             var lvt = (IKVM.ByteCode.Decoding.LocalVariableTableAttribute)_attribute;
                             if ((options & ClassFileParseOptions.LocalVariableTable) != 0)
                             {
-                                localVariableTable = new LocalVariableTableEntry[lvt.LocalVariables.Count];
+                                _localVariableTable = new LocalVariableTableEntry[lvt.LocalVariables.Count];
                                 for (int j = 0; j < lvt.LocalVariables.Count; j++)
                                 {
                                     var item = lvt.LocalVariables[j];
-                                    localVariableTable[j].start_pc = item.StartPc;
-                                    localVariableTable[j].length = item.Length;
-                                    localVariableTable[j].name = classFile.GetConstantPoolUtf8String(utf8_cp, item.Name);
-                                    localVariableTable[j].descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, item.Descriptor).Replace('/', '.');
-                                    localVariableTable[j].index = item.Slot;
+                                    _localVariableTable[j].start_pc = item.StartPc;
+                                    _localVariableTable[j].length = item.Length;
+                                    _localVariableTable[j].name = classFile.GetConstantPoolUtf8String(utf8_cp, item.Name);
+                                    _localVariableTable[j].descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, item.Descriptor).Replace('/', '.');
+                                    _localVariableTable[j].index = item.Slot;
                                 }
                             }
                             break;
@@ -253,9 +253,9 @@ namespace IKVM.CoreLib.Linking
                             }
                     }
                 }
-                argmap = args.ToArray();
+                _argmap = args.ToArray();
 
-                if (args.Count > max_locals)
+                if (args.Count > _maxLocals)
                     throw new ClassFormatException("{0} (Arguments can't fit into locals)", classFile.Name);
             }
             catch (InvalidCodeException e)
@@ -272,7 +272,7 @@ namespace IKVM.CoreLib.Linking
             }
         }
 
-        internal bool IsEmpty => instructions == null;
+        internal bool IsEmpty => _instructions == null;
 
     }
 

@@ -55,13 +55,13 @@ namespace IKVM.CoreLib.Linking
             if (wrapper != null)
             {
                 if (!wrapper.IsUnloadable)
-                    method = wrapper.GetInterfaceMethod(Name, Signature);
+                    _method = wrapper.GetInterfaceMethod(Name, Signature);
 
                 // NOTE vmspec 5.4.3.4 clearly states that an interfacemethod may also refer to a method in Object
-                method ??= ClassFile.Context.TypeOfJavaLangObject.GetMethod(Name, Signature, false);
+                _method ??= ClassFile.Context.TypeOfJavaLangObject.GetMethod(Name, Signature, false);
 
-                if (method != null)
-                    method.Link(mode);
+                if (_method != null)
+                    _method.Link(mode);
             }
         }
 

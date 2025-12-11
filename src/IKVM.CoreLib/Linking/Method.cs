@@ -246,7 +246,7 @@ namespace IKVM.CoreLib.Linking
                 {
                     if (ReferenceEquals(this.Name, StringConstants.CLINIT))
                     {
-                        code.verifyError = string.Format("Class {0}, method {1} signature {2}: No Code attribute", classFile.Name, this.Name, this.Signature);
+                        code._verifyError = string.Format("Class {0}, method {1} signature {2}: No Code attribute", classFile.Name, this.Name, this.Signature);
                         return;
                     }
                     throw new ClassFormatException("Absent Code attribute in method that is not native or abstract in class file " + classFile.Name);
@@ -304,36 +304,36 @@ namespace IKVM.CoreLib.Linking
 
         internal string? InterlockedCompareAndSetField => low == null ? null : low.InterlockedCompareAndSetField;
 
-        internal string VerifyError => code.verifyError;
+        internal string VerifyError => code._verifyError;
 
         // maps argument 'slot' (as encoded in the xload/xstore instructions) into the ordinal
-        internal int[] ArgMap => code.argmap;
+        internal int[] ArgMap => code._argmap;
 
-        internal int MaxStack => code.max_stack;
+        internal int MaxStack => code._maxStack;
 
-        internal int MaxLocals => code.max_locals;
+        internal int MaxLocals => code._maxLocals;
 
         internal Instruction<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[] Instructions
         {
-            get => code.instructions;
-            set => code.instructions = value;
+            get => code._instructions;
+            set => code._instructions = value;
         }
 
         internal ExceptionTableEntry[] ExceptionTable
         {
-            get => code.exception_table;
-            set => code.exception_table = value;
+            get => code._exceptionTable;
+            set => code._exceptionTable = value;
         }
 
-        internal LineNumberTableEntry[] LineNumberTableAttribute => code.lineNumberTable;
+        internal LineNumberTableEntry[] LineNumberTableAttribute => code._lineNumberTable;
 
-        internal LocalVariableTableEntry[] LocalVariableTableAttribute => code.localVariableTable;
+        internal LocalVariableTableEntry[] LocalVariableTableAttribute => code._localVariableTable;
 
         internal MethodParametersEntry[] MethodParameters => parameters;
 
         internal bool MalformedMethodParameters => parameters == MethodParametersEntry.Malformed;
 
-        internal bool HasJsr => code.hasJsr;
+        internal bool HasJsr => code._hasJsr;
 
     }
 

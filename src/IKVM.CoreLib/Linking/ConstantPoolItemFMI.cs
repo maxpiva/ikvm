@@ -67,8 +67,8 @@ namespace IKVM.CoreLib.Linking
             if (name_and_type == null || _clazz == null)
                 throw new ClassFormatException("Bad index in constant pool");
 
-            _name = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, name_and_type.NameHandle));
-            _descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, name_and_type.DescriptorHandle);
+            _name = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, name_and_type._nameHandle));
+            _descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, name_and_type._descriptorHandle);
             Validate(_name, _descriptor, classFile.MajorVersion);
             _descriptor = string.Intern(_descriptor.Replace('/', '.'));
         }

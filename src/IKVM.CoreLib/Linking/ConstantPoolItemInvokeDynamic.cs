@@ -65,8 +65,8 @@ namespace IKVM.CoreLib.Linking
             if (nameAndType == null)
                 throw new ClassFormatException("Bad index in constant pool");
 
-            _name = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, nameAndType.NameHandle));
-            _descriptor = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, nameAndType.DescriptorHandle).Replace('/', '.'));
+            _name = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, nameAndType._nameHandle));
+            _descriptor = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, nameAndType._descriptorHandle).Replace('/', '.'));
         }
 
         /// <inheritdoc />

@@ -188,10 +188,7 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override ConstantType GetConstantType()
-        {
-            return ConstantType.Class;
-        }
+        public override ConstantType ConstantType => ConstantType.Class;
 
         /// <summary>
         /// Returns <c>true</c> if this constant is equal to the other constant.

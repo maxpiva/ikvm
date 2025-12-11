@@ -38,8 +38,8 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        internal Utf8ConstantHandle NameHandle;
-        internal Utf8ConstantHandle DescriptorHandle;
+        internal Utf8ConstantHandle _nameHandle;
+        internal Utf8ConstantHandle _descriptorHandle;
 
         /// <summary>
         /// Initializes a new instance.
@@ -49,14 +49,14 @@ namespace IKVM.CoreLib.Linking
         public ConstantPoolItemNameAndType(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, NameAndTypeConstantData data) :
             base(classFile)
         {
-            NameHandle = data.Name;
-            DescriptorHandle = data.Descriptor;
+            _nameHandle = data.Name;
+            _descriptorHandle = data.Descriptor;
         }
 
         /// <inheritdoc />
         public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
         {
-            if (classFile.GetConstantPoolUtf8String(utf8_cp, NameHandle) == null || classFile.GetConstantPoolUtf8String(utf8_cp, DescriptorHandle) == null)
+            if (classFile.GetConstantPoolUtf8String(utf8_cp, _nameHandle) == null || classFile.GetConstantPoolUtf8String(utf8_cp, _descriptorHandle) == null)
                 throw new ClassFormatException("Illegal constant pool index");
         }
 

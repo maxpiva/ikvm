@@ -30,12 +30,12 @@ namespace IKVM.CoreLib.Linking
     internal sealed class ExceptionTableEntry
     {
 
-        internal readonly int startIndex;
-        internal readonly int endIndex;
-        internal readonly int handlerIndex;
-        internal readonly ClassConstantHandle catchType;
-        internal readonly int ordinal;
-        internal readonly bool isFinally;
+        readonly int _startIndex;
+        readonly int _endIndex;
+        readonly int _handlerIndex;
+        readonly ClassConstantHandle _catchType;
+        readonly int _ordinal;
+        readonly bool _isFinally;
 
         /// <summary>
         /// Initializes a new instance.
@@ -62,13 +62,25 @@ namespace IKVM.CoreLib.Linking
         /// <param name="isFinally"></param>
         internal ExceptionTableEntry(int startIndex, int endIndex, int handlerIndex, ClassConstantHandle catchType, int ordinal, bool isFinally)
         {
-            this.startIndex = startIndex;
-            this.endIndex = endIndex;
-            this.handlerIndex = handlerIndex;
-            this.catchType = catchType;
-            this.ordinal = ordinal;
-            this.isFinally = isFinally;
+            _startIndex = startIndex;
+            _endIndex = endIndex;
+            _handlerIndex = handlerIndex;
+            _catchType = catchType;
+            _ordinal = ordinal;
+            _isFinally = isFinally;
         }
+
+        public int StartIndex => _startIndex;
+
+        public int EndIndex => _endIndex;
+
+        public int HandlerIndex => _handlerIndex;
+
+        public ClassConstantHandle CatchType => _catchType;
+
+        public int Ordinal => _ordinal;
+
+        public bool IsFinally => _isFinally;
 
     }
 

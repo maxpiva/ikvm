@@ -283,11 +283,11 @@ namespace IKVM.Runtime
             {
                 foreach (var entry in table)
                 {
-                    int start = MapExceptionStartEnd(entry.startIndex);
-                    int end = MapExceptionStartEnd(entry.endIndex);
+                    int start = MapExceptionStartEnd(entry.StartIndex);
+                    int end = MapExceptionStartEnd(entry.EndIndex);
                     if (start != end)
                     {
-                        var newEntry = new ExceptionTableEntry(start, end, branchMap[entry.handlerIndex], entry.catchType, entry.ordinal);
+                        var newEntry = new ExceptionTableEntry(start, end, branchMap[entry.HandlerIndex], entry.CatchType, entry.Ordinal);
                         newExceptions.Add(newEntry);
                     }
                 }
@@ -383,9 +383,9 @@ namespace IKVM.Runtime
                     // ensure that exception blocks and handlers start and end at instruction boundaries
                     for (int i = 0; i < method.ExceptionTable.Length; i++)
                     {
-                        int start = method.ExceptionTable[i].startIndex;
-                        int end = method.ExceptionTable[i].endIndex;
-                        int handler = method.ExceptionTable[i].handlerIndex;
+                        int start = method.ExceptionTable[i].StartIndex;
+                        int end = method.ExceptionTable[i].EndIndex;
+                        int handler = method.ExceptionTable[i].HandlerIndex;
                         if (start >= end || start == -1 || end == -1 || handler <= 0)
                             throw new IndexOutOfRangeException();
                     }
@@ -456,8 +456,8 @@ namespace IKVM.Runtime
 
                                 // mark the exception handlers reachable from this instruction
                                 for (int j = 0; j < method.ExceptionTable.Length; j++)
-                                    if (method.ExceptionTable[j].startIndex <= i && i < method.ExceptionTable[j].endIndex)
-                                        MergeExceptionHandler(method.ExceptionTable[j].handlerIndex, _state[i]);
+                                    if (method.ExceptionTable[j].StartIndex <= i && i < method.ExceptionTable[j].EndIndex)
+                                        MergeExceptionHandler(method.ExceptionTable[j].HandlerIndex, _state[i]);
 
                                 _state[i].CopyTo(s);
                                 var instr = instructions[i];
@@ -1069,8 +1069,8 @@ namespace IKVM.Runtime
                                     throw new VerifyError("Stack size too large");
 
                                 for (int j = 0; j < method.ExceptionTable.Length; j++)
-                                    if (method.ExceptionTable[j].endIndex == i + 1)
-                                        MergeExceptionHandler(method.ExceptionTable[j].handlerIndex, s);
+                                    if (method.ExceptionTable[j].EndIndex == i + 1)
+                                        MergeExceptionHandler(method.ExceptionTable[j].HandlerIndex, s);
 
                                 try
                                 {
@@ -1196,8 +1196,8 @@ namespace IKVM.Runtime
 
                             // mark the exception handlers reachable from this instruction
                             for (int j = 0; j < method.ExceptionTable.Length; j++)
-                                if (method.ExceptionTable[j].startIndex <= i && i < method.ExceptionTable[j].endIndex)
-                                    flags[method.ExceptionTable[j].handlerIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
+                                if (method.ExceptionTable[j].StartIndex <= i && i < method.ExceptionTable[j].EndIndex)
+                                    flags[method.ExceptionTable[j].HandlerIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
 
                             // mark the successor instructions
                             switch (instructions[i].NormalizedOpCode)

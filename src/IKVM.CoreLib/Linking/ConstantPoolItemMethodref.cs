@@ -57,8 +57,8 @@ namespace IKVM.CoreLib.Linking
             var javaType = GetClassType();
             if (javaType != null && javaType.IsUnloadable == false)
             {
-                method = javaType.GetMethod(Name, Signature, !ReferenceEquals(Name, StringConstants.INIT));
-                method?.Link(mode);
+                _method = javaType.GetMethod(Name, Signature, !ReferenceEquals(Name, StringConstants.INIT));
+                _method?.Link(mode);
 
                 if (Name != StringConstants.INIT &&
                     thisJavaType.IsInterface == false &&
@@ -66,8 +66,8 @@ namespace IKVM.CoreLib.Linking
                     thisJavaType != javaType &&
                     thisJavaType.IsSubTypeOf(javaType))
                 {
-                    invokespecialMethod = thisJavaType.BaseType.GetMethod(Name, Signature, true);
-                    invokespecialMethod?.Link(mode);
+                    _invokespecialMethod = thisJavaType.BaseType.GetMethod(Name, Signature, true);
+                    _invokespecialMethod?.Link(mode);
                 }
             }
         }

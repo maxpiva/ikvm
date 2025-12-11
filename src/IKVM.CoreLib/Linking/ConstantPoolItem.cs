@@ -59,10 +59,7 @@ namespace IKVM.CoreLib.Linking
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public virtual ConstantType GetConstantType()
-        {
-            throw new InvalidOperationException();
-        }
+        public virtual ConstantType ConstantType => throw new InvalidOperationException();
 
         /// <summary>
         /// Resolves the constant information from the specified class file, and UTF8 string cache.

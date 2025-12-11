@@ -382,8 +382,8 @@ namespace IKVM.Runtime
                         var curr = state[i].Copy();
 
                         for (int j = 0; j < exceptions.Length; j++)
-                            if (exceptions[j].startIndex <= i && i < exceptions[j].endIndex)
-                                state[exceptions[j].handlerIndex].Merge(curr);
+                            if (exceptions[j].StartIndex <= i && i < exceptions[j].EndIndex)
+                                state[exceptions[j].HandlerIndex].Merge(curr);
 
                         if (IsLoadLocal(instructions[i].NormalizedOpCode) && (instructions[i].NormalizedOpCode != NormalizedByteCode.__aload || !RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(i + 1, 0))))
                         {
@@ -400,8 +400,8 @@ namespace IKVM.Runtime
                             // if this is a store at the end of an exception block,
                             // we need to propagate the new state to the exception handler
                             for (int j = 0; j < exceptions.Length; j++)
-                                if (exceptions[j].endIndex == i + 1)
-                                    state[exceptions[j].handlerIndex].Merge(curr);
+                                if (exceptions[j].EndIndex == i + 1)
+                                    state[exceptions[j].HandlerIndex].Merge(curr);
                         }
 
                         if (instructions[i].NormalizedOpCode == NormalizedByteCode.__invokespecial)

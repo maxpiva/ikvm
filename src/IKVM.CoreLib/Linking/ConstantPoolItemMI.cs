@@ -38,10 +38,10 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        TLinkingType[]? argTypeWrappers;
-        TLinkingType? retTypeWrapper;
-        protected TLinkingMethod? method;
-        protected TLinkingMethod? invokespecialMethod;
+        TLinkingType[]? _argTypeWrappers;
+        TLinkingType? _retTypeWrapper;
+        protected TLinkingMethod? _method;
+        protected TLinkingMethod? _invokespecialMethod;
 
         /// <summary>
         /// Initializes a new instance.
@@ -77,7 +77,7 @@ namespace IKVM.CoreLib.Linking
             base.Link(thisType, mode);
 
             lock (this)
-                if (argTypeWrappers != null)
+                if (_argTypeWrappers != null)
                     return;
 
             var args = thisType.GetArgTypeListFromSignature(Signature, mode);
@@ -85,38 +85,38 @@ namespace IKVM.CoreLib.Linking
 
             lock (this)
             {
-                if (argTypeWrappers == null)
+                if (_argTypeWrappers == null)
                 {
-                    argTypeWrappers = args;
-                    retTypeWrapper = ret;
+                    _argTypeWrappers = args;
+                    _retTypeWrapper = ret;
                 }
             }
         }
 
         public TLinkingType[]? GetArgTypes()
         {
-            return argTypeWrappers;
+            return _argTypeWrappers;
         }
 
         public TLinkingType? GetRetType()
         {
-            return retTypeWrapper;
+            return _retTypeWrapper;
         }
 
         public TLinkingMethod? GetMethod()
         {
-            return method;
+            return _method;
         }
 
         public TLinkingMethod? GetMethodForInvokespecial()
         {
-            return invokespecialMethod ?? method;
+            return _invokespecialMethod ?? _method;
         }
 
         /// <inheritdoc />
         public override TLinkingMember? GetMember()
         {
-            return method;
+            return _method;
         }
 
     }

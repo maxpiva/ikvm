@@ -46,7 +46,7 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override ConstantType GetConstantType() => ConstantType.LiveObject;
+        public override ConstantType ConstantType => ConstantType.LiveObject;
 
         /// <summary>
         /// Gets the live object instance.
