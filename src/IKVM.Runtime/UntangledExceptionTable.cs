@@ -47,6 +47,7 @@ namespace IKVM.Runtime
                     {
                         throw new InvalidOperationException("Partially overlapping try blocks is broken");
                     }
+
                     // check that we didn't destroy the ordering, when sorting
                     if (exceptions[i].StartIndex <= exceptions[j].StartIndex &&
                         exceptions[i].EndIndex >= exceptions[j].EndIndex &&
@@ -57,6 +58,7 @@ namespace IKVM.Runtime
                 }
             }
 #endif
+
             this.exceptions = exceptions;
         }
 
@@ -74,6 +76,7 @@ namespace IKVM.Runtime
         {
             exceptions[index] = new ExceptionTableEntry(exceptions[index].StartIndex, exceptions[index].EndIndex, exceptions[index].HandlerIndex, exceptions[index].CatchType, exceptions[index].Ordinal, true);
         }
+
     }
 
 }

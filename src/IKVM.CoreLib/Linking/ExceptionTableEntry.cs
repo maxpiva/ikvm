@@ -27,7 +27,7 @@ using IKVM.ByteCode;
 namespace IKVM.CoreLib.Linking
 {
 
-    internal sealed class ExceptionTableEntry
+    internal readonly struct ExceptionTableEntry
     {
 
         readonly int _startIndex;
@@ -70,17 +70,17 @@ namespace IKVM.CoreLib.Linking
             _isFinally = isFinally;
         }
 
-        public int StartIndex => _startIndex;
+        public readonly int StartIndex => _startIndex;
 
-        public int EndIndex => _endIndex;
+        public readonly int EndIndex => _endIndex;
 
-        public int HandlerIndex => _handlerIndex;
+        public readonly int HandlerIndex => _handlerIndex;
 
-        public ClassConstantHandle CatchType => _catchType;
+        public readonly ClassConstantHandle CatchType => _catchType;
 
-        public int Ordinal => _ordinal;
+        public readonly int Ordinal => _ordinal;
 
-        public bool IsFinally => _isFinally;
+        public readonly bool IsFinally => _isFinally;
 
     }
 

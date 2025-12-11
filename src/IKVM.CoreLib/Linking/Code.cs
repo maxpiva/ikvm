@@ -185,7 +185,7 @@ namespace IKVM.CoreLib.Linking
                     switch (classFile.GetConstantPoolUtf8String(utf8_cp, _attribute.Name))
                     {
                         case AttributeName.LineNumberTable:
-                            var lnt = (IKVM.ByteCode.Decoding.LineNumberTableAttribute)_attribute;
+                            var lnt = (LineNumberTableAttribute)_attribute;
                             if ((options & ClassFileParseOptions.LineNumberTable) != 0)
                             {
                                 _lineNumberTable = new LineNumberTableEntry[lnt.LineNumbers.Count];
@@ -200,7 +200,7 @@ namespace IKVM.CoreLib.Linking
                             }
                             break;
                         case AttributeName.LocalVariableTable:
-                            var lvt = (IKVM.ByteCode.Decoding.LocalVariableTableAttribute)_attribute;
+                            var lvt = (LocalVariableTableAttribute)_attribute;
                             if ((options & ClassFileParseOptions.LocalVariableTable) != 0)
                             {
                                 _localVariableTable = new LocalVariableTableEntry[lvt.LocalVariables.Count];
@@ -272,7 +272,7 @@ namespace IKVM.CoreLib.Linking
             }
         }
 
-        internal bool IsEmpty => _instructions == null;
+        internal readonly bool IsEmpty => _instructions == null;
 
     }
 
