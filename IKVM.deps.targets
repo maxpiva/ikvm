@@ -2,7 +2,7 @@
 
     <ItemGroup>
         <PackageReference Include="System.Collections.Immutable" Version="8.0.0" GeneratePathProperty="true" />
-        <PackageReference Include="System.Memory" Version="4.5.5" GeneratePathProperty="true" />
+        <PackageReference Include="System.Memory" Version="4.6.3" GeneratePathProperty="true" />
         <PackageReference Include="System.Reflection.Metadata" Version="8.0.1" GeneratePathProperty="true" />
         <PackageReference Include="System.Text.Json" Version="8.0.5" GeneratePathProperty="true" />
         <PackageReference Include="IKVM.ByteCode" Version="9.3.5" GeneratePathProperty="true" />
@@ -17,7 +17,7 @@
                 <PackageReference Include="System.Buffers" Version="4.5.1" />
                 <PackageReference Include="System.IO.Compression" Version="4.3.0" />
                 <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
-                <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+                <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
                 <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
                 <PackageReference Include="System.ValueTuple" Version="4.5.0" />
             </ItemGroup>
