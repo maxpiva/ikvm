@@ -48,8 +48,8 @@ namespace IKVM.CoreLib.Linking
         /// <param name="options"></param>
         /// <param name="reader"></param>
         /// <exception cref="ClassFormatException"></exception>
-        internal Method(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options, IKVM.ByteCode.Decoding.Method reader) :
-            base(classFile, utf8_cp, reader.AccessFlags, reader.Name, reader.Descriptor)
+        internal Method(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, IKVM.ByteCode.Decoding.Method reader) :
+            base(classFile, reader.AccessFlags, reader.Name, reader.Descriptor)
         {
             // vmspec 4.6 says that all flags, except ACC_STRICT are ignored on <clinit>
             // however, since Java 7 it does need to be marked static
@@ -76,7 +76,7 @@ namespace IKVM.CoreLib.Linking
             {
                 var attribute = reader.Attributes[i];
 
-                switch (classFile.GetConstantPoolUtf8String(utf8_cp, attribute.Name))
+                switch (classFile.GetConstantPoolUtf8String(attribute.Name))
                 {
                     case AttributeName.Deprecated:
                         var deprecatedAttribute = (DeprecatedAttribute)attribute;
@@ -88,7 +88,7 @@ namespace IKVM.CoreLib.Linking
                             if (code.IsEmpty == false)
                                 throw new ClassFormatException("{0} (Duplicate Code attribute)", classFile.Name);
 
-                            code.Read(classFile, utf8_cp, this, codeAttribute, options);
+                            code.Read(classFile, this, codeAttribute);
                             break;
                         }
                     case AttributeName.Exceptions:
@@ -108,21 +108,21 @@ namespace IKVM.CoreLib.Linking
                             goto default;
 
                         var signatureAttribute = (SignatureAttribute)attribute;
-                        signature = classFile.GetConstantPoolUtf8String(utf8_cp, signatureAttribute.Signature);
+                        signature = classFile.GetConstantPoolUtf8String( signatureAttribute.Signature);
                         break;
                     case AttributeName.RuntimeVisibleAnnotations:
                         if (classFile.MajorVersion < 49)
                             goto default;
 
                         var runtimeVisibleAnnotationsAttribute = (RuntimeVisibleAnnotationsAttribute)attribute;
-                        annotations = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(runtimeVisibleAnnotationsAttribute.Annotations, classFile, utf8_cp);
-                        if ((options & ClassFileParseOptions.TrustedAnnotations) != 0)
+                        annotations = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(runtimeVisibleAnnotationsAttribute.Annotations, classFile);
+                        if ((classFile.Options & ClassFileParseOptions.TrustedAnnotations) != 0)
                         {
                             foreach (object[] annot in annotations)
                             {
                                 switch ((string)annot[1])
                                 {
-                                    case "Lsun/reflect/CallerSensitive;" when Class.Context.IsImporter:
+                                    case "Lsun/reflect/CallerSensitive;" when ClassFile.Context.IsImporter:
                                         flags |= ClassFileFlags.CALLERSENSITIVE;
                                         break;
                                     case "Ljava/lang/invoke/LambdaForm$Compiled;":
@@ -150,7 +150,7 @@ namespace IKVM.CoreLib.Linking
                             var parameter = runtimeVisibleParameterAnnotationsAttribute.ParameterAnnotations[j];
                             low.parameterAnnotations[j] = new object[parameter.Annotations.Count];
                             for (int k = 0; k < parameter.Annotations.Count; k++)
-                                low.parameterAnnotations[j][k] = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotation(parameter.Annotations[k], classFile, utf8_cp);
+                                low.parameterAnnotations[j][k] = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotation(parameter.Annotations[k], classFile);
                         }
 
                         break;
@@ -160,16 +160,16 @@ namespace IKVM.CoreLib.Linking
 
                         var annotationDefaultAttribute = (AnnotationDefaultAttribute)attribute;
                         low ??= new LowFreqData();
-                        low.annotationDefault = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotationElementValue(annotationDefaultAttribute.DefaultValue, classFile, utf8_cp);
+                        low.annotationDefault = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotationElementValue(annotationDefaultAttribute.DefaultValue, classFile);
 
                         break;
-                    case AttributeName.RuntimeInvisibleAnnotations when Class.Context.IsImporter:
+                    case AttributeName.RuntimeInvisibleAnnotations when ClassFile.Context.IsImporter:
                         if (classFile.MajorVersion < 49)
                             goto default;
 
                         var runtimeInvisibleAnnotationsAttribute = (RuntimeInvisibleAnnotationsAttribute)attribute;
 
-                        foreach (object[] annot in ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(runtimeInvisibleAnnotationsAttribute.Annotations, classFile, utf8_cp))
+                        foreach (object[] annot in ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(runtimeInvisibleAnnotationsAttribute.Annotations, classFile))
                         {
                             if (annot[1].Equals("Likvm/lang/Internal;"))
                             {
@@ -218,7 +218,7 @@ namespace IKVM.CoreLib.Linking
                             throw new ClassFormatException("{0} (Duplicate MethodParameters attribute)", classFile.Name);
 
                         var methodParametersAttribute = (MethodParametersAttribute)attribute;
-                        parameters = ReadMethodParameters(methodParametersAttribute.Parameters, utf8_cp);
+                        parameters = ReadMethodParameters(methodParametersAttribute.Parameters);
 
                         break;
                     case AttributeName.RuntimeVisibleTypeAnnotations:
@@ -226,7 +226,7 @@ namespace IKVM.CoreLib.Linking
                             goto default;
 
                         var runtimeVisibleTypeAnnotationsAttribute = (RuntimeVisibleTypeAnnotationsAttribute)attribute;
-                        classFile.CreateUtf8ConstantPoolItems(utf8_cp);
+                        classFile.Constants.CreateUtf8ConstantPoolItems();
                         runtimeVisibleTypeAnnotations = runtimeVisibleTypeAnnotationsAttribute.TypeAnnotations;
                         break;
                     default:
@@ -254,17 +254,17 @@ namespace IKVM.CoreLib.Linking
             }
         }
 
-        static MethodParametersEntry[] ReadMethodParameters(MethodParameterTable parameters, string[] utf8_cp)
+        MethodParametersEntry[] ReadMethodParameters(MethodParameterTable parameters)
         {
             var l = new MethodParametersEntry[parameters.Count];
 
             for (int i = 0; i < parameters.Count; i++)
             {
                 var name = parameters[i].Name;
-                if (name.Slot >= utf8_cp.Length || (name.IsNotNil && utf8_cp[name.Slot] == null))
+                if (name.Slot >= ClassFile.Constants.SlotCount || (name.IsNotNil && ClassFile.Constants.GetUtf8(name) == null))
                     return MethodParametersEntry.Malformed;
 
-                l[i].name = utf8_cp[name.Slot];
+                l[i].name = ClassFile.Constants.GetUtf8(name);
                 l[i].accessFlags = parameters[i].AccessFlags;
             }
 

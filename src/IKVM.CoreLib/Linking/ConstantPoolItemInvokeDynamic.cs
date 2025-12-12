@@ -59,14 +59,14 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
-            var nameAndType = (ConstantPoolItemNameAndType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)classFile.GetConstantPoolItem(_nameAndTypeHandle);
+            var nameAndType = (ConstantPoolItemNameAndType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)ClassFile.GetConstantPoolItem(_nameAndTypeHandle);
             if (nameAndType == null)
                 throw new ClassFormatException("Bad index in constant pool");
 
-            _name = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, nameAndType._nameHandle));
-            _descriptor = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, nameAndType._descriptorHandle).Replace('/', '.'));
+            _name = string.Intern(ClassFile.GetConstantPoolUtf8String(nameAndType._nameHandle));
+            _descriptor = string.Intern(ClassFile.GetConstantPoolUtf8String(nameAndType._descriptorHandle).Replace('/', '.'));
         }
 
         /// <inheritdoc />

@@ -150,11 +150,11 @@ namespace IKVM.Runtime
                         {
                             // storing a field in the current object cannot throw
                         }
-                        else if (m.Instructions[i].NormalizedOpCode == NormalizedByteCode.__getstatic && classFile.GetFieldref(m.Instructions[i].Arg1).GetClassType() == clazz)
+                        else if (m.Instructions[i].NormalizedOpCode == NormalizedByteCode.__getstatic && classFile.GetFieldref(checked((ushort)m.Instructions[i].Arg1)).GetClassType() == clazz)
                         {
                             // loading a field from the current class cannot throw
                         }
-                        else if (m.Instructions[i].NormalizedOpCode == NormalizedByteCode.__putstatic && classFile.GetFieldref(m.Instructions[i].Arg1).GetClassType() == clazz)
+                        else if (m.Instructions[i].NormalizedOpCode == NormalizedByteCode.__putstatic && classFile.GetFieldref(checked((ushort)m.Instructions[i].Arg1)).GetClassType() == clazz)
                         {
                             // storing a field to the current class cannot throw
                         }
@@ -1036,7 +1036,7 @@ namespace IKVM.Runtime
                 {
                     case NormalizedByteCode.__getstatic:
                         {
-                            var cpi = classFile.GetFieldref(instr.Arg1);
+                            var cpi = classFile.GetFieldref(checked((ushort)instr.Arg1));
                             if (cpi.GetClassType() != clazz)
                                 nonleaf = true; // we may trigger a static initializer, which is equivalent to a call
 
@@ -1047,8 +1047,8 @@ namespace IKVM.Runtime
                         }
                     case NormalizedByteCode.__getfield:
                         {
-                            ConstantPoolItemFieldref cpi = classFile.GetFieldref(instr.Arg1);
-                            RuntimeJavaField field = cpi.GetField();
+                            var cpi = classFile.GetFieldref(checked((ushort)instr.Arg1));
+                            var field = cpi.GetField();
                             if (ma.GetStackTypeWrapper(i, 0).IsUnloadable)
                             {
                                 if (field.IsProtected)
@@ -1068,7 +1068,7 @@ namespace IKVM.Runtime
                         }
                     case NormalizedByteCode.__putstatic:
                         {
-                            var cpi = classFile.GetFieldref(instr.Arg1);
+                            var cpi = classFile.GetFieldref(checked((ushort)instr.Arg1));
                             if (cpi.GetClassType() != clazz)
                                 nonleaf = true; // we may trigger a static initializer, which is equivalent to a call
                             RuntimeJavaField field = cpi.GetField();
@@ -1087,7 +1087,7 @@ namespace IKVM.Runtime
                         }
                     case NormalizedByteCode.__putfield:
                         {
-                            var cpi = classFile.GetFieldref(instr.Arg1);
+                            var cpi = classFile.GetFieldref(checked((ushort)instr.Arg1));
                             var field = cpi.GetField();
                             var tw = field.FieldTypeWrapper;
                             if (ma.GetStackTypeWrapper(i, 1).IsUnloadable)
@@ -3223,7 +3223,7 @@ namespace IKVM.Runtime
                     throw new InvalidOperationException();
             }
 
-            var cpi = classFile.GetFieldref(instr.Arg1);
+            var cpi = classFile.GetFieldref(checked((ushort)instr.Arg1));
             var fieldType = cpi.GetFieldType();
             if (kind == MethodHandleKind.PutField || kind == MethodHandleKind.PutStatic)
             {

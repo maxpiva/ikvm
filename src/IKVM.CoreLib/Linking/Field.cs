@@ -43,11 +43,10 @@ namespace IKVM.CoreLib.Linking
         /// Initializes a new instance.
         /// </summary>
         /// <param name="classFile"></param>
-        /// <param name="utf8_cp"></param>
         /// <param name="field"></param>
         /// <exception cref="ClassFormatException"></exception>
-        internal Field(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ByteCode.Decoding.Field field) :
-            base(classFile, utf8_cp, field.AccessFlags, field.Name, field.Descriptor)
+        internal Field(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, ByteCode.Decoding.Field field) :
+            base(classFile, field.AccessFlags, field.Name, field.Descriptor)
         {
             if ((IsPrivate && IsPublic) || (IsPrivate && IsProtected) || (IsPublic && IsProtected) || (IsFinal && IsVolatile) || (classFile.IsInterface && (!IsPublic || !IsStatic || !IsFinal || IsTransient)))
                 throw new ClassFormatException("{0} (Illegal field modifiers: 0x{1:X})", classFile.Name, accessFlags);
@@ -56,7 +55,7 @@ namespace IKVM.CoreLib.Linking
             {
                 var attribute = field.Attributes[i];
 
-                switch (classFile.GetConstantPoolUtf8String(utf8_cp, attribute.Name))
+                switch (classFile.GetConstantPoolUtf8String(attribute.Name))
                 {
                     case AttributeName.Deprecated:
                         attribute.AsDeprecated();
@@ -106,14 +105,14 @@ namespace IKVM.CoreLib.Linking
                             goto default;
 
                         var _signature = (SignatureAttribute)attribute;
-                        signature = classFile.GetConstantPoolUtf8String(utf8_cp, _signature.Signature);
+                        signature = classFile.GetConstantPoolUtf8String(_signature.Signature);
                         break;
                     case AttributeName.RuntimeVisibleAnnotations:
                         if (classFile.MajorVersion < 49)
                             goto default;
 
                         var _runtimeVisibleAnnotation = (RuntimeVisibleAnnotationsAttribute)attribute;
-                        annotations = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(_runtimeVisibleAnnotation.Annotations, classFile, utf8_cp);
+                        annotations = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(_runtimeVisibleAnnotation.Annotations, classFile);
                         break;
                     case AttributeName.RuntimeInvisibleAnnotations:
                         if (classFile.MajorVersion < 49)
@@ -121,17 +120,17 @@ namespace IKVM.CoreLib.Linking
 
                         var _runtimeInvisibleAnnotations = (RuntimeInvisibleAnnotationsAttribute)attribute;
 
-                        foreach (object[] annot in ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(_runtimeInvisibleAnnotations.Annotations, classFile, utf8_cp))
+                        foreach (object[] annot in ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAnnotations(_runtimeInvisibleAnnotations.Annotations, classFile))
                         {
                             if (annot[1].Equals("Likvm/lang/Property;"))
                             {
                                 DecodePropertyAnnotation(classFile, annot);
                             }
-							else if (Class.Context.IsImporter && annot[1].Equals("Likvm/lang/Internal;"))
-							{
-								accessFlags &= ~ClassFileAccessFlags.AccessMask;
-								flags |= ClassFileFlags.MASK_INTERNAL;
-							}
+                            else if (ClassFile.Context.IsImporter && annot[1].Equals("Likvm/lang/Internal;"))
+                            {
+                                accessFlags &= ~ClassFileAccessFlags.AccessMask;
+                                flags |= ClassFileFlags.MASK_INTERNAL;
+                            }
                         }
 
                         break;
@@ -140,7 +139,7 @@ namespace IKVM.CoreLib.Linking
                             goto default;
 
                         var _runtimeVisibleTypeAnnotations = (RuntimeVisibleTypeAnnotationsAttribute)attribute;
-                        classFile.CreateUtf8ConstantPoolItems(utf8_cp);
+                        classFile.Constants.CreateUtf8ConstantPoolItems();
                         runtimeVisibleTypeAnnotations = _runtimeVisibleTypeAnnotations.TypeAnnotations;
                         break;
                     default:

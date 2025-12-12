@@ -380,10 +380,9 @@ namespace IKVM.CoreLib.Linking
         }
 
         readonly ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> _context;
-        readonly ByteCode.Decoding.ClassFile _clazz;
-
-        readonly ConstantPoolItem<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[] _constantpool;
-        readonly string[] _utf8cp;
+        readonly ByteCode.Decoding.ClassFile _decoder;
+        readonly ClassFileParseOptions _options;
+        readonly ConstantPool<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> _constants;
 
         ClassFileAccessFlags _accessFlags;
         ClassFileFlags _flags;
@@ -404,126 +403,42 @@ namespace IKVM.CoreLib.Linking
         /// Initializes a new instance.
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="clazz"></param>
+        /// <param name="decoder"></param>
         /// <param name="inputClassName"></param>
         /// <param name="options"></param>
         /// <param name="constantPoolPatches"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        internal ClassFile(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, ByteCode.Decoding.ClassFile clazz, string inputClassName, ClassFileParseOptions options, object[] constantPoolPatches)
+        internal ClassFile(ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> context, ByteCode.Decoding.ClassFile decoder, string inputClassName, ClassFileParseOptions options, object[] constantPoolPatches)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _clazz = clazz ?? throw new ArgumentNullException(nameof(clazz));
+            _decoder = decoder ?? throw new ArgumentNullException(nameof(decoder));
+            _options = options;
 
             try
             {
-                if (clazz.Version < new ClassFormatVersion(45, 3) || clazz.Version > 52)
-                    throw new UnsupportedClassVersionException(clazz.Version);
+                if (decoder.Version < new ClassFormatVersion(45, 3) || decoder.Version > 52)
+                    throw new UnsupportedClassVersionException(decoder.Version);
 
-                // load a copy of the constant pool using our own custom class hierarchy, reading data from IKVM.ByteCdoe
-                _constantpool = new ConstantPoolItem<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[clazz.Constants.SlotCount];
-                _utf8cp = new string[clazz.Constants.SlotCount];
-                for (ushort i = 1; i < clazz.Constants.SlotCount; i++)
-                {
-                    switch (clazz.Constants.GetKind(new ConstantHandle(ConstantKind.Unknown, i)))
-                    {
-                        case ConstantKind.Unknown:
-                            // longs and doubles can leave holes in the constant pool
-                            break;
-                        case ConstantKind.Class:
-                            _constantpool[i] = new ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new ClassConstantHandle(i)));
-                            break;
-                        case ConstantKind.Double:
-                            _constantpool[i] = new ConstantPoolItemDouble<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new DoubleConstantHandle(i)));
-                            break;
-                        case ConstantKind.Fieldref:
-                            _constantpool[i] = new ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new FieldrefConstantHandle(i)));
-                            break;
-                        case ConstantKind.Float:
-                            _constantpool[i] = new ConstantPoolItemFloat<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new FloatConstantHandle(i)));
-                            break;
-                        case ConstantKind.Integer:
-                            _constantpool[i] = new ConstantPoolItemInteger<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new IntegerConstantHandle(i)));
-                            break;
-                        case ConstantKind.InterfaceMethodref:
-                            _constantpool[i] = new ConstantPoolItemInterfaceMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new InterfaceMethodrefConstantHandle(i)));
-                            break;
-                        case ConstantKind.Long:
-                            _constantpool[i] = new ConstantPoolItemLong<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new LongConstantHandle(i)));
-                            break;
-                        case ConstantKind.Methodref:
-                            _constantpool[i] = new ConstantPoolItemMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new MethodrefConstantHandle(i)));
-                            break;
-                        case ConstantKind.NameAndType:
-                            _constantpool[i] = new ConstantPoolItemNameAndType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new NameAndTypeConstantHandle(i)));
-                            break;
-                        case ConstantKind.MethodHandle:
-                            if (clazz.Version < 51)
-                                goto default;
-                            _constantpool[i] = new ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new MethodHandleConstantHandle(i)));
-                            break;
-                        case ConstantKind.MethodType:
-                            if (clazz.Version < 51)
-                                goto default;
-                            _constantpool[i] = new ConstantPoolItemMethodType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new MethodTypeConstantHandle(i)));
-                            break;
-                        case ConstantKind.InvokeDynamic:
-                            if (clazz.Version < 51)
-                                goto default;
-                            _constantpool[i] = new ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new InvokeDynamicConstantHandle(i)));
-                            break;
-                        case ConstantKind.String:
-                            _constantpool[i] = new ConstantPoolItemString<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Constants.Read(new StringConstantHandle(i)));
-                            break;
-                        case ConstantKind.Utf8:
-                            _utf8cp[i] = clazz.Constants.Read(new Utf8ConstantHandle(i)).Value;
-                            break;
-                        default:
-                            throw new ClassFormatException("Unknown constant type.");
-                    }
-                }
+                // load the constants
+                _constants = new ConstantPool<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this);
+                _constants.Patch(inputClassName, constantPoolPatches);
+                _constants.Resolve(inputClassName);
 
-                if (constantPoolPatches != null)
-                    PatchConstantPool(constantPoolPatches, _utf8cp, inputClassName);
-
-                for (int i = 1; i < clazz.Constants.SlotCount; i++)
-                {
-                    if (_constantpool[i] != null)
-                    {
-                        try
-                        {
-                            _constantpool[i].Resolve(this, _utf8cp, options);
-                        }
-                        catch (ClassFormatException e)
-                        {
-                            // HACK at this point we don't yet have the class name, so any exceptions throw
-                            // are missing the class name
-                            throw new ClassFormatException("{0} ({1})", inputClassName, e.Message);
-                        }
-                        catch (IndexOutOfRangeException)
-                        {
-                            throw new ClassFormatException("{0} (Invalid constant pool item #{1})", inputClassName, i);
-                        }
-                        catch (InvalidCastException)
-                        {
-                            throw new ClassFormatException("{0} (Invalid constant pool item #{1})", inputClassName, i);
-                        }
-                    }
-                }
-
-                _accessFlags = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAccessFlags(clazz.AccessFlags);
+                // read the access flags
+                _accessFlags = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAccessFlags(decoder.AccessFlags);
 
                 // NOTE although the vmspec says (in 4.1) that interfaces must be marked abstract, earlier versions of
                 // javac (JDK 1.1) didn't do this, so the VM doesn't enforce this rule for older class files.
                 // NOTE although the vmspec implies (in 4.1) that ACC_SUPER is illegal on interfaces, it doesn't enforce this
                 // for older class files.
                 // (See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6320322)
-                if ((IsInterface && IsFinal) || (IsAbstract && IsFinal) || (clazz.Version >= 49 && IsAnnotation && !IsInterface) || (clazz.Version >= 49 && IsInterface && (!IsAbstract || IsSuper || IsEnum)))
+                if ((IsInterface && IsFinal) || (IsAbstract && IsFinal) || (decoder.Version >= 49 && IsAnnotation && !IsInterface) || (decoder.Version >= 49 && IsInterface && (!IsAbstract || IsSuper || IsEnum)))
                     throw new ClassFormatException("{0} (Illegal class modifiers 0x{1:X})", inputClassName, _accessFlags);
 
-                ValidateConstantPoolItemClass(inputClassName, clazz.This);
-                ValidateConstantPoolItemClass(inputClassName, clazz.Super);
+                ValidateConstantPoolItemClass(inputClassName, decoder.This);
+                ValidateConstantPoolItemClass(inputClassName, decoder.Super);
 
-                if (IsInterface && (clazz.Super.IsNil || SuperClass.Name != "java.lang.Object"))
+                if (IsInterface && (decoder.Super.IsNil || SuperClass.Name != "java.lang.Object"))
                     throw new ClassFormatException("{0} (Interfaces must have java.lang.Object as superclass)", Name);
 
                 // most checks are already done by ConstantPoolItemClass.Resolve, but since it allows
@@ -531,14 +446,14 @@ namespace IKVM.CoreLib.Linking
                 if (Name[0] == '[')
                     throw new ClassFormatException("Bad name");
 
-                _interfaces = new ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[clazz.Interfaces.Count];
+                _interfaces = new ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[decoder.Interfaces.Count];
                 for (int i = 0; i < _interfaces.Length; i++)
                 {
-                    var handle = clazz.Interfaces[i].Class;
-                    if (handle.IsNil || handle.Slot >= _constantpool.Length)
+                    var handle = decoder.Interfaces[i].Class;
+                    if (handle.IsNil || handle.Slot >= _constants.SlotCount)
                         throw new ClassFormatException("{0} (Illegal constant pool index)", Name);
 
-                    var cpi = _constantpool[handle.Slot] as ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    var cpi = _constants[handle] as ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
                     if (cpi == null)
                         throw new ClassFormatException("{0} (Interface name has bad constant type)", Name);
 
@@ -547,25 +462,25 @@ namespace IKVM.CoreLib.Linking
 
                 CheckDuplicates(_interfaces, "Repetitive interface name");
 
-                _fields = new Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[clazz.Fields.Count];
-                for (int i = 0; i < clazz.Fields.Count; i++)
+                _fields = new Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[decoder.Fields.Count];
+                for (int i = 0; i < decoder.Fields.Count; i++)
                 {
-                    _fields[i] = new Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, _utf8cp, clazz.Fields[i]);
+                    _fields[i] = new Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, decoder.Fields[i]);
                     var name = _fields[i].Name;
 
-                    if (IsValidFieldName(name, clazz.Version) == false)
+                    if (IsValidFieldName(name, decoder.Version) == false)
                         throw new ClassFormatException("{0} (Illegal field name \"{1}\")", Name, name);
                 }
 
                 CheckDuplicates<FieldOrMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>>(_fields, "Repetitive field name/signature");
 
-                _methods = new Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[clazz.Methods.Count];
-                for (int i = 0; i < clazz.Methods.Count; i++)
+                _methods = new Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>[decoder.Methods.Count];
+                for (int i = 0; i < decoder.Methods.Count; i++)
                 {
-                    _methods[i] = new Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, _utf8cp, options, clazz.Methods[i]);
+                    _methods[i] = new Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, decoder.Methods[i]);
                     var name = _methods[i].Name;
                     var sig = _methods[i].Signature;
-                    if (IsValidMethodName(name, clazz.Version) == false)
+                    if (IsValidMethodName(name, decoder.Version) == false)
                     {
                         if (!ReferenceEquals(name, StringConstants.INIT) && !ReferenceEquals(name, StringConstants.CLINIT))
                             throw new ClassFormatException("{0} (Illegal method name \"{1}\")", Name, name);
@@ -578,11 +493,11 @@ namespace IKVM.CoreLib.Linking
 
                 CheckDuplicates<FieldOrMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>>(_methods, "Repetitive method name/signature");
 
-                for (int i = 0; i < clazz.Attributes.Count; i++)
+                for (int i = 0; i < decoder.Attributes.Count; i++)
                 {
-                    var attribute = clazz.Attributes[i];
+                    var attribute = decoder.Attributes[i];
 
-                    switch (GetConstantPoolUtf8String(_utf8cp, attribute.Name))
+                    switch (GetConstantPoolUtf8String(attribute.Name))
                     {
                         case AttributeName.Deprecated:
                             var deprecatedAttribute = (DeprecatedAttribute)attribute;
@@ -590,7 +505,7 @@ namespace IKVM.CoreLib.Linking
                             break;
                         case AttributeName.SourceFile:
                             var sourceFileAttribute = (SourceFileAttribute)attribute;
-                            _sourceFile = GetConstantPoolUtf8String(_utf8cp, sourceFileAttribute.SourceFile);
+                            _sourceFile = GetConstantPoolUtf8String(sourceFileAttribute.SourceFile);
                             break;
                         case AttributeName.InnerClasses:
                             if (MajorVersion < 49)
@@ -607,17 +522,17 @@ namespace IKVM.CoreLib.Linking
                                 _innerClasses[j].name = item.InnerName;
                                 _innerClasses[j].accessFlags = ReadAccessFlags(item.InnerAccessFlags);
 
-                                if (_innerClasses[j].innerClass.IsNotNil && !(GetConstantPoolItem(_innerClasses[j].innerClass) is ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>))
-                                    throw new ClassFormatException("{0} (inner_class_info_index has bad constant pool index)", this.Name);
+                                if (_innerClasses[j].innerClass.IsNotNil && GetConstantPoolItem(_innerClasses[j].innerClass) is not ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
+                                    throw new ClassFormatException("{0} (inner_class_info_index has bad constant pool index)", Name);
 
-                                if (_innerClasses[j].outerClass.IsNotNil && !(GetConstantPoolItem(_innerClasses[j].outerClass) is ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>))
-                                    throw new ClassFormatException("{0} (outer_class_info_index has bad constant pool index)", this.Name);
+                                if (_innerClasses[j].outerClass.IsNotNil && GetConstantPoolItem(_innerClasses[j].outerClass) is not ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
+                                    throw new ClassFormatException("{0} (outer_class_info_index has bad constant pool index)", Name);
 
-                                if (_innerClasses[j].name.IsNotNil && _utf8cp[_innerClasses[j].name.Slot] == null)
-                                    throw new ClassFormatException("{0} (inner class name has bad constant pool index)", this.Name);
+                                if (_innerClasses[j].name.IsNotNil && _constants.GetUtf8(_innerClasses[j].name) == null)
+                                    throw new ClassFormatException("{0} (inner class name has bad constant pool index)", Name);
 
                                 if (_innerClasses[j].innerClass == _innerClasses[j].outerClass)
-                                    throw new ClassFormatException("{0} (Class is both inner and outer class)", this.Name);
+                                    throw new ClassFormatException("{0} (Class is both inner and outer class)", Name);
 
                                 if (_innerClasses[j].innerClass.IsNotNil && _innerClasses[j].outerClass.IsNotNil)
                                 {
@@ -628,14 +543,14 @@ namespace IKVM.CoreLib.Linking
 
                             break;
                         case AttributeName.Signature:
-                            if (clazz.Version < 49)
+                            if (decoder.Version < 49)
                                 goto default;
 
                             var signatureAttribute = (SignatureAttribute)attribute;
-                            _signature = GetConstantPoolUtf8String(_utf8cp, signatureAttribute.Signature);
+                            _signature = GetConstantPoolUtf8String(signatureAttribute.Signature);
                             break;
                         case AttributeName.EnclosingMethod:
-                            if (clazz.Version < 49)
+                            if (decoder.Version < 49)
                                 goto default;
 
                             var enclosingMethodAttribute = (EnclosingMethodAttribute)attribute;
@@ -660,25 +575,25 @@ namespace IKVM.CoreLib.Linking
                                 _enclosingMethod =
                                 [
                                     GetConstantPoolClass(classHandle),
-                                    GetConstantPoolUtf8String(_utf8cp, m._nameHandle),
-                                    GetConstantPoolUtf8String(_utf8cp, m._descriptorHandle).Replace('/', '.')
+                                    GetConstantPoolUtf8String(m._nameHandle),
+                                    GetConstantPoolUtf8String(m._descriptorHandle).Replace('/', '.')
                                 ];
                             }
 
                             break;
                         case AttributeName.RuntimeVisibleAnnotations:
-                            if (clazz.Version < 49)
+                            if (decoder.Version < 49)
                                 goto default;
 
                             var runtimeVisibleAnnotationsAttribute = (RuntimeVisibleAnnotationsAttribute)attribute;
-                            _annotations = ReadAnnotations(runtimeVisibleAnnotationsAttribute.Annotations, this, _utf8cp);
+                            _annotations = ReadAnnotations(runtimeVisibleAnnotationsAttribute.Annotations, this);
                             break;
                         case AttributeName.RuntimeInvisibleAnnotations:
-                            if (clazz.Version < 49)
+                            if (decoder.Version < 49)
                                 goto default;
 
                             var runtimeInvisibleAnnotationsAttribute = (RuntimeInvisibleAnnotationsAttribute)attribute;
-                            foreach (var annot in ReadAnnotations(runtimeInvisibleAnnotationsAttribute.Annotations, this, _utf8cp))
+                            foreach (var annot in ReadAnnotations(runtimeInvisibleAnnotationsAttribute.Annotations, this))
                             {
                                 if (annot[1].Equals("Likvm/lang/Internal;"))
                                 {
@@ -689,18 +604,18 @@ namespace IKVM.CoreLib.Linking
 
                             break;
                         case AttributeName.BootstrapMethods:
-                            if (clazz.Version < 51)
+                            if (decoder.Version < 51)
                                 goto default;
 
                             var bootstrapMethodsAttribute = (BootstrapMethodsAttribute)attribute;
                             _bootstrapMethods = ReadBootstrapMethods(bootstrapMethodsAttribute.Methods, this);
                             break;
                         case AttributeName.RuntimeVisibleTypeAnnotations:
-                            if (clazz.Version < 52)
+                            if (decoder.Version < 52)
                                 goto default;
 
                             var _runtimeVisibleTypeAnnotations = (RuntimeVisibleTypeAnnotationsAttribute)attribute;
-                            CreateUtf8ConstantPoolItems(_utf8cp);
+                            _constants.CreateUtf8ConstantPoolItems();
                             this._runtimeVisibleTypeAnnotations = _runtimeVisibleTypeAnnotations.TypeAnnotations;
                             break;
                         case "IKVM.NET.Assembly":
@@ -711,7 +626,7 @@ namespace IKVM.CoreLib.Linking
                             if (r.TryReadU2(out var index) == false)
                                 throw new ClassFormatException("IKVM.NET.Assembly attribute has incorrect length");
 
-                            _ikvmAssembly = GetConstantPoolUtf8String(_utf8cp, new(index));
+                            _ikvmAssembly = GetConstantPoolUtf8String(new(index));
                             break;
                         default:
                             break;
@@ -719,8 +634,8 @@ namespace IKVM.CoreLib.Linking
                 }
 
                 // validate the invokedynamic entries to point into the bootstrapMethods array
-                for (int i = 1; i < _constantpool.Length; i++)
-                    if (_constantpool[i] != null && _constantpool[i] is ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> cpi)
+                foreach (var handle in _decoder.Constants)
+                    if (_constants[handle] != null && _constants[handle] is ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> cpi)
                         if (cpi.BootstrapMethod >= _bootstrapMethods.Count)
                             throw new ClassFormatException("Short length on BootstrapMethods in class file");
             }
@@ -739,16 +654,24 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <summary>
-        /// Gets the <see cref="ILinkingContext"/> that holds this class file.
+        /// Gets the <see cref="ILinkingContext{TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod}"/> that holds this class file.
         /// </summary>
         internal ILinkingContext<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> Context => _context;
 
-        internal void CreateUtf8ConstantPoolItems(string[] utf8_cp)
-        {
-            for (int i = 0; i < _constantpool.Length; i++)
-                if (_constantpool[i] == null && utf8_cp[i] != null)
-                    _constantpool[i] = new ConstantPoolItemUtf8<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, utf8_cp[i]);
-        }
+        /// <summary>
+        /// Gets the underlying byte code decoder.
+        /// </summary>
+        internal IKVM.ByteCode.Decoding.ClassFile Decoder => _decoder;
+
+        /// <summary>
+        /// Gets the parse options.
+        /// </summary>
+        internal ClassFileParseOptions Options => _options;
+
+        /// <summary>
+        /// Gets the constant pool.
+        /// </summary>
+        internal ConstantPool<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> Constants => _constants;
 
         void CheckDuplicates<T>(T[] members, string msg)
             where T : IEquatable<T>
@@ -769,83 +692,10 @@ namespace IKVM.CoreLib.Linking
             }
         }
 
-        /// <summary>
-        /// Applies patches to the constant pool. Excepts the patch set to be provided as "linkage types" or primitive values.
-        /// </summary>
-        /// <param name="patches"></param>
-        /// <param name="utf8"></param>
-        /// <param name="inputClassName"></param>
-        /// <exception cref="ClassFormatException"></exception>
-        /// <exception cref="NotImplementedException"></exception>
-        void PatchConstantPool(object[] patches, string[] utf8, string inputClassName)
-        {
-            for (int i = 0; i < patches.Length; i++)
-            {
-                if (patches[i] is { } cpp)
-                {
-                    if (utf8[i] != null)
-                    {
-                        if (cpp is not string stringV)
-                            throw new ClassFormatException("Illegal utf8 patch at {0} in class file {1}", i, inputClassName);
-
-                        utf8[i] = stringV;
-                        continue;
-                    }
-
-                    if (_constantpool[i] != null)
-                    {
-                        switch (_constantpool[i].ConstantType)
-                        {
-                            case ConstantType.String:
-                                _constantpool[i] = new ConstantPoolItemLiveObject<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, cpp);
-                                break;
-                            case ConstantType.Class:
-                                if (cpp is TLinkingType clazz)
-                                    _constantpool[i] = new ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, clazz.Name, clazz);
-                                else if (cpp is string name)
-                                    _constantpool[i] = new ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>(this, string.Intern(name.Replace('/', '.')), null);
-                                else
-                                    throw new ClassFormatException("Illegal class patch at {0} in class file {1}", i, inputClassName);
-
-                                break;
-                            case ConstantType.Integer:
-                                if (cpp is int intV)
-                                    ((ConstantPoolItemInteger<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[i])._value = intV;
-                                else
-                                    throw new ClassFormatException("Illegal class patch at {0} in class file {1}", i, inputClassName);
-                                break;
-                            case ConstantType.Long:
-                                if (cpp is long longV)
-                                    ((ConstantPoolItemLong<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[i])._value = longV;
-                                else
-                                    throw new ClassFormatException("Illegal class patch at {0} in class file {1}", i, inputClassName);
-                                break;
-                            case ConstantType.Float:
-                                if (cpp is float floatV)
-                                    ((ConstantPoolItemFloat<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[i])._value = floatV;
-                                else
-                                    throw new ClassFormatException("Illegal class patch at {0} in class file {1}", i, inputClassName);
-                                break;
-                            case ConstantType.Double:
-                                if (cpp is double doubleV)
-                                    ((ConstantPoolItemDouble<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[i])._value = doubleV;
-                                else
-                                    throw new ClassFormatException("Illegal class patch at {0} in class file {1}", i, inputClassName);
-                                break;
-                            default:
-                                throw new NotImplementedException("ConstantPoolPatch: " + cpp);
-                        }
-
-                        continue;
-                    }
-                }
-            }
-        }
-
         internal void MarkLinkRequiredConstantPoolItem(ConstantHandle handle)
         {
-            if (handle.Slot > 0 && handle.Slot < _constantpool.Length && _constantpool[handle.Slot] != null)
-                _constantpool[handle.Slot].MarkLinkRequired();
+            if (handle.Slot > 0 && handle.Slot < Constants.SlotCount && Constants[handle] != null)
+                Constants[handle].MarkLinkRequired();
         }
 
         internal void MarkLinkRequiredConstantPoolItem(int index)
@@ -857,7 +707,7 @@ namespace IKVM.CoreLib.Linking
         {
             foreach (var bootstrapMethod in bootstrapMethods)
             {
-                if (bootstrapMethod.Method.Slot >= classFile._constantpool.Length || classFile._constantpool[bootstrapMethod.Method.Slot] is not ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
+                if (bootstrapMethod.Method.Slot >= classFile.Constants.SlotCount || classFile.Constants[bootstrapMethod.Method] is not ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
                     throw new ClassFormatException("bootstrap_method_index {0} has bad constant type in class file {1}", bootstrapMethod.Method.Slot, classFile.Name);
 
                 classFile.MarkLinkRequiredConstantPoolItem(bootstrapMethod.Method);
@@ -876,11 +726,11 @@ namespace IKVM.CoreLib.Linking
 
         bool IsValidConstant(ConstantHandle handle)
         {
-            if (handle.Slot < _constantpool.Length && _constantpool[handle.Slot] != null)
+            if (handle.Slot < _constants.SlotCount && _constants[handle] != null)
             {
                 try
                 {
-                    _ = _constantpool[handle.Slot].ConstantType;
+                    _ = _constants[handle].ConstantType;
                     return true;
                 }
                 catch (InvalidOperationException)
@@ -892,31 +742,31 @@ namespace IKVM.CoreLib.Linking
             return false;
         }
 
-        internal static object[][] ReadAnnotations(AnnotationTable reader, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp)
+        internal static object[][] ReadAnnotations(AnnotationTable reader, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
         {
             var annotations = new object[reader.Count][];
 
             for (int i = 0; i < annotations.Length; i++)
-                annotations[i] = ReadAnnotation(reader[i], classFile, utf8_cp);
+                annotations[i] = ReadAnnotation(reader[i], classFile);
 
             return annotations;
         }
 
-        internal static object[] ReadAnnotation(Annotation annotation, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp)
+        internal static object[] ReadAnnotation(Annotation annotation, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
         {
             var l = new object[2 + annotation.Elements.Count * 2];
             l[0] = AnnotationTag.TAG_ANNOTATION;
-            l[1] = classFile.GetConstantPoolUtf8String(utf8_cp, annotation.Type);
+            l[1] = classFile.GetConstantPoolUtf8String(annotation.Type);
             for (int i = 0; i < annotation.Elements.Count; i++)
             {
-                l[2 + i * 2 + 0] = classFile.GetConstantPoolUtf8String(utf8_cp, annotation.Elements[i].Name);
-                l[2 + i * 2 + 1] = ReadAnnotationElementValue(annotation.Elements[i].Value, classFile, utf8_cp);
+                l[2 + i * 2 + 0] = classFile.GetConstantPoolUtf8String(annotation.Elements[i].Name);
+                l[2 + i * 2 + 1] = ReadAnnotationElementValue(annotation.Elements[i].Value, classFile);
             }
 
             return l;
         }
 
-        internal static object ReadAnnotationElementValue(in ElementValue reader, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp)
+        internal static object ReadAnnotationElementValue(in ElementValue reader, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
         {
             try
             {
@@ -939,29 +789,29 @@ namespace IKVM.CoreLib.Linking
                     case ElementValueKind.Double:
                         return classFile.GetConstantPoolConstantDouble((DoubleConstantHandle)((ConstantElementValue)reader).Handle);
                     case ElementValueKind.String:
-                        return classFile.GetConstantPoolUtf8String(utf8_cp, (Utf8ConstantHandle)((ConstantElementValue)reader).Handle);
+                        return classFile.GetConstantPoolUtf8String((Utf8ConstantHandle)((ConstantElementValue)reader).Handle);
                     case ElementValueKind.Enum:
                         var _enum = (EnumElementValue)reader;
                         return new object[] {
                             AnnotationTag.TAG_ENUM,
-                            classFile.GetConstantPoolUtf8String(utf8_cp, _enum.TypeName),
-                            classFile.GetConstantPoolUtf8String(utf8_cp, _enum.ConstantName)
+                            classFile.GetConstantPoolUtf8String( _enum.TypeName),
+                            classFile.GetConstantPoolUtf8String( _enum.ConstantName)
                         };
                     case ElementValueKind.Class:
                         var _class = (ClassElementValue)reader;
                         return new object[] {
                             AnnotationTag.TAG_CLASS,
-                            classFile.GetConstantPoolUtf8String(utf8_cp, _class.Class)
+                            classFile.GetConstantPoolUtf8String( _class.Class)
                         };
                     case ElementValueKind.Annotation:
-                        return ReadAnnotation(((AnnotationElementValue)reader).Annotation, classFile, utf8_cp);
+                        return ReadAnnotation(((AnnotationElementValue)reader).Annotation, classFile);
                     case ElementValueKind.Array:
                         var _array = (ArrayElementValue)reader;
 
                         var array = new object[_array.Count + 1];
                         array[0] = AnnotationTag.TAG_ARRAY;
                         for (int i = 0; i < _array.Count; i++)
-                            array[i + 1] = ReadAnnotationElementValue(_array[i], classFile, utf8_cp);
+                            array[i + 1] = ReadAnnotationElementValue(_array[i], classFile);
 
                         return array;
                     default:
@@ -994,14 +844,14 @@ namespace IKVM.CoreLib.Linking
 
         void ValidateConstantPoolItemClass(string classFile, ClassConstantHandle handle)
         {
-            if (handle.Slot >= _constantpool.Length || _constantpool[handle.Slot] is not ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
-                throw new ClassFormatException("{0} (Bad constant pool index #{1})", classFile, handle);
+            if (handle.Slot >= _constants.SlotCount || _constants[handle] is not ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
+                throw new ClassFormatException("{0} (Bad constant pool index #{1})", classFile, handle.Slot);
         }
 
         /// <summary>
         /// Gets the major version of the class.
         /// </summary>
-        public int MajorVersion => _clazz.Version.Major;
+        public int MajorVersion => _decoder.Version.Major;
 
         /// <summary>
         /// Initiates linkage of this class file to the specified java type instance.
@@ -1011,11 +861,10 @@ namespace IKVM.CoreLib.Linking
         public void Link(TLinkingType thisType, LoadMode mode)
         {
             // this is not just an optimization, it's required for anonymous classes to be able to refer to themselves
-            ((ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[_clazz.This.Slot]).LinkSelf(thisType);
+            ((ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[_decoder.This]).LinkSelf(thisType);
 
-            for (int i = 1; i < _constantpool.Length; i++)
-                if (_constantpool[i] != null)
-                    _constantpool[i].Link(thisType, mode);
+            foreach (var handle in _decoder.Constants)
+                _constants[handle]?.Link(thisType, mode);
         }
 
         /// <summary>
@@ -1063,7 +912,7 @@ namespace IKVM.CoreLib.Linking
         /// </summary>
         /// <param name="fld"></param>
         /// <returns></returns>
-        internal bool IsReferenced(Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> fld) => _constantpool.OfType<ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>>().Any(i => i.Class == Name && i.Name == fld.Name && i.Signature == fld.Signature);
+        internal bool IsReferenced(Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> fld) => _constants.OfType<ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>>().Any(i => i.Class == Name && i.Name == fld.Name && i.Signature == fld.Signature);
 
         /// <summary>
         /// Gets the field ref constant for the given handle.
@@ -1072,7 +921,7 @@ namespace IKVM.CoreLib.Linking
         /// <returns></returns>
         internal ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetFieldref(FieldrefConstantHandle handle)
         {
-            return (ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot];
+            return (ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle];
         }
 
         /// <summary>
@@ -1080,9 +929,9 @@ namespace IKVM.CoreLib.Linking
         /// </summary>
         /// <param name="slot"></param>
         /// <returns></returns>
-        internal ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetFieldref(int slot)
+        internal ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetFieldref(ushort slot)
         {
-            return GetFieldref(new FieldrefConstantHandle(checked((ushort)slot)));
+            return GetFieldref(new FieldrefConstantHandle(slot));
         }
 
         /// <summary>
@@ -1092,8 +941,8 @@ namespace IKVM.CoreLib.Linking
         /// <returns></returns>
         internal ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? SafeGetFieldref(ConstantHandle handle)
         {
-            if (handle.IsNotNil && handle.Slot < _constantpool.Length)
-                return _constantpool[handle.Slot] as ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+            if (handle.IsNotNil && handle.Slot < _constants.SlotCount)
+                return _constants[handle] as ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
 
             return null;
         }
@@ -1103,17 +952,14 @@ namespace IKVM.CoreLib.Linking
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        internal ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? SafeGetFieldref(int index)
+        internal ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? SafeGetFieldref(ushort index)
         {
-            if (index > ushort.MaxValue || index < ushort.MinValue)
-                return null;
-
-            return SafeGetFieldref(new ConstantHandle(ConstantKind.Unknown, (ushort)index));
+            return SafeGetFieldref(new ConstantHandle(ConstantKind.Unknown, index));
         }
 
         internal ConstantPoolItemMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetMethodref(MethodrefConstantHandle handle)
         {
-            return (ConstantPoolItemMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot];
+            return (ConstantPoolItemMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle];
         }
 
         // NOTE this returns an MI, because it used for both normal methods and interface methods
@@ -1129,8 +975,8 @@ namespace IKVM.CoreLib.Linking
         /// <returns></returns>
         internal ConstantPoolItemMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? SafeGetMethodref(ConstantHandle handle)
         {
-            if (handle.IsNotNil && handle.Slot < _constantpool.Length)
-                return _constantpool[handle.Slot] as ConstantPoolItemMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+            if (handle.IsNotNil && handle.Slot < _constants.SlotCount)
+                return _constants[handle] as ConstantPoolItemMI<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
 
             return null;
         }
@@ -1150,56 +996,43 @@ namespace IKVM.CoreLib.Linking
 
         internal ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetInvokeDynamic(InvokeDynamicConstantHandle handle)
         {
-            return (ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot];
+            return (ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle];
         }
 
         internal ConstantPoolItem<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolItem(ConstantHandle handle)
         {
-            return _constantpool[handle.Slot];
+            return _constants[handle];
         }
 
         internal string GetConstantPoolClass(ClassConstantHandle handle)
         {
-            return ((ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).Name;
+            return ((ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).Name;
         }
 
         internal bool SafeIsConstantPoolClass(ClassConstantHandle handle)
         {
-            if (handle.Slot > 0 && handle.Slot < _constantpool.Length)
-                return _constantpool[handle.Slot] as ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> != null;
+            if (handle.Slot > 0 && handle.Slot < _constants.SlotCount)
+                return _constants[handle] as ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> != null;
 
             return false;
         }
 
         internal TLinkingType GetConstantPoolClassType(ClassConstantHandle handle)
         {
-            return ((ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).GetClassType();
+            return ((ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).GetClassType();
         }
 
         internal TLinkingType GetConstantPoolClassType(int slot)
         {
             return GetConstantPoolClassType(new ClassConstantHandle(checked((ushort)slot)));
         }
+
         internal string GetConstantPoolUtf8String(Utf8ConstantHandle handle)
         {
-            var s = _utf8cp[handle.Slot];
+            var s = _constants.GetUtf8(handle);
             if (s == null)
             {
-                if (_clazz.This.IsNil)
-                    throw new ClassFormatException("Bad constant pool index #{0}", handle);
-                else
-                    throw new ClassFormatException("{0} (Bad constant pool index #{1})", Name, handle);
-            }
-
-            return s;
-        }
-
-        internal string GetConstantPoolUtf8String(string[] utf8_cp, Utf8ConstantHandle handle)
-        {
-            var s = utf8_cp[handle.Slot];
-            if (s == null)
-            {
-                if (_clazz.This.IsNil)
+                if (_decoder.This.IsNil)
                     throw new ClassFormatException("Bad constant pool index #{0}", handle);
                 else
                     throw new ClassFormatException("{0} (Bad constant pool index #{1})", Name, handle);
@@ -1210,7 +1043,7 @@ namespace IKVM.CoreLib.Linking
 
         internal ConstantType GetConstantPoolConstantType(ConstantHandle handle)
         {
-            return _constantpool[handle.Slot].ConstantType;
+            return _constants[handle].ConstantType;
         }
 
         internal ConstantType GetConstantPoolConstantType(int slot)
@@ -1220,27 +1053,27 @@ namespace IKVM.CoreLib.Linking
 
         internal double GetConstantPoolConstantDouble(DoubleConstantHandle handle)
         {
-            return ((ConstantPoolItemDouble<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).Value;
+            return ((ConstantPoolItemDouble<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).Value;
         }
 
         internal float GetConstantPoolConstantFloat(FloatConstantHandle handle)
         {
-            return ((ConstantPoolItemFloat<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).Value;
+            return ((ConstantPoolItemFloat<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).Value;
         }
 
         internal int GetConstantPoolConstantInteger(IntegerConstantHandle handle)
         {
-            return ((ConstantPoolItemInteger<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).Value;
+            return ((ConstantPoolItemInteger<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).Value;
         }
 
         internal long GetConstantPoolConstantLong(LongConstantHandle handle)
         {
-            return ((ConstantPoolItemLong<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).Value;
+            return ((ConstantPoolItemLong<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).Value;
         }
 
         internal string GetConstantPoolConstantString(StringConstantHandle handle)
         {
-            return ((ConstantPoolItemString<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot]).Value;
+            return ((ConstantPoolItemString<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle]).Value;
         }
 
         internal string GetConstantPoolConstantString(int slot)
@@ -1250,38 +1083,38 @@ namespace IKVM.CoreLib.Linking
 
         internal ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolConstantMethodHandle(MethodHandleConstantHandle handle)
         {
-            return (ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot];
+            return (ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle];
         }
 
-        internal ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolConstantMethodHandle(int slot)
+        internal ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolConstantMethodHandle(ushort slot)
         {
-            return GetConstantPoolConstantMethodHandle(new MethodHandleConstantHandle(checked((ushort)slot)));
+            return GetConstantPoolConstantMethodHandle(new MethodHandleConstantHandle(slot));
         }
 
         internal ConstantPoolItemMethodType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolConstantMethodType(MethodTypeConstantHandle handle)
         {
-            return (ConstantPoolItemMethodType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[handle.Slot];
+            return (ConstantPoolItemMethodType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[handle];
         }
 
-        internal ConstantPoolItemMethodType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolConstantMethodType(int slot)
+        internal ConstantPoolItemMethodType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> GetConstantPoolConstantMethodType(ushort slot)
         {
-            return GetConstantPoolConstantMethodType(new MethodTypeConstantHandle(checked((ushort)slot)));
+            return GetConstantPoolConstantMethodType(new MethodTypeConstantHandle(slot));
         }
 
-        internal object GetConstantPoolConstantLiveObject(int slot)
+        internal object GetConstantPoolConstantLiveObject(ushort slot)
         {
-            return ((ConstantPoolItemLiveObject<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[slot]).Value;
+            return ((ConstantPoolItemLiveObject<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[new(ConstantKind.Unknown, slot)]).Value;
         }
 
         /// <summary>
         /// Gets the name of the class.
         /// </summary>
-        internal string Name => GetConstantPoolClass(_clazz.This);
+        internal string Name => GetConstantPoolClass(_decoder.This);
 
         /// <summary>
         /// Gets the constant pool item that represents the super class.
         /// </summary>
-        internal ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> SuperClass => (ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constantpool[_clazz.Super.Slot];
+        internal ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> SuperClass => (ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)_constants[_decoder.Super];
 
         /// <summary>
         /// Gets the fields of the class.
@@ -1314,12 +1147,17 @@ namespace IKVM.CoreLib.Linking
 
         internal ref readonly TypeAnnotationTable RuntimeVisibleTypeAnnotations => ref _runtimeVisibleTypeAnnotations;
 
+        /// <summary>
+        /// Creates a copy of the runtime values of the constant pool.
+        /// </summary>
+        /// <returns></returns>
         internal object?[] GetConstantPool()
         {
-            var cp = new object?[_constantpool.Length];
-            for (int i = 1; i < cp.Length; i++)
-                if (_constantpool[i] != null)
-                    cp[i] = _constantpool[i].GetRuntimeValue();
+            var cp = new object?[_decoder.Constants.Count];
+
+            foreach (var handle in _decoder.Constants)
+                if (_constants[handle] != null)
+                    cp[handle.Slot] = _constants[handle].GetRuntimeValue();
 
             return cp;
         }
@@ -1402,7 +1240,7 @@ namespace IKVM.CoreLib.Linking
                 method.Instructions[3].NormalizedOpCode == NormalizedByteCode.__iconst && method.Instructions[3].Arg1 == 1 &&
                 method.Instructions[4].NormalizedOpCode == NormalizedByteCode.__goto && method.Instructions[4].TargetIndex == 6 &&
                 method.Instructions[5].NormalizedOpCode == NormalizedByteCode.__iconst && method.Instructions[5].Arg1 == 0 &&
-                method.Instructions[6].NormalizedOpCode == NormalizedByteCode.__putstatic && (fieldref = SafeGetFieldref(method.Instructions[6].Arg1)) != null &&
+                method.Instructions[6].NormalizedOpCode == NormalizedByteCode.__putstatic && (fieldref = SafeGetFieldref(checked((ushort)method.Instructions[6].Arg1))) != null &&
                 fieldref.Class == Name && fieldref.Signature == "Z" &&
                 (field = GetField(fieldref.Name, fieldref.Signature)) != null &&
                 field.IsStatic && field.IsFinal &&
@@ -1470,7 +1308,7 @@ namespace IKVM.CoreLib.Linking
             {
                 if (instructions[i].NormalizedOpCode == NormalizedByteCode.__putstatic)
                 {
-                    var fieldref = SafeGetFieldref(instructions[i].Arg1);
+                    var fieldref = SafeGetFieldref(checked((ushort)instructions[i].Arg1));
                     if (fieldref != null && fieldref.Class == Name && fieldref.Name == field.Name && fieldref.Signature == field.Signature)
                         return true;
                 }
@@ -1490,7 +1328,7 @@ namespace IKVM.CoreLib.Linking
         /// <inheritdoc />
         public void Dispose()
         {
-            _clazz.Dispose();
+            _decoder.Dispose();
         }
 
     }

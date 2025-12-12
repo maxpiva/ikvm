@@ -1412,7 +1412,7 @@ namespace IKVM.Runtime
                             instructions[i + 1].TargetIndex > i &&
                             (flags[i + 1] & InstructionFlags.BranchTarget) == 0)
                         {
-                            if (classFile.GetFieldref(instructions[i].Arg1).GetField() is RuntimeConstantJavaField field &&
+                            if (classFile.GetFieldref(checked((ushort)instructions[i].Arg1)).GetField() is RuntimeConstantJavaField field &&
                                 field.FieldTypeWrapper == classLoader.Context.PrimitiveJavaTypeFactory.BOOLEAN &&
                                 (bool)field.GetConstantValue())
                             {
@@ -1464,7 +1464,7 @@ namespace IKVM.Runtime
                                         }
                                     case ConstantType.MethodType:
                                         {
-                                            var cpi = _classFile.GetConstantPoolConstantMethodType(instructions[i].Arg1);
+                                            var cpi = _classFile.GetConstantPoolConstantMethodType(checked((ushort)instructions[i].Arg1));
                                             var args = cpi.GetArgTypes();
                                             var tw = cpi.GetRetType();
                                             for (int j = 0; !tw.IsUnloadable && j < args.Length; j++)
@@ -1561,7 +1561,7 @@ namespace IKVM.Runtime
 
         void PatchLdcMethodHandle(ref Instruction instr)
         {
-            var cpi = _classFile.GetConstantPoolConstantMethodHandle(instr.Arg1);
+            var cpi = _classFile.GetConstantPoolConstantMethodHandle(checked((ushort)instr.Arg1));
             if (cpi.GetClassType().IsUnloadable)
             {
                 ConditionalPatchNoClassDefFoundError(ref instr, cpi.GetClassType());

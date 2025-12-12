@@ -67,7 +67,7 @@ namespace IKVM.CoreLib.Linking
         /// <param name="classFile"></param>
         /// <param name="utf8_cp"></param>
         /// <param name="options"></param>
-        public virtual void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public virtual void Resolve()
         {
 
         }

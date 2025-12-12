@@ -58,18 +58,18 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
-            var name_and_type = (ConstantPoolItemNameAndType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)classFile.GetConstantPoolItem(_nameAndTypeHandle);
+            var name_and_type = (ConstantPoolItemNameAndType<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)ClassFile.GetConstantPoolItem(_nameAndTypeHandle);
 
-            _clazz = (ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)classFile.GetConstantPoolItem(_clazzHandle);
+            _clazz = (ConstantPoolItemClass<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)ClassFile.GetConstantPoolItem(_clazzHandle);
             // if the constant pool items referred to were strings, GetConstantPoolItem returns null
             if (name_and_type == null || _clazz == null)
                 throw new ClassFormatException("Bad index in constant pool");
 
-            _name = string.Intern(classFile.GetConstantPoolUtf8String(utf8_cp, name_and_type._nameHandle));
-            _descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, name_and_type._descriptorHandle);
-            Validate(_name, _descriptor, classFile.MajorVersion);
+            _name = string.Intern(ClassFile.GetConstantPoolUtf8String(name_and_type._nameHandle));
+            _descriptor = ClassFile.GetConstantPoolUtf8String(name_and_type._descriptorHandle);
+            Validate(_name, _descriptor, ClassFile.MajorVersion);
             _descriptor = string.Intern(_descriptor.Replace('/', '.'));
         }
 

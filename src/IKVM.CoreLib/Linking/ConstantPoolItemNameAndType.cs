@@ -54,9 +54,9 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
-            if (classFile.GetConstantPoolUtf8String(utf8_cp, _nameHandle) == null || classFile.GetConstantPoolUtf8String(utf8_cp, _descriptorHandle) == null)
+            if (ClassFile.GetConstantPoolUtf8String(_nameHandle) == null || ClassFile.GetConstantPoolUtf8String(_descriptorHandle) == null)
                 throw new ClassFormatException("Illegal constant pool index");
         }
 

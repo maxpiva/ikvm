@@ -89,12 +89,12 @@ namespace IKVM.Runtime
 
         internal ConstantPoolItemMI GetMethodref(int offset)
         {
-            return ClassFile.GetMethodref(Code[OpcodeIndex + offset].Arg1);
+            return ClassFile.GetMethodref(checked((ushort)Code[OpcodeIndex + offset].Arg1));
         }
 
         internal ConstantPoolItemFieldref GetFieldref(int offset)
         {
-            return ClassFile.GetFieldref(Code[OpcodeIndex + offset].Arg1);
+            return ClassFile.GetFieldref(checked((ushort)Code[OpcodeIndex + offset].Arg1));
         }
 
         internal RuntimeJavaType GetClassLiteral(int offset)

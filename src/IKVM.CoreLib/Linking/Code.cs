@@ -58,7 +58,7 @@ namespace IKVM.CoreLib.Linking
         /// <param name="attribute"></param>
         /// <param name="options"></param>
         /// <exception cref="ClassFormatException"></exception>
-        internal void Read(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> method, CodeAttribute attribute, ClassFileParseOptions options)
+        internal void Read(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, Method<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> method, CodeAttribute attribute)
         {
             _maxStack = attribute.MaxStack;
             _maxLocals = attribute.MaxLocals;
@@ -182,10 +182,10 @@ namespace IKVM.CoreLib.Linking
 
                 foreach (var _attribute in attribute.Attributes)
                 {
-                    switch (classFile.GetConstantPoolUtf8String(utf8_cp, _attribute.Name))
+                    switch (classFile.GetConstantPoolUtf8String(_attribute.Name))
                     {
                         case AttributeName.LineNumberTable:
-                            if ((options & ClassFileParseOptions.LineNumberTable) != 0)
+                            if ((classFile.Options & ClassFileParseOptions.LineNumberTable) != 0)
                             {
                                 _lineNumberTable = ((LineNumberTableAttribute)_attribute).LineNumbers;
                                 for (int j = 0; j < _lineNumberTable.Count; j++)
@@ -194,7 +194,7 @@ namespace IKVM.CoreLib.Linking
                             }
                             break;
                         case AttributeName.LocalVariableTable:
-                            if ((options & ClassFileParseOptions.LocalVariableTable) != 0)
+                            if ((classFile.Options & ClassFileParseOptions.LocalVariableTable) != 0)
                             {
                                 _localVariableTable = ((LocalVariableTableAttribute)_attribute).LocalVariables;
                             }

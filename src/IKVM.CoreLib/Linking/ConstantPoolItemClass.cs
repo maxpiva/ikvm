@@ -73,19 +73,19 @@ namespace IKVM.CoreLib.Linking
         }
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
             // if the item was patched, we already have a name
             if (_name != null)
                 return;
 
-            _name = classFile.GetConstantPoolUtf8String(utf8_cp, _data.Name);
+            _name = ClassFile.GetConstantPoolUtf8String(_data.Name);
             if (_name.Length > 0)
             {
                 // We don't enforce the strict class name rules in the static compiler, since HotSpot doesn't enforce *any* rules on
                 // class names for the system (and boot) class loader. We still need to enforce the 1.5 restrictions, because we
                 // rely on those invariants.
-                if (ClassFile.Context.IsImporter == false && classFile.MajorVersion < 49 && (options & ClassFileParseOptions.RelaxedClassNameValidation) == 0)
+                if (ClassFile.Context.IsImporter == false && ClassFile.MajorVersion < 49 && (ClassFile.Options & ClassFileParseOptions.RelaxedClassNameValidation) == 0)
                 {
                     var prev = _name[0];
                     if (char.IsLetter(prev) || prev == '$' || prev == '_' || prev == '[' || prev == '/')

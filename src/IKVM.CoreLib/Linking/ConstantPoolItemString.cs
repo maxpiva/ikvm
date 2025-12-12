@@ -56,9 +56,9 @@ namespace IKVM.CoreLib.Linking
         public override ConstantType ConstantType => ConstantType.String;
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
-            _value = classFile.GetConstantPoolUtf8String(utf8_cp, _handle);
+            _value = ClassFile.GetConstantPoolUtf8String(_handle);
         }
 
         /// <summary>

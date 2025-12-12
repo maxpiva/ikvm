@@ -947,7 +947,7 @@ namespace IKVM.Tools.Importer
             {
                 try
                 {
-                    cf = new ClassFile(context, IKVM.ByteCode.Decoding.ClassFile.Read(buf), "<unknown>", ClassFileParseOptions.StaticImport, null);
+                    cf = new ClassFile(context, IKVM.ByteCode.Decoding.ClassFile.Read(buf), "<unknown>", ClassFileParseOptions.StaticImport, []);
                 }
                 catch (ClassFormatException)
                 {
@@ -1206,7 +1206,7 @@ namespace IKVM.Tools.Importer
             try
             {
                 using var file = File.OpenRead(filename);
-                var cf = new ClassFile(context, IKVM.ByteCode.Decoding.ClassFile.Read(file), null, ClassFileParseOptions.StaticImport, null);
+                var cf = new ClassFile(context, IKVM.ByteCode.Decoding.ClassFile.Read(file), null, ClassFileParseOptions.StaticImport, []);
                 ArrayAppend(ref annotations, cf.Annotations);
             }
             catch (Exception x)

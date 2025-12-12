@@ -1064,13 +1064,13 @@ namespace IKVM.Runtime
                         for (int i = 0; i < method.Instructions.Length; i++)
                         {
                             if (method.Instructions[i].NormalizedOpCode == NormalizedByteCode.__putstatic &&
-                                eic.ClassFile.GetFieldref(method.Instructions[i].Arg1) == field)
+                                eic.ClassFile.GetFieldref(checked((ushort)method.Instructions[i].Arg1)) == field)
                             {
                                 if (MatchInvokeVirtual(eic, ref method.Instructions[i - 1], "sun.misc.Unsafe", "objectFieldOffset", "(Ljava.lang.reflect.Field;)J") &&
                                     MatchInvokeVirtual(eic, ref method.Instructions[i - 2], "java.lang.Class", "getDeclaredField", "(Ljava.lang.String;)Ljava.lang.reflect.Field;") &&
                                     MatchLdc(eic, ref method.Instructions[i - 3], ConstantType.String) &&
                                     (method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__aload || method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__ldc) &&
-                                    method.Instructions[i - 5].NormalizedOpCode == NormalizedByteCode.__getstatic && eic.ClassFile.GetFieldref(method.Instructions[i - 5].Arg1).Signature == "Lsun.misc.Unsafe;")
+                                    method.Instructions[i - 5].NormalizedOpCode == NormalizedByteCode.__getstatic && eic.ClassFile.GetFieldref(checked((ushort)method.Instructions[i - 5].Arg1)).Signature == "Lsun.misc.Unsafe;")
                                 {
                                     if (method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__ldc)
                                     {

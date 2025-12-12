@@ -1,16 +1,17 @@
-﻿using FluentAssertions;
+﻿using System.IO;
+
+using FluentAssertions;
 
 using IKVM.CoreLib.Linking;
-using IKVM.Runtime;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace IKVM.Tests.Runtime
+namespace IKVM.CoreLib.Tests.Linking
 {
 
-    using ClassFile = ClassFile<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod>;
+    using ClassFile = ClassFile<TestJavaType, TestJavaMember, TestJavaField, TestJavaMethod>;
 
-        [TestClass]
+    [TestClass]
     public class ClassFileTests
     {
 
@@ -39,6 +40,12 @@ namespace IKVM.Tests.Runtime
         {
             ClassFile.IsValidMethodDescriptor("").Should().BeFalse();
             ClassFile.IsValidMethodDescriptor("()V").Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void CanLoadClassFile()
+        {
+            new ClassFile(new TestLinkingContext(false), IKVM.ByteCode.Decoding.ClassFile.Read(Path.Combine("Linking", "classes", "classfiletests", "ClassFileTests0.class")), "classfiletests.ClassFileTests0", ClassFileParseOptions.None, []);
         }
 
     }

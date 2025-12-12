@@ -190,7 +190,7 @@ namespace IKVM.Runtime
                     // TODO validate the contents of the LVT entry
                     if (e.Slot == lv.local && (e.StartPc <= pc || (e.StartPc == nextPC && isStore)) && e.StartPc + e.Length > pc)
                     {
-                        lv.name = method.Class.GetConstantPoolUtf8String(e.Name);
+                        lv.name = method.ClassFile.GetConstantPoolUtf8String(e.Name);
                         lv.start_pc = e.StartPc;
                         lv.end_pc = e.StartPc + e.Length;
                         break;

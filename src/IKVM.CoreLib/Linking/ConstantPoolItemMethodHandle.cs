@@ -57,7 +57,7 @@ namespace IKVM.CoreLib.Linking
         public override ConstantType ConstantType => ConstantType.MethodHandle;
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
             switch (_data.Kind)
             {
@@ -65,18 +65,18 @@ namespace IKVM.CoreLib.Linking
                 case MethodHandleKind.GetStatic:
                 case MethodHandleKind.PutField:
                 case MethodHandleKind.PutStatic:
-                    _cpi = classFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    _cpi = ClassFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
                     break;
                 case MethodHandleKind.InvokeSpecial:
                 case MethodHandleKind.InvokeVirtual:
                 case MethodHandleKind.InvokeStatic:
                 case MethodHandleKind.NewInvokeSpecial:
-                    _cpi = classFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
-                    if (_cpi == null && classFile.MajorVersion >= 52 && (_data.Kind is MethodHandleKind.InvokeStatic or MethodHandleKind.InvokeSpecial))
+                    _cpi = ClassFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    if (_cpi == null && ClassFile.MajorVersion >= 52 && (_data.Kind is MethodHandleKind.InvokeStatic or MethodHandleKind.InvokeSpecial))
                         goto case MethodHandleKind.InvokeInterface;
                     break;
                 case MethodHandleKind.InvokeInterface:
-                    _cpi = classFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemInterfaceMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
+                    _cpi = ClassFile.GetConstantPoolItem(_data.Reference) as ConstantPoolItemInterfaceMethodref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>;
                     break;
             }
 

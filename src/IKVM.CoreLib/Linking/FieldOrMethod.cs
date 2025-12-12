@@ -37,7 +37,7 @@ namespace IKVM.CoreLib.Linking
         where TLinkingMethod : class, ILinkingMethod<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>, TLinkingMember
     {
 
-        readonly ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> clazz;
+        readonly ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> _classFile;
 
         protected ClassFileFlags flags;
         protected ClassFileAccessFlags accessFlags;
@@ -51,26 +51,25 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="clazz"></param>
-        /// <param name="utf8_cp"></param>
+        /// <param name="classFile"></param>
         /// <param name="accessFlags"></param>
         /// <param name="name"></param>
         /// <param name="descriptor"></param>
-        internal FieldOrMethod(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> clazz, string[] utf8_cp, AccessFlag accessFlags, Utf8ConstantHandle name, Utf8ConstantHandle descriptor)
+        internal FieldOrMethod(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, AccessFlag accessFlags, Utf8ConstantHandle name, Utf8ConstantHandle descriptor)
         {
-            this.clazz = clazz ?? throw new ArgumentNullException(nameof(clazz));
+            this._classFile = classFile ?? throw new ArgumentNullException(nameof(classFile));
             this.accessFlags = ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.ReadAccessFlags(accessFlags);
-            this.name = string.Intern(clazz.GetConstantPoolUtf8String(utf8_cp, name));
-            this.descriptor = clazz.GetConstantPoolUtf8String(utf8_cp, descriptor);
+            this.name = string.Intern(classFile.GetConstantPoolUtf8String(name));
+            this.descriptor = classFile.GetConstantPoolUtf8String(descriptor);
 
-            ValidateSig(clazz, this.descriptor);
+            ValidateSig(classFile, this.descriptor);
             this.descriptor = string.Intern(this.descriptor.Replace('/', '.'));
         }
 
         /// <summary>
-        /// Gets the declaring <see cref="ClassFile"/>.
+        /// Gets the declaring <see cref="ClassFile{TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod}"/>.
         /// </summary>
-        public ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> Class => clazz;
+        public ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> ClassFile => _classFile;
 
         protected abstract void ValidateSig(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string descriptor);
 

@@ -40,9 +40,9 @@ namespace IKVM.CoreLib.Linking
 
         readonly Utf8ConstantHandle _signature;
 
-        string _descriptor;
-        TLinkingType[] _argTypeWrappers;
-        TLinkingType _retTypeWrapper;
+        string? _descriptor;
+        TLinkingType[]? _argTypeWrappers;
+        TLinkingType? _retTypeWrapper;
 
         /// <summary>
         /// Initializes a new instance.
@@ -59,13 +59,13 @@ namespace IKVM.CoreLib.Linking
         public override ConstantType ConstantType => ConstantType.MethodType;
 
         /// <inheritdoc />
-        public override void Resolve(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile, string[] utf8_cp, ClassFileParseOptions options)
+        public override void Resolve()
         {
-            var descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, _signature);
+            var descriptor = ClassFile.GetConstantPoolUtf8String(_signature);
             if (descriptor == null || !ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>.IsValidMethodDescriptor(descriptor))
                 throw new ClassFormatException("Invalid MethodType signature");
 
-            this._descriptor = string.Intern(descriptor.Replace('/', '.'));
+            _descriptor = string.Intern(descriptor.Replace('/', '.'));
         }
 
         /// <inheritdoc />

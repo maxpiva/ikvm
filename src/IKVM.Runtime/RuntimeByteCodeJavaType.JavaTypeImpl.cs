@@ -734,7 +734,7 @@ namespace IKVM.Runtime
                     }
                     if (bc == NormalizedByteCode.__getstatic || bc == NormalizedByteCode.__putstatic)
                     {
-                        var fld = classFile.SafeGetFieldref(m.Instructions[i].Arg1);
+                        var fld = classFile.SafeGetFieldref(checked((ushort)m.Instructions[i].Arg1));
                         if (fld == null || fld.Class != classFile.Name)
                         {
                             noop = false;

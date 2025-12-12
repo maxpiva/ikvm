@@ -490,7 +490,7 @@ namespace IKVM.Runtime
                             {
                                 if (localVars[j].Slot == i)
                                 {
-                                    parameterNames[pos] = m.Class.GetConstantPoolUtf8String(localVars[j].Name);
+                                    parameterNames[pos] = m.ClassFile.GetConstantPoolUtf8String(localVars[j].Name);
                                     break;
                                 }
                             }
