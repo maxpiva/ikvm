@@ -76,8 +76,8 @@
 
         <RemoveDir Directories="$(_JavaBuildTargetDirTmp)" />
         <MakeDir Directories="$(_JavaBuildTargetDirTmp)" />
-        <Exec Command="&quot;$(JavacExe)&quot; --release %(JavaBuild.Release) -p $(_JavaBuildModulePathTmp) -d $(_JavaBuildTargetDirTmp) @(JavaBuild, ' ')" Condition=" '%(JavaBuild.ModulePath)' != '' " />
-        <Exec Command="&quot;$(JavacExe)&quot; --release %(JavaBuild.Release) -d $(_JavaBuildTargetDirTmp) @(JavaBuild, ' ')" Condition=" '%(JavaBuild.ModulePath)' == '' " />
+        <Exec Command="&quot;$(JavacExe)&quot; --release $(_JavaBuildRelease) -p $(_JavaBuildModulePathTmp) -d $(_JavaBuildTargetDirTmp) @(JavaBuild, ' ')" Condition=" '%(JavaBuild.ModulePath)' != '' " />
+        <Exec Command="&quot;$(JavacExe)&quot; --release $(_JavaBuildRelease) -d $(_JavaBuildTargetDirTmp) @(JavaBuild, ' ')" Condition=" '%(JavaBuild.ModulePath)' == '' " />
         <Exec Command="&quot;$(JarExe)&quot; -cf $(_JavaBuildTargetJarTmp) -C $(_JavaBuildTargetDirTmp) ." Condition=" '%(JavaBuild.TargetJar)' != '' " />
         <ItemGroup>
             <FileWrites Include="$(_JavaBuildTargetDirTmp)\**\*.class" />

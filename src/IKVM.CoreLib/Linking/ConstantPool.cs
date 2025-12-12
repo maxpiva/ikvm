@@ -240,7 +240,6 @@ namespace IKVM.CoreLib.Linking
         /// <summary>
         /// Creates explicit constant pool items for cached UTF8 items.
         /// </summary>
-        /// <param name="utf8_cp"></param>
         internal readonly void CreateUtf8ConstantPoolItems()
         {
             foreach (var handle in _classFile.Decoder.Constants)
