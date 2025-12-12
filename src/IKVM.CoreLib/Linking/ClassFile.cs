@@ -397,7 +397,7 @@ namespace IKVM.CoreLib.Linking
         readonly object[]? _annotations;
         readonly string? _signature;
         readonly string?[]? _enclosingMethod;
-        readonly BootstrapMethod[]? _bootstrapMethods;
+        readonly BootstrapMethodTable _bootstrapMethods;
         readonly TypeAnnotationTable _runtimeVisibleTypeAnnotations = TypeAnnotationTable.Empty;
 
         /// <summary>
@@ -721,7 +721,7 @@ namespace IKVM.CoreLib.Linking
                 // validate the invokedynamic entries to point into the bootstrapMethods array
                 for (int i = 1; i < _constantpool.Length; i++)
                     if (_constantpool[i] != null && _constantpool[i] is ConstantPoolItemInvokeDynamic<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> cpi)
-                        if (_bootstrapMethods == null || cpi.BootstrapMethod >= _bootstrapMethods.Length)
+                        if (cpi.BootstrapMethod >= _bootstrapMethods.Count)
                             throw new ClassFormatException("Short length on BootstrapMethods in class file");
             }
             catch (OverflowException)
@@ -853,35 +853,25 @@ namespace IKVM.CoreLib.Linking
             MarkLinkRequiredConstantPoolItem(new ConstantHandle(ConstantKind.Unknown, checked((ushort)index)));
         }
 
-        static BootstrapMethod[] ReadBootstrapMethods(BootstrapMethodTable methods, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
+        static BootstrapMethodTable ReadBootstrapMethods(BootstrapMethodTable bootstrapMethods, ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
         {
-            var bsm = new BootstrapMethod[methods.Count];
-            for (int i = 0; i < methods.Count; i++)
+            foreach (var bootstrapMethod in bootstrapMethods)
             {
-                var method = methods[i];
+                if (bootstrapMethod.Method.Slot >= classFile._constantpool.Length || classFile._constantpool[bootstrapMethod.Method.Slot] is not ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
+                    throw new ClassFormatException("bootstrap_method_index {0} has bad constant type in class file {1}", bootstrapMethod.Method.Slot, classFile.Name);
 
-                var bsm_index = method.Method;
-                if (bsm_index.Slot >= classFile._constantpool.Length || classFile._constantpool[bsm_index.Slot] is not ConstantPoolItemMethodHandle<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>)
-                    throw new ClassFormatException("bootstrap_method_index {0} has bad constant type in class file {1}", bsm_index, classFile.Name);
+                classFile.MarkLinkRequiredConstantPoolItem(bootstrapMethod.Method);
 
-                classFile.MarkLinkRequiredConstantPoolItem(bsm_index);
-
-                var argument_count = method.Arguments.Count;
-                var args = new ConstantHandle[argument_count];
-                for (int j = 0; j < args.Length; j++)
+                foreach (var argument in bootstrapMethod.Arguments)
                 {
-                    var argument_index = method.Arguments[j];
-                    if (classFile.IsValidConstant(argument_index) == false)
-                        throw new ClassFormatException("argument_index {0} has bad constant type in class file {1}", argument_index, classFile.Name);
+                    if (classFile.IsValidConstant(argument) == false)
+                        throw new ClassFormatException("argument_index {0} has bad constant type in class file {1}", argument.Slot, classFile.Name);
 
-                    classFile.MarkLinkRequiredConstantPoolItem(argument_index);
-                    args[j] = argument_index;
+                    classFile.MarkLinkRequiredConstantPoolItem(argument);
                 }
-
-                bsm[i] = new BootstrapMethod(bsm_index, args);
             }
 
-            return bsm;
+            return bootstrapMethods;
         }
 
         bool IsValidConstant(ConstantHandle handle)

@@ -30,6 +30,7 @@ using IKVM.Attributes;
 using IKVM.ByteCode;
 using IKVM.CoreLib.Runtime;
 using IKVM.CoreLib.Linking;
+using IKVM.ByteCode.Decoding;
 
 #if IMPORTER
 using IKVM.Reflection;
@@ -2716,13 +2717,13 @@ namespace IKVM.Runtime
                 methodLookup.Link();
 
                 var bsm = compiler.classFile.GetBootstrapMethod(cpi.BootstrapMethod);
-                if (3 + bsm.ArgumentCount > 255)
+                if (3 + bsm.Arguments.Count > 255)
                 {
                     ilgen.EmitThrow("java.lang.BootstrapMethodError", "too many bootstrap method arguments");
                     return false;
                 }
 
-                var mh = compiler.classFile.GetConstantPoolConstantMethodHandle(bsm.BootstrapMethodIndex);
+                var mh = compiler.classFile.GetConstantPoolConstantMethodHandle(bsm.Method);
                 var mw = mh.Member as RuntimeJavaMethod;
                 switch (mh.Kind)
                 {
@@ -2736,7 +2737,7 @@ namespace IKVM.Runtime
                         break;
                     default:
                         // to throw the right exception, we have to resolve the MH constant here
-                        compiler.finish.GetValue<MethodHandleConstant>(bsm.BootstrapMethodIndex.Slot).Emit(compiler, ilgen, bsm.BootstrapMethodIndex);
+                        compiler.finish.GetValue<MethodHandleConstant>(bsm.Method.Slot).Emit(compiler, ilgen, bsm.Method);
                         ilgen.Emit(OpCodes.Pop);
                         ilgen.EmitLdc_I4(1);
                         ilgen.Emit(OpCodes.Stloc, ok);
@@ -2747,7 +2748,7 @@ namespace IKVM.Runtime
                 if (mw == null)
                 {
                     // to throw the right exception (i.e. without wrapping it in a BootstrapMethodError), we have to resolve the MH constant here
-                    compiler.finish.GetValue<MethodHandleConstant>(bsm.BootstrapMethodIndex.Slot).Emit(compiler, ilgen, bsm.BootstrapMethodIndex);
+                    compiler.finish.GetValue<MethodHandleConstant>(bsm.Method.Slot).Emit(compiler, ilgen, bsm.Method);
                     ilgen.Emit(OpCodes.Pop);
                     if (mh.MemberConstantPoolItem is ConstantPoolItemMI cpiMI)
                     {
@@ -2769,9 +2770,9 @@ namespace IKVM.Runtime
                 if (extraArgs == 1 && parameters[3].IsArray && parameters[3].ElementTypeWrapper == compiler.finish.Context.JavaBase.TypeOfJavaLangObject)
                 {
                     fixedArgs = 0;
-                    varArgs = bsm.ArgumentCount - fixedArgs;
+                    varArgs = bsm.Arguments.Count - fixedArgs;
                 }
-                else if (extraArgs != bsm.ArgumentCount)
+                else if (extraArgs != bsm.Arguments.Count)
                 {
                     ilgen.EmitLdc_I4(1);
                     ilgen.Emit(OpCodes.Stloc, ok);
@@ -2831,9 +2832,9 @@ namespace IKVM.Runtime
                 return true;
             }
 
-            static void EmitExtraArg(Compiler compiler, CodeEmitter ilgen, BootstrapMethod bsm, int index, RuntimeJavaType targetType, CodeEmitterLocal wrapException)
+            static void EmitExtraArg(Compiler compiler, CodeEmitter ilgen, BootstrapMethod bootstrapMethod, int index, RuntimeJavaType targetType, CodeEmitterLocal wrapException)
             {
-                var constant = bsm.GetArgument(index);
+                var constant = bootstrapMethod.Arguments[index];
                 compiler.EmitLoadConstant(ilgen, constant);
 
                 var constType = compiler.classFile.GetConstantPoolConstantType(constant) switch

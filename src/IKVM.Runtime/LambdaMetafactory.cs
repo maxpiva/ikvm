@@ -28,6 +28,8 @@ using System.Diagnostics;
 using IKVM.ByteCode;
 using IKVM.CoreLib.Linking;
 using IKVM.CoreLib.Runtime;
+using IKVM.ByteCode.Decoding;
+
 
 #if IMPORTER
 using IKVM.Reflection;
@@ -107,18 +109,18 @@ namespace IKVM.Runtime
 
             // argument count >3 indicates altMetafactory call
             // scan for flags, markers and bridges
-            if (bsm.ArgumentCount > 3)
+            if (bsm.Arguments.Count > 3)
             {
-                var flags = (AltFlags)classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(3));
+                var flags = (AltFlags)classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.Arguments[3]);
                 serializable = (flags & AltFlags.Serializable) != 0;
                 int argpos = 4;
 
                 if ((flags & AltFlags.Markers) != 0)
                 {
-                    markers = new RuntimeJavaType[classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(argpos++))];
+                    markers = new RuntimeJavaType[classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.Arguments[argpos++])];
                     for (int i = 0; i < markers.Length; i++)
                     {
-                        if ((markers[i] = classFile.GetConstantPoolClassType((ClassConstantHandle)bsm.GetArgument(argpos++))).IsUnloadable)
+                        if ((markers[i] = classFile.GetConstantPoolClassType((ClassConstantHandle)bsm.Arguments[argpos++])).IsUnloadable)
                         {
                             Fail("unloadable marker");
                             return false;
@@ -128,10 +130,10 @@ namespace IKVM.Runtime
 
                 if ((flags & AltFlags.Bridges) != 0)
                 {
-                    bridges = new ConstantPoolItemMethodType[classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(argpos++))];
+                    bridges = new ConstantPoolItemMethodType[classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.Arguments[argpos++])];
                     for (int i = 0; i < bridges.Length; i++)
                     {
-                        bridges[i] = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.GetArgument(argpos++));
+                        bridges[i] = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.Arguments[argpos++]);
                         if (HasUnloadable(bridges[i]))
                         {
                             Fail("unloadable bridge");
@@ -141,9 +143,9 @@ namespace IKVM.Runtime
                 }
             }
 
-            var samMethodType = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.GetArgument(0));
-            var implMethod = classFile.GetConstantPoolConstantMethodHandle((MethodHandleConstantHandle)bsm.GetArgument(1));
-            var instantiatedMethodType = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.GetArgument(2));
+            var samMethodType = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.Arguments[0]);
+            var implMethod = classFile.GetConstantPoolConstantMethodHandle((MethodHandleConstantHandle)bsm.Arguments[1]);
+            var instantiatedMethodType = classFile.GetConstantPoolConstantMethodType((MethodTypeConstantHandle)bsm.Arguments[2]);
             if (HasUnloadable(samMethodType) || HasUnloadable((ConstantPoolItemMI)implMethod.MemberConstantPoolItem) || HasUnloadable(instantiatedMethodType))
             {
                 Fail("bsm args has unloadable");
@@ -1053,15 +1055,15 @@ namespace IKVM.Runtime
         /// Returns <c>true</c> if the given class file bootstrap method is a reference to the java.lang.invoke.LambdaMetafactory:metafactory method.
         /// </summary>
         /// <param name="classFile"></param>
-        /// <param name="bsm"></param>
+        /// <param name="bootstrapMethod"></param>
         /// <returns></returns>
-        static bool IsLambdaMetafactory(ClassFile classFile, BootstrapMethod bsm)
+        static bool IsLambdaMetafactory(ClassFile classFile, BootstrapMethod bootstrapMethod)
         {
-            return bsm.ArgumentCount == 3 &&
-                classFile.GetConstantPoolConstantType(bsm.GetArgument(0)) == ConstantType.MethodType &&
-                classFile.GetConstantPoolConstantType(bsm.GetArgument(1)) == ConstantType.MethodHandle &&
-                classFile.GetConstantPoolConstantType(bsm.GetArgument(2)) == ConstantType.MethodType &&
-                classFile.GetConstantPoolConstantMethodHandle(bsm.BootstrapMethodIndex) is { Kind: MethodHandleKind.InvokeStatic, Member: not null } mh &&
+            return bootstrapMethod.Arguments.Count == 3 &&
+                classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[0]) == ConstantType.MethodType &&
+                classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[1]) == ConstantType.MethodHandle &&
+                classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[2]) == ConstantType.MethodType &&
+                classFile.GetConstantPoolConstantMethodHandle(bootstrapMethod.Method) is { Kind: MethodHandleKind.InvokeStatic, Member: not null } mh &&
                 IsLambdaMetafactory(mh.Member);
         }
 
@@ -1086,23 +1088,23 @@ namespace IKVM.Runtime
             Mask = Serializable | Markers | Bridges
         }
 
-        private static bool IsLambdaAltMetafactory(ClassFile classFile, BootstrapMethod bsm)
+        private static bool IsLambdaAltMetafactory(ClassFile classFile, BootstrapMethod bootstrapMethod)
         {
             ConstantPoolItemMethodHandle mh;
             AltFlags flags;
             int argpos = 4;
-            return bsm.ArgumentCount >= 4
-                && (mh = classFile.GetConstantPoolConstantMethodHandle(bsm.BootstrapMethodIndex)).Kind == MethodHandleKind.InvokeStatic
+            return bootstrapMethod.Arguments.Count >= 4
+                && (mh = classFile.GetConstantPoolConstantMethodHandle(bootstrapMethod.Method)).Kind == MethodHandleKind.InvokeStatic
                 && mh.Member != null
                 && IsLambdaAltMetafactory(mh.Member)
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(0)) == ConstantType.MethodType
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(1)) == ConstantType.MethodHandle
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(2)) == ConstantType.MethodType
-                && classFile.GetConstantPoolConstantType(bsm.GetArgument(3)) == ConstantType.Integer
-                && ((flags = (AltFlags)classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(3))) & ~AltFlags.Mask) == 0
-                && ((flags & AltFlags.Markers) == 0 || CheckOptionalArgs(classFile, bsm, ConstantType.Class, ref argpos))
-                && ((flags & AltFlags.Bridges) == 0 || CheckOptionalArgs(classFile, bsm, ConstantType.MethodType, ref argpos))
-                && argpos == bsm.ArgumentCount;
+                && classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[0]) == ConstantType.MethodType
+                && classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[1]) == ConstantType.MethodHandle
+                && classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[2]) == ConstantType.MethodType
+                && classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[3]) == ConstantType.Integer
+                && ((flags = (AltFlags)classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bootstrapMethod.Arguments[3])) & ~AltFlags.Mask) == 0
+                && ((flags & AltFlags.Markers) == 0 || CheckOptionalArgs(classFile, bootstrapMethod, ConstantType.Class, ref argpos))
+                && ((flags & AltFlags.Bridges) == 0 || CheckOptionalArgs(classFile, bootstrapMethod, ConstantType.MethodType, ref argpos))
+                && argpos == bootstrapMethod.Arguments.Count;
         }
 
         static bool IsLambdaAltMetafactory(RuntimeJavaMember mw)
@@ -1112,20 +1114,20 @@ namespace IKVM.Runtime
                 && mw.DeclaringType.Name == "java.lang.invoke.LambdaMetafactory";
         }
 
-        static bool CheckOptionalArgs(ClassFile classFile, BootstrapMethod bsm, ConstantType type, ref int argpos)
+        static bool CheckOptionalArgs(ClassFile classFile, BootstrapMethod bootstrapMethod, ConstantType type, ref int argpos)
         {
-            if (bsm.ArgumentCount - argpos < 1)
+            if (bootstrapMethod.Arguments.Count - argpos < 1)
                 return false;
 
-            if (classFile.GetConstantPoolConstantType(bsm.GetArgument(argpos)) != ConstantType.Integer)
+            if (classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[argpos]) != ConstantType.Integer)
                 return false;
 
-            int count = classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bsm.GetArgument(argpos++));
-            if (count < 0 || bsm.ArgumentCount - argpos < count)
+            int count = classFile.GetConstantPoolConstantInteger((IntegerConstantHandle)bootstrapMethod.Arguments[argpos++]);
+            if (count < 0 || bootstrapMethod.Arguments.Count - argpos < count)
                 return false;
 
             for (int i = 0; i < count; i++)
-                if (classFile.GetConstantPoolConstantType(bsm.GetArgument(argpos++)) != type)
+                if (classFile.GetConstantPoolConstantType(bootstrapMethod.Arguments[argpos++]) != type)
                     return false;
 
             return true;
