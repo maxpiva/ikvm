@@ -259,10 +259,10 @@ namespace IKVM.Runtime
             }
         }
 
-        private void SetupLocalVariableScopes()
+        void SetupLocalVariableScopes()
         {
-            var lvt = m.LocalVariableTableAttribute;
-            if (lvt != null)
+            var lvt = m.LocalVariableTable;
+            if (lvt.Count > 0)
             {
                 scopeBegin = new int[m.Instructions.Length];
                 scopeClose = new int[m.Instructions.Length];
@@ -273,10 +273,10 @@ namespace IKVM.Runtime
                 scopeBegin[0]++;
                 scopeClose[m.Instructions.Length - 1]++;
 
-                for (int i = 0; i < lvt.Length; i++)
+                for (int i = 0; i < lvt.Count; i++)
                 {
-                    int startIndex = SafeFindPcIndex(lvt[i].start_pc);
-                    int endIndex = SafeFindPcIndex(lvt[i].start_pc + lvt[i].length);
+                    int startIndex = SafeFindPcIndex(lvt[i].StartPc);
+                    int endIndex = SafeFindPcIndex(lvt[i].StartPc + lvt[i].Length);
                     if (startIndex != -1 && endIndex != -1 && startIndex < endIndex)
                     {
                         if (startIndex > 0)
@@ -285,12 +285,11 @@ namespace IKVM.Runtime
                             // following the store that first initializes the local, so we have to
                             // detect that case and adjust our local scope (because we'll be creating
                             // the local when we encounter the first store).
-                            LocalVar v = localVars.GetLocalVar(startIndex - 1);
-                            if (v != null && v.local == lvt[i].index)
-                            {
+                            var v = localVars.GetLocalVar(startIndex - 1);
+                            if (v != null && v.local == lvt[i].Slot)
                                 startIndex--;
-                            }
                         }
+
                         scopeBegin[startIndex]++;
                         scopeClose[endIndex]++;
                     }

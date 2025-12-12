@@ -178,8 +178,8 @@ namespace IKVM.Runtime
 
         static void FindLvtEntry(LocalVar lv, Method method, int instructionIndex)
         {
-            var lvt = method.LocalVariableTableAttribute;
-            if (lvt != null)
+            var lvt = method.LocalVariableTable;
+            if (lvt.Count > 0)
             {
                 var pc = method.Instructions[instructionIndex].PC;
                 var nextPC = method.Instructions[instructionIndex + 1].PC;
@@ -188,11 +188,11 @@ namespace IKVM.Runtime
                 foreach (var e in lvt)
                 {
                     // TODO validate the contents of the LVT entry
-                    if (e.index == lv.local && (e.start_pc <= pc || (e.start_pc == nextPC && isStore)) && e.start_pc + e.length > pc)
+                    if (e.Slot == lv.local && (e.StartPc <= pc || (e.StartPc == nextPC && isStore)) && e.StartPc + e.Length > pc)
                     {
-                        lv.name = e.name;
-                        lv.start_pc = e.start_pc;
-                        lv.end_pc = e.start_pc + e.length;
+                        lv.name = method.Class.GetConstantPoolUtf8String(e.Name);
+                        lv.start_pc = e.StartPc;
+                        lv.end_pc = e.StartPc + e.Length;
                         break;
                     }
                 }

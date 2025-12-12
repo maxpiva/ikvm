@@ -476,8 +476,8 @@ namespace IKVM.Runtime
 
         protected static void GetParameterNamesFromLVT(Method m, string[] parameterNames)
         {
-            var localVars = m.LocalVariableTableAttribute;
-            if (localVars != null)
+            var localVars = m.LocalVariableTable;
+            if (localVars.Count > 0)
             {
                 for (int i = m.IsStatic ? 0 : 1, pos = 0; i < m.ArgMap.Length; i++)
                 {
@@ -486,11 +486,11 @@ namespace IKVM.Runtime
                     {
                         if (parameterNames[pos] == null)
                         {
-                            for (int j = 0; j < localVars.Length; j++)
+                            for (int j = 0; j < localVars.Count; j++)
                             {
-                                if (localVars[j].index == i)
+                                if (localVars[j].Slot == i)
                                 {
-                                    parameterNames[pos] = localVars[j].name;
+                                    parameterNames[pos] = m.Class.GetConstantPoolUtf8String(localVars[j].Name);
                                     break;
                                 }
                             }

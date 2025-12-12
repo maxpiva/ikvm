@@ -325,7 +325,7 @@ namespace IKVM.CoreLib.Linking
 
         internal LineNumberTable LineNumberTable => code._lineNumberTable;
 
-        internal LocalVariableTableEntry[] LocalVariableTableAttribute => code._localVariableTable;
+        internal LocalVariableTable LocalVariableTable => code._localVariableTable;
 
         internal MethodParametersEntry[] MethodParameters => parameters;
 

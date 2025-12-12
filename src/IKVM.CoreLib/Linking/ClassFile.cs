@@ -1190,6 +1190,20 @@ namespace IKVM.CoreLib.Linking
         {
             return GetConstantPoolClassType(new ClassConstantHandle(checked((ushort)slot)));
         }
+        internal string GetConstantPoolUtf8String(Utf8ConstantHandle handle)
+        {
+            var s = _utf8cp[handle.Slot];
+            if (s == null)
+            {
+                if (_clazz.This.IsNil)
+                    throw new ClassFormatException("Bad constant pool index #{0}", handle);
+                else
+                    throw new ClassFormatException("{0} (Bad constant pool index #{1})", Name, handle);
+            }
+
+            return s;
+        }
+
         internal string GetConstantPoolUtf8String(string[] utf8_cp, Utf8ConstantHandle handle)
         {
             var s = utf8_cp[handle.Slot];

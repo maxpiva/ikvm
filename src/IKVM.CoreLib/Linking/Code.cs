@@ -47,7 +47,7 @@ namespace IKVM.CoreLib.Linking
         internal ExceptionTableEntry[] _exceptionTable;
         internal int[] _argmap;
         internal LineNumberTable _lineNumberTable;
-        internal LocalVariableTableEntry[] _localVariableTable;
+        internal LocalVariableTable _localVariableTable;
 
         /// <summary>
         /// Populates the <see cref="Code"/> structure from the given <see cref="CodeAttribute"/>.
@@ -194,19 +194,9 @@ namespace IKVM.CoreLib.Linking
                             }
                             break;
                         case AttributeName.LocalVariableTable:
-                            var lvt = (LocalVariableTableAttribute)_attribute;
                             if ((options & ClassFileParseOptions.LocalVariableTable) != 0)
                             {
-                                _localVariableTable = new LocalVariableTableEntry[lvt.LocalVariables.Count];
-                                for (int j = 0; j < lvt.LocalVariables.Count; j++)
-                                {
-                                    var item = lvt.LocalVariables[j];
-                                    _localVariableTable[j].start_pc = item.StartPc;
-                                    _localVariableTable[j].length = item.Length;
-                                    _localVariableTable[j].name = classFile.GetConstantPoolUtf8String(utf8_cp, item.Name);
-                                    _localVariableTable[j].descriptor = classFile.GetConstantPoolUtf8String(utf8_cp, item.Descriptor).Replace('/', '.');
-                                    _localVariableTable[j].index = item.Slot;
-                                }
+                                _localVariableTable = ((LocalVariableTableAttribute)_attribute).LocalVariables;
                             }
                             break;
                         default:
