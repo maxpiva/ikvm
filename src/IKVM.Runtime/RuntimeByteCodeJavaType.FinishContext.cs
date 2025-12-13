@@ -900,7 +900,7 @@ namespace IKVM.Runtime
                 }
             }
 
-            private bool EmitInterlockedCompareAndSet(RuntimeJavaMethod method, string fieldName, CodeEmitter ilGenerator)
+            bool EmitInterlockedCompareAndSet(RuntimeJavaMethod method, string fieldName, CodeEmitter ilGenerator)
             {
                 if (method.ReturnType != context.PrimitiveJavaTypeFactory.BOOLEAN)
                     return false;
@@ -933,17 +933,11 @@ namespace IKVM.Runtime
 
                 var fieldType = parameters[firstValueIndex];
                 if (fieldType != parameters[firstValueIndex + 1])
-                {
                     return false;
-                }
                 if (fieldType.IsUnloadable || fieldType.IsNonPrimitiveValueType || fieldType.IsGhost)
-                {
                     return false;
-                }
                 if (fieldType.IsPrimitive && fieldType != context.PrimitiveJavaTypeFactory.LONG && fieldType != context.PrimitiveJavaTypeFactory.INT)
-                {
                     return false;
-                }
 
                 RuntimeJavaField casField = null;
                 foreach (var fw in target.GetFields())
@@ -979,27 +973,22 @@ namespace IKVM.Runtime
                     return false;
                 }
 
-                FieldInfo fi = casField.GetField();
+                var fi = casField.GetField();
                 if (fi == null)
-                {
                     return false;
-                }
+
                 ilGenerator.EmitLdarg(0);
                 ilGenerator.Emit(OpCodes.Ldflda, fi);
                 ilGenerator.EmitLdarg(2);
                 ilGenerator.EmitLdarg(1);
+
                 if (fieldType == context.PrimitiveJavaTypeFactory.LONG)
-                {
                     ilGenerator.Emit(OpCodes.Call, context.InterlockedMethods.CompareExchangeInt64);
-                }
                 else if (fieldType == context.PrimitiveJavaTypeFactory.INT)
-                {
                     ilGenerator.Emit(OpCodes.Call, context.InterlockedMethods.CompareExchangeInt32);
-                }
                 else
-                {
                     ilGenerator.Emit(OpCodes.Call, AtomicReferenceFieldUpdaterEmitter.MakeCompareExchange(context, casField.FieldTypeWrapper.TypeAsSignatureType));
-                }
+
                 ilGenerator.EmitLdarg(1);
                 ilGenerator.Emit(OpCodes.Ceq);
                 ilGenerator.Emit(OpCodes.Ret);
@@ -1064,7 +1053,7 @@ namespace IKVM.Runtime
 
 #if IMPORTER
 
-            private void AddImplementsAttribute()
+            void AddImplementsAttribute()
             {
                 var interfaces = wrapper.Interfaces;
                 if (wrapper.BaseTypeWrapper == context.JavaBase.TypeOfJavaLangObject)
@@ -1094,14 +1083,13 @@ namespace IKVM.Runtime
                 context.AttributeHelper.SetImplementsAttribute(typeBuilder, interfaces);
             }
 
-            private TypeBuilder DefineNestedInteropType(string name)
+            TypeBuilder DefineNestedInteropType(string name)
             {
-                ImportClassLoader ccl = wrapper.classLoader;
+                var ccl = wrapper.classLoader;
                 while (!ccl.ReserveName(classFile.Name + "$" + name))
-                {
                     name += "_";
-                }
-                TypeBuilder tb = typeBuilder.DefineNestedType(name, TypeAttributes.Class | TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.Abstract);
+
+                var tb = typeBuilder.DefineNestedType(name, TypeAttributes.Class | TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.Abstract);
                 RegisterNestedTypeBuilder(tb);
                 context.AttributeHelper.HideFromJava(tb);
                 return tb;
@@ -1117,17 +1105,13 @@ namespace IKVM.Runtime
 
             }
 
-            private void CreateDefaultMethodInterop(ref TypeBuilder tbDefaultMethods, MethodBuilder defaultMethod, RuntimeJavaMethod mw)
+            void CreateDefaultMethodInterop(ref TypeBuilder tbDefaultMethods, MethodBuilder defaultMethod, RuntimeJavaMethod mw)
             {
                 if (!ParametersAreAccessible(mw))
-                {
                     return;
-                }
 
                 if (tbDefaultMethods == null)
-                {
                     tbDefaultMethods = DefineNestedInteropType(NestedTypeName.DefaultMethods);
-                }
 
                 var mb = mw.GetDefineMethodHelper().DefineMethod(wrapper.ClassLoader.GetTypeWrapperFactory(), tbDefaultMethods, mw.Name, MethodAttributes.Public | MethodAttributes.Static, wrapper.TypeAsSignatureType, true);
                 var ilgen = context.CodeEmitterFactory.Create(mb);
@@ -1144,14 +1128,13 @@ namespace IKVM.Runtime
                     ilgen.Emit(OpCodes.Dup);
                     ilgen.EmitNullCheck();
                 }
-                RuntimeJavaType[] parameters = mw.GetParameters();
+
+                var parameters = mw.GetParameters();
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     ilgen.EmitLdarg(i + 1);
                     if (!parameters[i].IsUnloadable && !parameters[i].IsPublic)
-                    {
                         parameters[i].EmitCheckcast(ilgen);
-                    }
                 }
                 ilgen.Emit(OpCodes.Call, defaultMethod);
                 ilgen.Emit(OpCodes.Ret);
@@ -1159,24 +1142,24 @@ namespace IKVM.Runtime
             }
 #endif
 
-            private void AddInheritedDefaultInterfaceMethods(RuntimeJavaMethod[] methods)
+            void AddInheritedDefaultInterfaceMethods(RuntimeJavaMethod[] methods)
             {
                 // look at the miranda methods to see if we inherit any default interface methods
                 for (int i = classFile.Methods.Length; i < methods.Length; i++)
                 {
                     if (methods[i].IsMirandaMethod)
                     {
-                        RuntimeMirandaJavaMethod mmw = (RuntimeMirandaJavaMethod)methods[i];
+                        var mmw = (RuntimeMirandaJavaMethod)methods[i];
                         if (mmw.Error == null && !mmw.BaseMethod.IsAbstract)
                         {
                             // we inherited a default interface method, so we need to forward the miranda method to the default method
-                            MethodBuilder mb = (MethodBuilder)mmw.GetMethod();
+                            var mb = (MethodBuilder)mmw.GetMethod();
                             if (classFile.IsInterface)
                             {
                                 // if we're an interface with a default miranda method, we need to create a new default method that forwards to the original
-                                mb = methods[i].GetDefineMethodHelper().DefineMethod(wrapper.ClassLoader.GetTypeWrapperFactory(),
-                                    typeBuilder, NamePrefix.DefaultMethod + mb.Name, MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.SpecialName, typeBuilder, false);
+                                mb = methods[i].GetDefineMethodHelper().DefineMethod(wrapper.ClassLoader.GetTypeWrapperFactory(), typeBuilder, NamePrefix.DefaultMethod + mb.Name, MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.SpecialName, typeBuilder, false);
                             }
+
                             EmitCallDefaultInterfaceMethod(mb, mmw.BaseMethod);
                         }
                     }
@@ -1185,10 +1168,10 @@ namespace IKVM.Runtime
 
             internal void EmitCallDefaultInterfaceMethod(MethodBuilder mb, RuntimeJavaMethod defaultMethod)
             {
-                CodeEmitter ilgen = context.CodeEmitterFactory.Create(mb);
+                var ilgen = context.CodeEmitterFactory.Create(mb);
                 if (defaultMethod.DeclaringType.IsGhost)
                 {
-                    CodeEmitterLocal local = ilgen.DeclareLocal(defaultMethod.DeclaringType.TypeAsSignatureType);
+                    var local = ilgen.DeclareLocal(defaultMethod.DeclaringType.TypeAsSignatureType);
                     ilgen.Emit(OpCodes.Ldloca, local);
                     ilgen.EmitLdarg(0);
                     ilgen.Emit(OpCodes.Stfld, defaultMethod.DeclaringType.GhostRefField);
@@ -1198,16 +1181,17 @@ namespace IKVM.Runtime
                 {
                     ilgen.EmitLdarg(0);
                 }
+
                 for (int j = 0, count = defaultMethod.GetParameters().Length; j < count; j++)
-                {
                     ilgen.EmitLdarg(j + 1);
-                }
+
                 ilgen.Emit(OpCodes.Call, RuntimeDefaultInterfaceJavaMethod.GetImpl(defaultMethod));
                 ilgen.Emit(OpCodes.Ret);
                 ilgen.DoEmit();
             }
 
 #if IMPORTER
+
             void AddAccessStubs()
             {
                 /*
@@ -1252,15 +1236,9 @@ namespace IKVM.Runtime
                 do
                 {
                     if (!tw.IsPublic)
-                    {
-                        foreach (RuntimeJavaField fw in tw.GetFields())
-                        {
+                        foreach (var fw in tw.GetFields())
                             if ((fw.IsPublic || (fw.IsProtected && !wrapper.IsFinal)) && wrapper.GetFieldWrapper(fw.Name, fw.Signature) == fw)
-                            {
                                 GenerateAccessStub(fw, true);
-                            }
-                        }
-                    }
 
                     foreach (RuntimeJavaType iface in tw.Interfaces)
                         AddType1FieldAccessStubs(iface);
@@ -1328,7 +1306,7 @@ namespace IKVM.Runtime
                             attribs |= MethodAttributes.Private;
                         }
 
-                        var setter = typeBuilder.DefineMethod("set_" + fw.Name, attribs, CallingConventions.Standard, null, null, null, new Type[] { propType }, null, new Type[][] { modopt2 });
+                        var setter = typeBuilder.DefineMethod("set_" + fw.Name, attribs, CallingConventions.Standard, null, null, null, [propType], null, [modopt2]);
                         context.AttributeHelper.HideFromJava(setter);
                         pb.SetSetMethod(setter);
                         ilgen = context.CodeEmitterFactory.Create(setter);

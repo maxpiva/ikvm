@@ -1153,11 +1153,11 @@ namespace IKVM.CoreLib.Linking
         /// <returns></returns>
         internal object?[] GetConstantPool()
         {
-            var cp = new object?[_decoder.Constants.Count];
+            var cp = new object?[Constants.SlotCount];
 
-            foreach (var handle in _decoder.Constants)
-                if (_constants[handle] != null)
-                    cp[handle.Slot] = _constants[handle].GetRuntimeValue();
+            foreach (var handle in Decoder.Constants)
+                if (Constants[handle] != null)
+                    cp[handle.Slot] = Constants[handle].GetRuntimeValue();
 
             return cp;
         }

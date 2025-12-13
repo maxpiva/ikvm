@@ -30,8 +30,6 @@ namespace IKVM.CoreLib.Linking
         /// Initializes a new instance.
         /// </summary>
         /// <param name="classFile"></param>
-        /// <param name="inputClassName"></param>
-        /// <param name="patches"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="ClassFormatException"></exception>
         public ConstantPool(ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> classFile)
@@ -217,6 +215,11 @@ namespace IKVM.CoreLib.Linking
         /// Gets the class file that owns this constant pool.
         /// </summary>
         public readonly ClassFile<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> ClassFile => _classFile;
+
+        /// <summary>
+        /// Gets the total count of constants.
+        /// </summary>
+        public readonly int Count => _classFile.Decoder.Constants.Count;
 
         /// <summary>
         /// Gets the total count of constant slots.
