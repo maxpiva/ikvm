@@ -350,7 +350,7 @@ namespace IKVM.Reflection
             WriteImpl(module, bb, parameterTypes.Length);
         }
 
-        internal void WriteMethodRef(ModuleBuilder module, ByteBuffer bb, Type[] optionalParameterTypes, CustomModifiers[] customModifiers)
+        internal void WriteMethodRef(ModuleBuilder module, ByteBuffer bb, Type[] optionalParameterTypes, CustomModifiers[]? customModifiers)
         {
             WriteImpl(module, bb, parameterTypes.Length + optionalParameterTypes.Length);
 

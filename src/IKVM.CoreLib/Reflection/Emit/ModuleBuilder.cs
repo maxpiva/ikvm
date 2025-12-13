@@ -720,7 +720,7 @@ namespace IKVM.Reflection.Emit
             get { return asm; }
         }
 
-        internal override Type FindType(TypeName name)
+        internal override Type? FindType(TypeName name)
         {
             foreach (var type in types)
                 if (type.TypeName == name)
@@ -729,7 +729,7 @@ namespace IKVM.Reflection.Emit
             return null;
         }
 
-        internal override Type FindTypeIgnoreCase(TypeName lowerCaseName)
+        internal override Type? FindTypeIgnoreCase(TypeName lowerCaseName)
         {
             foreach (var type in types)
                 if (type.TypeName.ToLowerInvariant() == lowerCaseName)
@@ -785,7 +785,7 @@ namespace IKVM.Reflection.Emit
                 // unfortunately this check is missing for global function passed in as RuntimeMethodInfo. 
                 // The problem is that Reflection does not 
                 // allow us to get the containing module giving a global function
-                MethodBuilder mb = entryPoint as MethodBuilder;
+                var mb = entryPoint as MethodBuilder;
                 if (mb != null && mb.ModuleBuilder != this)
                 {
                     // you cannot pass in a MethodInfo that is not contained by this ModuleBuilder
@@ -881,7 +881,7 @@ namespace IKVM.Reflection.Emit
             return __GetMethodToken(method, Util.ToArray(optionalParameterTypes), null);
         }
 
-        public MethodToken __GetMethodToken(MethodInfo method, Type[] optionalParameterTypes, CustomModifiers[] customModifiers)
+        public MethodToken __GetMethodToken(MethodInfo method, Type[] optionalParameterTypes, CustomModifiers[]? customModifiers)
         {
             var sig = new ByteBuffer(16);
             method.MethodSignature.WriteMethodRef(this, sig, optionalParameterTypes, customModifiers);

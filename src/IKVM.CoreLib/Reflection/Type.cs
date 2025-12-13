@@ -124,7 +124,7 @@ namespace IKVM.Reflection
             get;
         }
 
-        public virtual Type GetElementType()
+        public virtual Type? GetElementType()
         {
             return null;
         }
@@ -263,7 +263,7 @@ namespace IKVM.Reflection
             get { throw new NotSupportedException(); }
         }
 
-        public virtual MethodBase DeclaringMethod
+        public virtual MethodBase? DeclaringMethod
         {
             get { return null; }
         }
@@ -273,7 +273,7 @@ namespace IKVM.Reflection
             get { return underlyingType; }
         }
 
-        public override Type DeclaringType
+        public override Type? DeclaringType
         {
             get { return null; }
         }
@@ -314,16 +314,15 @@ namespace IKVM.Reflection
             throw new InvalidOperationException();
         }
 
-        public static bool operator ==(Type t1, Type t2)
+        public static bool operator ==(Type? t1, Type? t2)
         {
             // Casting to object results in smaller code than calling ReferenceEquals and makes
             // this method more likely to be inlined.
             // On CLR v2 x86, microbenchmarks show this to be faster than calling ReferenceEquals.
-            return (object)t1 == (object)t2
-                || ((object)t1 != null && (object)t2 != null && (object)t1.underlyingType == (object)t2.underlyingType);
+            return (object?)t1 == (object?)t2 || ((object?)t1 != null && (object?)t2 != null && (object?)t1.underlyingType == (object?)t2.underlyingType);
         }
 
-        public static bool operator !=(Type t1, Type t2)
+        public static bool operator !=(Type? t1, Type? t2)
         {
             return !(t1 == t2);
         }
@@ -948,7 +947,7 @@ namespace IKVM.Reflection
             return GetMemberByName(name, bindingAttr, (MethodInfo m) => m.MethodSignature.MatchParameterTypes(types)) ?? GetMethodWithBinder<MethodInfo>(name, bindingAttr, binder ?? DefaultBinder, types, modifiers);
         }
 
-        private T GetMethodWithBinder<T>(string name, BindingFlags bindingAttr, Binder binder, Type[] types, ParameterModifier[] modifiers)
+        private T GetMethodWithBinder<T>(string name, BindingFlags bindingAttr, Binder binder, Type[] types, ParameterModifier[]? modifiers)
             where T : MethodBase
         {
             var list = new List<MethodBase>();
@@ -983,9 +982,9 @@ namespace IKVM.Reflection
             return GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, CallingConventions.Standard, types, null);
         }
 
-        public ConstructorInfo GetConstructor(BindingFlags bindingAttr, Binder binder, Type[] types, ParameterModifier[] modifiers)
+        public ConstructorInfo GetConstructor(BindingFlags bindingAttr, Binder? binder, Type[] types, ParameterModifier[]? modifiers)
         {
-            ConstructorInfo ci1 = null;
+            ConstructorInfo? ci1 = null;
             if ((bindingAttr & BindingFlags.Instance) != 0)
                 ci1 = GetConstructorImpl(ConstructorInfo.ConstructorName, bindingAttr, binder, types, modifiers);
 
@@ -1004,7 +1003,7 @@ namespace IKVM.Reflection
             return ci1;
         }
 
-        private ConstructorInfo GetConstructorImpl(string name, BindingFlags bindingAttr, Binder binder, Type[] types, ParameterModifier[] modifiers)
+        private ConstructorInfo GetConstructorImpl(string name, BindingFlags bindingAttr, Binder? binder, Type[] types, ParameterModifier[]? modifiers)
         {
             // first we try an exact match and only if that fails we fall back to using the binder
             return GetMemberByName<ConstructorInfo>(name, bindingAttr | BindingFlags.DeclaredOnly,
@@ -1012,7 +1011,7 @@ namespace IKVM.Reflection
                 ?? GetMethodWithBinder<ConstructorInfo>(name, bindingAttr, binder ?? DefaultBinder, types, modifiers);
         }
 
-        public ConstructorInfo GetConstructor(BindingFlags bindingAttr, Binder binder, CallingConventions callingConvention, Type[] types, ParameterModifier[] modifiers)
+        public ConstructorInfo GetConstructor(BindingFlags bindingAttr, Binder? binder, CallingConventions callingConvention, Type[] types, ParameterModifier[]? modifiers)
         {
             // FXBUG callConvention seems to be ignored
             return GetConstructor(bindingAttr, binder, types, modifiers);
@@ -1024,7 +1023,7 @@ namespace IKVM.Reflection
         }
 
         // unlike the public API, this takes the namespace and name into account
-        internal virtual Type FindNestedType(TypeName name)
+        internal virtual Type? FindNestedType(TypeName name)
         {
             foreach (var type in __GetDeclaredTypes())
                 if (type.TypeName == name)
@@ -1033,7 +1032,7 @@ namespace IKVM.Reflection
             return null;
         }
 
-        internal virtual Type FindNestedTypeIgnoreCase(TypeName lowerCaseName)
+        internal virtual Type? FindNestedTypeIgnoreCase(TypeName lowerCaseName)
         {
             foreach (var type in __GetDeclaredTypes())
                 if (type.TypeName.ToLowerInvariant() == lowerCaseName)
@@ -1120,7 +1119,7 @@ namespace IKVM.Reflection
                 ?? GetPropertyWithBinder(name, bindingAttr, binder ?? DefaultBinder, returnType, types, modifiers);
         }
 
-        private PropertyInfo GetPropertyWithBinder(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, ParameterModifier[] modifiers)
+        private PropertyInfo GetPropertyWithBinder(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[]? types, ParameterModifier[]? modifiers)
         {
             List<PropertyInfo> list = new List<PropertyInfo>();
             GetMemberByName<PropertyInfo>(name, bindingAttr, delegate (PropertyInfo property)
@@ -1131,17 +1130,17 @@ namespace IKVM.Reflection
             return binder.SelectProperty(bindingAttr, list.ToArray(), returnType, types, modifiers);
         }
 
-        public Type GetInterface(string name)
+        public Type? GetInterface(string name)
         {
             return GetInterface(name, false);
         }
 
-        public Type GetInterface(string name, bool ignoreCase)
+        public Type? GetInterface(string name, bool ignoreCase)
         {
             if (ignoreCase)
                 name = name.ToLowerInvariant();
 
-            Type found = null;
+            Type? found = null;
 
             foreach (var type in GetInterfaces())
             {

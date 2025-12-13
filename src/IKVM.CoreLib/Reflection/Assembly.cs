@@ -79,7 +79,7 @@ namespace IKVM.Reflection
         public abstract AssemblyName[] GetReferencedAssemblies();
         public abstract Module[] GetModules(bool getResourceModules);
         public abstract Module[] GetLoadedModules(bool getResourceModules);
-        public abstract Module GetModule(string name);
+        public abstract Module? GetModule(string name);
         public abstract string[] GetManifestResourceNames();
         public abstract ManifestResourceInfo GetManifestResourceInfo(string resourceName);
         public abstract System.IO.Stream GetManifestResourceStream(string name);
@@ -112,8 +112,8 @@ namespace IKVM.Reflection
             return GetManifestResourceStream(sb.ToString());
         }
 
-        internal abstract Type FindType(TypeName name);
-        internal abstract Type FindTypeIgnoreCase(TypeName lowerCaseName);
+        internal abstract Type? FindType(TypeName name);
+        internal abstract Type? FindTypeIgnoreCase(TypeName lowerCaseName);
 
         // The differences between ResolveType and FindType are:
         // - ResolveType is only used when a type is assumed to exist (because another module's metadata claims it)

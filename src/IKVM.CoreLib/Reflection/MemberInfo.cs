@@ -44,11 +44,11 @@ namespace IKVM.Reflection
 
         public abstract string Name { get; }
 
-        public abstract Type DeclaringType { get; }
+        public abstract Type? DeclaringType { get; }
 
         public abstract MemberTypes MemberType { get; }
 
-        public virtual Type ReflectedType
+        public virtual Type? ReflectedType
         {
             get { return DeclaringType; }
         }
@@ -90,12 +90,12 @@ namespace IKVM.Reflection
             get { return GetCustomAttributesData(); }
         }
 
-        public static bool operator ==(MemberInfo m1, MemberInfo m2)
+        public static bool operator ==(MemberInfo? m1, MemberInfo? m2)
         {
             return ReferenceEquals(m1, m2) || (!ReferenceEquals(m1, null) && m1.Equals(m2));
         }
 
-        public static bool operator !=(MemberInfo m1, MemberInfo m2)
+        public static bool operator !=(MemberInfo? m1, MemberInfo? m2)
         {
             return !(m1 == m2);
         }
@@ -121,7 +121,7 @@ namespace IKVM.Reflection
             return (state && (flags & trueFlag) == trueFlag) || (!state && (flags & falseFlag) == falseFlag);
         }
 
-        protected static T SetReflectedType<T>(T member, Type type)
+        protected static T? SetReflectedType<T>(T? member, Type type)
             where T : MemberInfo
         {
             return member == null ? null : (T)member.SetReflectedType(type);
