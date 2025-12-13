@@ -329,7 +329,7 @@ namespace IKVM.Runtime
                 if (S.IsPrimitive)
                 {
                     // Q can be converted to S via a primitive widening conversion
-                    switch (Q.SigName[0] | S.SigName[0] << 8)
+                    switch (Q.SignatureName[0] | S.SignatureName[0] << 8)
                     {
                         case 'B' | 'S' << 8:
                         case 'B' | 'I' << 8:
@@ -390,7 +390,7 @@ namespace IKVM.Runtime
         static RuntimeJavaType GetBoxedPrimitiveType(RuntimeJavaType primitive)
         {
             Debug.Assert(primitive.IsPrimitive);
-            switch (primitive.SigName[0])
+            switch (primitive.SignatureName[0])
             {
                 case 'Z':
                     return primitive.Context.ClassLoaderFactory.LoadClassCritical("java.lang.Boolean");
@@ -798,7 +798,7 @@ namespace IKVM.Runtime
 
         static void EmitConvertingUnbox(CodeEmitter ilgen, RuntimeJavaType tw)
         {
-            switch (tw.SigName[0])
+            switch (tw.SignatureName[0])
             {
                 case 'Z':
                 case 'C':

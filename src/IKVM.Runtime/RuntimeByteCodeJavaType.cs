@@ -282,7 +282,7 @@ namespace IKVM.Runtime
             {
                 throw new VerifyError("Delegate inner interface may not extend any interfaces");
             }
-            if (constructor.Signature != "(" + iface.SigName + ")V")
+            if (constructor.Signature != "(" + iface.SignatureName + ")V")
             {
                 throw new VerifyError("Delegate constructor must take a single argument of type inner Method interface");
             }

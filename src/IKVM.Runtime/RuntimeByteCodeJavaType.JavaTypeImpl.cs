@@ -2272,9 +2272,9 @@ namespace IKVM.Runtime
 
             MethodAttributes GetPropertyAccess(RuntimeJavaMethod mw)
             {
-                var sig = mw.ReturnType.SigName;
+                var sig = mw.ReturnType.SignatureName;
                 if (sig == "V")
-                    sig = mw.GetParameters()[0].SigName;
+                    sig = mw.GetParameters()[0].SignatureName;
 
                 int access = -1;
                 foreach (var field in classFile.Fields)

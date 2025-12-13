@@ -2858,7 +2858,7 @@ namespace IKVM.Runtime
                     if (constType.IsPrimitive)
                     {
                         var wrapper = GetWrapperType(constType, out var dummy);
-                        wrapper.GetMethod("valueOf", "(" + constType.SigName + ")" + wrapper.SigName, false).EmitCall(ilgen);
+                        wrapper.GetMethod("valueOf", "(" + constType.SignatureName + ")" + wrapper.SignatureName, false).EmitCall(ilgen);
                     }
 
                     if (targetType.IsUnloadable)
@@ -2869,7 +2869,7 @@ namespace IKVM.Runtime
                     {
                         var wrapper = GetWrapperType(targetType, out var unbox);
                         ilgen.Emit(OpCodes.Castclass, wrapper.TypeAsBaseType);
-                        wrapper.GetMethod(unbox, "()" + targetType.SigName, false).EmitCallvirt(ilgen);
+                        wrapper.GetMethod(unbox, "()" + targetType.SignatureName, false).EmitCallvirt(ilgen);
                     }
                     else if (!constType.IsAssignableTo(targetType))
                     {

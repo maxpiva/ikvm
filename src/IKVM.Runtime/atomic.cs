@@ -60,7 +60,7 @@ namespace IKVM.Runtime
                 string fieldName = classFile.GetConstantPoolConstantString(code[i - 1].Arg1);
                 if (tclass == wrapper && !vclass.IsUnloadable && !vclass.IsPrimitive && !vclass.IsNonPrimitiveValueType)
                 {
-                    RuntimeJavaField field = wrapper.GetFieldWrapper(fieldName, vclass.SigName);
+                    RuntimeJavaField field = wrapper.GetFieldWrapper(fieldName, vclass.SignatureName);
                     if (field != null && !field.IsStatic && field.IsVolatile && field.DeclaringType == wrapper && field.FieldTypeWrapper == vclass)
                     {
                         // everything matches up, now call the actual emitter

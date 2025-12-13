@@ -1035,7 +1035,7 @@ namespace IKVM.Runtime.StubGen
 
         static string EncodeTypeName(RuntimeJavaType tw)
         {
-            return tw.SigName.Replace('.', '/');
+            return tw.SignatureName.Replace('.', '/');
         }
 
         static string DecodeTypeName(string typeName)

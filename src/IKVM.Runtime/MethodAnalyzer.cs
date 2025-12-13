@@ -765,7 +765,7 @@ namespace IKVM.Runtime
                                         s.PopInt();
                                         var type = GetConstantPoolClassType(inst.Arg1);
                                         if (type.IsUnloadable)
-                                            s.PushType(new RuntimeUnloadableJavaType(_context, "[" + type.SigName));
+                                            s.PushType(new RuntimeUnloadableJavaType(_context, "[" + type.SignatureName));
                                         else
                                             s.PushType(type.MakeArrayType(1));
 

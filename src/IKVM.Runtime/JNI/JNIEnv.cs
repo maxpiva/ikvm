@@ -164,7 +164,7 @@ namespace IKVM.Runtime.JNI
         {
             var args = RuntimeJavaMethod.FromCookie(methodID).GetParameters();
             for (var i = 0; i < args.Length; i++)
-                sig[i] = args[i].IsPrimitive ? (byte)args[i].SigName[0] : (byte)'L';
+                sig[i] = args[i].IsPrimitive ? (byte)args[i].SignatureName[0] : (byte)'L';
 
             return args.Length;
         }

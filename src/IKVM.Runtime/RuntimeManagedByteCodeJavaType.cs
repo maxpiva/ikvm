@@ -488,7 +488,7 @@ namespace IKVM.Runtime
 
         private void SigTypePatchUp(string sigtype, ref RuntimeJavaType type)
         {
-            if (sigtype != type.SigName)
+            if (sigtype != type.SignatureName)
             {
                 // if type is an array, we know that it is a ghost array, because arrays of unloadable are compiled
                 // as object (not as arrays of object)
@@ -499,7 +499,7 @@ namespace IKVM.Runtime
                 else if (type.IsPrimitive)
                 {
                     type = Context.ManagedJavaTypeFactory.GetJavaTypeFromManagedType(type.TypeAsTBD);
-                    if (sigtype != type.SigName)
+                    if (sigtype != type.SignatureName)
                     {
                         throw new InvalidOperationException();
                     }
@@ -660,9 +660,9 @@ namespace IKVM.Runtime
                 var sb = new ValueStringBuilder();
                 sb.Append("(");
                 foreach (var tw in paramTypes)
-                    sb.Append(tw.SigName);
+                    sb.Append(tw.SignatureName);
                 sb.Append(")");
-                sb.Append(retType.SigName);
+                sb.Append(retType.SignatureName);
                 sig = sb.ToString();
             }
         }
@@ -1022,11 +1022,11 @@ namespace IKVM.Runtime
                 {
                     flags |= MemberFlags.InternalAccess;
                 }
-                return new RuntimeConstantJavaField(this, type, name, type.SigName, modifiers.Modifiers, field, null, flags);
+                return new RuntimeConstantJavaField(this, type, name, type.SignatureName, modifiers.Modifiers, field, null, flags);
             }
             else
             {
-                return RuntimeJavaField.Create(this, type, field, name, type.SigName, modifiers);
+                return RuntimeJavaField.Create(this, type, field, name, type.SignatureName, modifiers);
             }
         }
 

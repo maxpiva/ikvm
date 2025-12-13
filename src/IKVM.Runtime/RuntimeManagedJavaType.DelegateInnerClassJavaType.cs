@@ -80,12 +80,12 @@ namespace IKVM.Runtime
                         parameterType = RuntimeArrayJavaType.MakeArrayType(parameterType.GetElementType(), 1);
                     }
                     argTypeWrappers[i] = Context.ClassLoaderFactory.GetJavaTypeFromType(parameterType);
-                    sb.Append(argTypeWrappers[i].SigName);
+                    sb.Append(argTypeWrappers[i].SignatureName);
                 }
 
                 var returnType = Context.ClassLoaderFactory.GetJavaTypeFromType(invoke.ReturnType);
                 sb.Append(")");
-                sb.Append(returnType.SigName);
+                sb.Append(returnType.SignatureName);
                 SetMethods([new DynamicOnlyJavaMethod(this, "Invoke", sb.ToString(), returnType, argTypeWrappers, flags)]);
                 SetFields([]);
             }

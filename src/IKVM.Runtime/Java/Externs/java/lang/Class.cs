@@ -283,7 +283,7 @@ namespace IKVM.Java.Externs.java.lang
 
         public static string getSigName(global::java.lang.Class thisClass)
         {
-            return RuntimeJavaType.FromClass(thisClass).SigName;
+            return RuntimeJavaType.FromClass(thisClass).SignatureName;
         }
 
         public static global::java.lang.ClassLoader getClassLoader0(global::java.lang.Class thisClass)

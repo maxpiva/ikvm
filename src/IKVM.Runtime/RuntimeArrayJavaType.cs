@@ -87,7 +87,7 @@ namespace IKVM.Runtime
             }
         }
 
-        internal override string SigName
+        internal override string SignatureName
         {
             get
             {

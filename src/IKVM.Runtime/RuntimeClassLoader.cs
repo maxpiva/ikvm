@@ -716,7 +716,7 @@ namespace IKVM.Runtime
         /// <returns></returns>
         static RuntimeJavaType CreateArrayType(string name, RuntimeJavaType elementJavaType, int dimensions)
         {
-            Debug.Assert(new string('[', dimensions) + elementJavaType.SigName == name);
+            Debug.Assert(new string('[', dimensions) + elementJavaType.SignatureName == name);
             Debug.Assert(!elementJavaType.IsUnloadable && !elementJavaType.IsVerifierType && !elementJavaType.IsArray);
             Debug.Assert(dimensions >= 1);
 

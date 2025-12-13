@@ -435,35 +435,35 @@ namespace IKVM.Runtime
                                     {
                                         var paramType = param[j].ParameterType;
                                         var fieldTypeWrapper = context.ClassLoaderFactory.GetJavaTypeFromType(paramType.IsByRef ? paramType.GetElementType() : paramType);
-                                        var field = wrapper.GetFieldWrapper(param[j].Name, fieldTypeWrapper.SigName);
+                                        var field = wrapper.GetFieldWrapper(param[j].Name, fieldTypeWrapper.SignatureName);
                                         if (field == null)
                                         {
-                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding not found: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SigName}");
+                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding not found: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SignatureName}");
                                             wrapper.Context.StaticCompiler.errorCount++;
                                             continue;
                                         }
                                         if (m.IsStatic && !field.IsStatic)
                                         {
-                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding cannot access instance field from static method: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SigName}");
+                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding cannot access instance field from static method: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SignatureName}");
                                             wrapper.Context.StaticCompiler.errorCount++;
                                             continue;
                                         }
                                         if (!field.IsAccessibleFrom(wrapper, wrapper, wrapper))
                                         {
-                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding not accessible: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SigName}");
+                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding not accessible: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SignatureName}");
                                             wrapper.Context.StaticCompiler.errorCount++;
                                             continue;
                                         }
                                         if (paramType.IsByRef && field.IsFinal)
                                         {
-                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding cannot use ByRef for final field: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SigName}");
+                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding cannot use ByRef for final field: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SignatureName}");
                                             wrapper.Context.StaticCompiler.errorCount++;
                                             continue;
                                         }
                                         field.Link();
                                         if (paramType.IsByRef && field.GetField() == null)
                                         {
-                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding cannot use ByRef on field without backing field: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SigName}");
+                                            wrapper.Context.Diagnostics.GenericCompilerError($"Error: Native method field binding cannot use ByRef on field without backing field: {classFile.Name}.{param[j].Name}{fieldTypeWrapper.SignatureName}");
                                             wrapper.Context.StaticCompiler.errorCount++;
                                             continue;
                                         }

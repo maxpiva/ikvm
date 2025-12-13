@@ -105,7 +105,7 @@ namespace IKVM.Runtime
                 || type == context.PrimitiveJavaTypeFactory.VOID.type;
         }
 
-        internal override string SigName => sigName;
+        internal override string SignatureName => sigName;
 
         internal override RuntimeClassLoader ClassLoader => Context.ClassLoaderFactory.GetBootstrapClassLoader();
 
