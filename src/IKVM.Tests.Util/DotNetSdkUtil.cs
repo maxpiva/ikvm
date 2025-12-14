@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
+using Semver;
+
 namespace IKVM.Tests.Util
 {
 
@@ -89,19 +91,19 @@ namespace IKVM.Tests.Util
         static IList<string> GetCorePathToReferenceAssemblies(string tfm, string targetFrameworkVersion)
         {
             // parse requested version
-            if (Version.TryParse(targetFrameworkVersion, out var targetVer) == false)
+            if (SemVersion.TryParse(targetFrameworkVersion, SemVersionStyles.OptionalPatch, out var targetVer) == false)
                 throw new InvalidOperationException(targetFrameworkVersion);
 
             // back up to pack directory and get list of ref packs
             var sdkBase = DotNetSdkResolver.ResolvePath(null) ?? throw new InvalidOperationException();
-            var packDir = Path.Combine(sdkBase, "..", "..", "packs", "Microsoft.NETCore.App.Ref");
+            var packDir = Path.Combine(sdkBase, "..", "packs", "Microsoft.NETCore.App.Ref");
             var sdkVers = Directory.EnumerateDirectories(packDir).Select(Path.GetFileName);
 
             // identify maximum matching version
-            var thisVer = new Version(0, 0, 0);
+            var thisVer = new SemVersion(0, 0, 0);
             foreach (var ver in sdkVers)
-                if (Version.TryParse(ver, out var v))
-                    if (v.Major == targetVer.Major && v.Minor == targetVer.Minor && v > thisVer)
+                if (SemVersion.TryParse(ver, SemVersionStyles.OptionalPatch, out var v))
+                    if (v.Major == targetVer.Major && v.Minor == targetVer.Minor && SemVersion.CompareSortOrder(v, thisVer) == 1)
                         thisVer = v;
 
             // no higher version found

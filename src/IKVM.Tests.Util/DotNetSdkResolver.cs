@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 using CliWrap;
@@ -74,20 +75,25 @@ namespace IKVM.Tests.Util
 
                     // Make sure the base path matches the runtime architecture if on Windows
                     // Note that this only works for the default installation locations under "Program Files"
-                    if (basePath.Contains(@"\Program Files\") && Environment.Is64BitProcess == false)
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        var newBasePath = basePath.Replace(@"\Program Files\", @"\Program Files (x86)\");
-                        if (Directory.Exists(newBasePath))
-                            basePath = newBasePath;
-                    }
-                    else if (basePath.Contains(@"\Program Files (x86)\") && Environment.Is64BitProcess)
-                    {
-                        var newBasePath = basePath.Replace(@"\Program Files (x86)\", @"\Program Files\");
-                        if (Directory.Exists(newBasePath))
-                            basePath = newBasePath;
+                        if (basePath.Contains(@"\Program Files\") && Environment.Is64BitProcess == false)
+                        {
+                            var newBasePath = basePath.Replace(@"\Program Files\", @"\Program Files (x86)\");
+                            if (Directory.Exists(newBasePath))
+                                basePath = newBasePath;
+                        }
+                        else if (basePath.Contains(@"\Program Files (x86)\") && Environment.Is64BitProcess)
+                        {
+                            var newBasePath = basePath.Replace(@"\Program Files (x86)\", @"\Program Files\");
+                            if (Directory.Exists(newBasePath))
+                                basePath = newBasePath;
+                        }
                     }
 
-                    return basePath;
+                    // get the parent directory of the base path
+                    if (Directory.Exists(basePath))
+                        return new DirectoryInfo(basePath).Parent.FullName;
                 }
             }
 
@@ -129,7 +135,7 @@ namespace IKVM.Tests.Util
             }
 
             var segments = lines[index]
-                .Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(['[', ']'], StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => x.Trim())
                 .ToArray();
