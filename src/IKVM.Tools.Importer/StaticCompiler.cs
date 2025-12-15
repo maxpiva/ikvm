@@ -135,16 +135,19 @@ namespace IKVM.Tools.Importer
 
                 return null;
             }
-            catch (System.BadImageFormatException)
+            catch (System.BadImageFormatException e)
             {
+                Console.WriteLine(e.ToString());
                 return null;
             }
-            catch (InvalidOperationException)
+            catch (InvalidOperationException e)
             {
+                Console.WriteLine(e.ToString());
                 return null;
             }
-            catch (IOException)
+            catch (IOException e)
             {
+                Console.WriteLine(e.ToString());
                 return null;
             }
         }
@@ -166,10 +169,8 @@ namespace IKVM.Tools.Importer
 
         void ResolvedMissingMember(Module requestingModule, MemberInfo member)
         {
-            if (requestingModule != null && member is Type)
-            {
-                diagnostics.UnableToResolveType(requestingModule.Name, ((Type)member).FullName, member.Module.FullyQualifiedName);
-            }
+            if (requestingModule != null && member is Type type)
+                diagnostics.UnableToResolveType(requestingModule.Name, type.FullName, member.Module.FullyQualifiedName);
         }
 
         internal Assembly Load(string assemblyString)
