@@ -121,7 +121,10 @@ namespace IKVM.Tools.Importer
         static string GetAssemblyNameIfCoreLib(string path)
         {
             if (File.Exists(path) == false)
+            {
+                Console.WriteLine("not exists: {0}", path);
                 return null;
+            }
 
             try
             {
@@ -133,6 +136,7 @@ namespace IKVM.Tools.Importer
                     if (IsSystemObject(mr, handle))
                         return mr.GetString(mr.GetAssemblyDefinition().Name);
 
+                Console.WriteLine("no system object in: {0}", path);
                 return null;
             }
             catch (System.BadImageFormatException e)
