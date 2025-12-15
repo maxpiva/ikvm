@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 
 using IKVM.CoreLib.Diagnostics;
 using IKVM.Reflection;
@@ -41,6 +42,14 @@ namespace IKVM.Tools.Importer
 
     class StaticCompiler
     {
+
+        /// <summary>
+        /// Initializes the static instance.
+        /// </summary>
+        static StaticCompiler()
+        {
+            RuntimeHelpers.RunClassConstructor(typeof(Unsafe).TypeHandle);
+        }
 
         readonly ConcurrentDictionary<string, Type> runtimeTypeCache = new();
 
@@ -121,10 +130,7 @@ namespace IKVM.Tools.Importer
         static string GetAssemblyNameIfCoreLib(string path)
         {
             if (File.Exists(path) == false)
-            {
-                Console.WriteLine("not exists: {0}", path);
                 return null;
-            }
 
             try
             {
@@ -136,22 +142,18 @@ namespace IKVM.Tools.Importer
                     if (IsSystemObject(mr, handle))
                         return mr.GetString(mr.GetAssemblyDefinition().Name);
 
-                Console.WriteLine("no system object in: {0}", path);
                 return null;
             }
             catch (System.BadImageFormatException e)
             {
-                Console.WriteLine(e.ToString());
                 return null;
             }
             catch (InvalidOperationException e)
             {
-                Console.WriteLine(e.ToString());
                 return null;
             }
             catch (IOException e)
             {
-                Console.WriteLine(e.ToString());
                 return null;
             }
         }
