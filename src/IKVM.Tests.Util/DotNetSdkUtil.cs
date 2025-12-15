@@ -57,27 +57,25 @@ namespace IKVM.Tests.Util
         /// <param name="targetFrameworkIdentifier"></param>
         /// <param name="targetFrameworkVersion"></param>
         /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static IList<string> GetPathToReferenceAssemblies(string tfm, string targetFrameworkIdentifier, string targetFrameworkVersion)
         {
             if (targetFrameworkIdentifier == ".NETFramework")
             {
-                var l = new List<string>();
                 var dir = Path.Combine(Path.GetDirectoryName(typeof(DotNetSdkUtil).Assembly.Location), "netfxref", tfm);
                 if (Directory.Exists(dir))
-                    l.Add(dir);
+                    return [dir];
 
-                return l;
+                return [];
             }
 
             if (targetFrameworkIdentifier == ".NET")
             {
-                var l = new List<string>();
                 var dir = Path.Combine(Path.GetDirectoryName(typeof(DotNetSdkUtil).Assembly.Location), "netref", tfm);
                 if (Directory.Exists(dir))
-                    l.Add(dir);
+                    return [dir];
 
-                return l;
+                return [];
             }
 
             throw new ArgumentException(nameof(targetFrameworkIdentifier));

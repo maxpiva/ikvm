@@ -220,15 +220,14 @@ namespace IKVM.Tools.Importer
 
         internal static void LinkageError(string msg, RuntimeJavaType actualType, RuntimeJavaType expectedType, params object[] values)
         {
-            object[] args = new object[values.Length + 2];
+            var args = new object[values.Length + 2];
             values.CopyTo(args, 2);
             args[0] = AssemblyQualifiedName(actualType);
             args[1] = AssemblyQualifiedName(expectedType);
-            string str = string.Format(msg, args);
-            if (actualType is RuntimeUnloadableJavaType && (expectedType is RuntimeManagedByteCodeJavaType || expectedType is RuntimeManagedJavaType))
-            {
+            var str = string.Format(msg, args);
+
+            if (actualType is RuntimeUnloadableJavaType && expectedType is RuntimeManagedByteCodeJavaType or RuntimeManagedJavaType)
                 str += string.Format("\n\t(Please add a reference to {0})", expectedType.TypeAsBaseType.Assembly.Location);
-            }
 
             throw new FatalCompilerErrorException(DiagnosticEvent.LinkageError(str));
         }
@@ -236,12 +235,10 @@ namespace IKVM.Tools.Importer
         static string AssemblyQualifiedName(RuntimeJavaType javaType)
         {
             var loader = javaType.ClassLoader;
-            var acl = loader as RuntimeAssemblyClassLoader;
-            if (acl != null)
+            if (loader is RuntimeAssemblyClassLoader acl)
                 return javaType.Name + ", " + acl.GetAssembly(javaType).FullName;
 
-            var ccl = loader as ImportClassLoader;
-            if (ccl != null)
+            if (loader is ImportClassLoader ccl)
                 return javaType.Name + ", " + ccl.GetTypeWrapperFactory().ModuleBuilder.Assembly.FullName;
 
             return javaType.Name + " (unknown assembly)";

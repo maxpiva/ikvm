@@ -35,7 +35,7 @@ namespace IKVM.Reflection.Tests
         [MemberData(nameof(FrameworkSpec.GetFrameworkTestData), MemberType = typeof(FrameworkSpec))]
         public void CanMakeGenericType(FrameworkSpec framework)
         {
-            if (Init(framework, out var universe, out var resolver) == false)
+            if (Init(framework, out var universe, out _) == false)
                 return;
 
             var t = universe.Import(typeof(IEnumerable<>));
