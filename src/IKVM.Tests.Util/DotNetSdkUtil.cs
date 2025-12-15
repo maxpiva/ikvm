@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-
-using Semver;
 
 namespace IKVM.Tests.Util
 {
@@ -75,48 +72,15 @@ namespace IKVM.Tests.Util
 
             if (targetFrameworkIdentifier == ".NET")
             {
-                return GetCorePathToReferenceAssemblies(tfm, targetFrameworkVersion);
+                var l = new List<string>();
+                var dir = Path.Combine(Path.GetDirectoryName(typeof(DotNetSdkUtil).Assembly.Location), "netref", tfm);
+                if (Directory.Exists(dir))
+                    l.Add(dir);
+
+                return l;
             }
 
             throw new ArgumentException(nameof(targetFrameworkIdentifier));
-        }
-
-        /// <summary>
-        /// Discovers the reference assembly paths for .NET Core TFM and framework version.
-        /// </summary>
-        /// <param name="tfm"></param>
-        /// <param name="targetFrameworkVersion"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        static IList<string> GetCorePathToReferenceAssemblies(string tfm, string targetFrameworkVersion)
-        {
-            // parse requested version
-            if (SemVersion.TryParse(targetFrameworkVersion, SemVersionStyles.OptionalPatch, out var targetVer) == false)
-                throw new InvalidOperationException(targetFrameworkVersion);
-
-            // back up to pack directory and get list of ref packs
-            var sdkBase = DotNetSdkResolver.ResolvePath(null) ?? throw new InvalidOperationException();
-            var packDir = Path.Combine(sdkBase, "..", "packs", "Microsoft.NETCore.App.Ref");
-            var sdkVers = Directory.EnumerateDirectories(packDir).Select(Path.GetFileName);
-
-            // identify maximum matching version
-            var thisVer = new SemVersion(0, 0, 0);
-            foreach (var ver in sdkVers)
-                if (SemVersion.TryParse(ver, SemVersionStyles.OptionalPatch, out var v))
-                    if (v.Major == targetVer.Major && v.Minor == targetVer.Minor && SemVersion.CompareSortOrder(v, thisVer) == 1)
-                        thisVer = v;
-
-            // no higher version found
-            if (thisVer.Major == 0)
-                return null;
-
-            // check for TFM refs directory
-            var refsDir = Path.Combine(packDir, thisVer.ToString(), "ref", tfm);
-            if (Directory.Exists(refsDir) == false)
-                throw new InvalidOperationException();
-
-            // find all ref assemblies
-            return [Path.GetFullPath(refsDir)];
         }
 
     }
