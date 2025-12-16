@@ -2524,8 +2524,8 @@ namespace IKVM.Runtime
             {
                 get
                 {
-                    foreach (var field in fields)
-                        if (field.IsSerialVersionUID)
+                    foreach (var f in fields)
+                        if (f.IsSerialVersionUID)
                             return true;
 
                     return false;
