@@ -71,7 +71,7 @@ namespace IKVM.CoreLib.Modules
             char c = value[i];
             if (!(c >= '0' && c <= '9'))
             {
-                error = $"{value}: Version string does not start with a number";
+                error = $"{value.ToString()}: Version string does not start with a number";
                 return false;
             }
 
@@ -102,7 +102,7 @@ namespace IKVM.CoreLib.Modules
 
             if (c == '-' && i >= n)
             {
-                error = $"{value}: Empty pre-release";
+                error = $"{value.ToString()}: Empty pre-release";
                 return false;
             }
 
@@ -128,7 +128,7 @@ namespace IKVM.CoreLib.Modules
 
             if (c == '+' && i >= n)
             {
-                error = $"{value}: Empty pre-release";
+                error = $"{value.ToString()}: Empty pre-release";
                 return false;
             }
 
