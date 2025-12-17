@@ -38,4 +38,7 @@
 
     <Import Project="$(MSBuildThisFileDirectory)..\..\IKVM.deps.targets" />
     <Import Project="$(MSBuildThisFileDirectory)..\..\IKVM.refs.targets" />
+    <ItemGroup>
+      <PackageReference Update="IKVM.ByteCode" Version="9.3.8" />
+    </ItemGroup>
 </Project>

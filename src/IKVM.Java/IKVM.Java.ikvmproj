@@ -30,6 +30,72 @@
         <Compile Include="SocketOptionRegistry.java" />
     </ItemGroup>
 
+    <ItemGroup>
+        <IkvmToolReference Include="..\ikvmrefcls\ikvmrefcls.csproj" IsIkvmRefClass="true" TargetFramework="net10.0" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <ResolveIkvmRefClassDependsOn>
+            $(ResolveIkvmRefClassDependsOn);
+            _AssignIkvmToolReferenceConfiguration;
+            _ResolveIkvmToolReferences;
+        </ResolveIkvmRefClassDependsOn>
+    </PropertyGroup>
+
+    <Target Name="ResolveIkvmRefClass" DependsOnTargets="$(ResolveIkvmRefClassDependsOn)">
+        <MSBuild Projects="@(_IkvmToolReference)" Targets="GetPublishProjectPath" BuildInParallel="$(BuildInParallel)" Properties="%(_IkvmToolReference.SetConfiguration);%(_IkvmToolReference.SetPlatform);%(_IkvmToolReference.SetTargetFramework);%(_IkvmToolReference.SetRuntimeIdentifier)" RemoveProperties="%(_IkvmToolReference.GlobalPropertiesToRemove);$(_GlobalPropertiesToRemoveFromProjectReferences);PublishDir;PublishUrl;Location;DesignTimeBuild;BuildProjectReferences" Condition=" '%(_IkvmToolReference.IsIkvmRefClass)' == 'true' ">
+            <Output TaskParameter="TargetOutputs" PropertyName="_IkvmRefClassPublishDir" />
+        </MSBuild>
+        <PropertyGroup>
+            <IkvmRefClassPath Condition=" $([MSBuild]::IsOSUnixLike()) And '$(IkvmRefClassPath)' == '' And Exists('$(_IkvmRefClassPublishDir)ikvmrefcls') ">$([System.IO.Path]::GetFullPath('$(_IkvmRefClassPublishDir)\ikvmrefcls'))</IkvmRefClassPath>
+            <IkvmRefClassPath Condition=" '$(IkvmRefClassPath)' == '' And Exists('$(_IkvmRefClassPublishDir)ikvmrefcls.exe') ">$([System.IO.Path]::GetFullPath('$(_IkvmRefClassPublishDir)\ikvmrefcls.exe'))</IkvmRefClassPath>
+            <IkvmRefClassExec Condition=" '$(IkvmRefClassExec)' == '' And $([MSBuild]::IsOSUnixLike()) And '$([System.IO.Path]::GetExtension($(IkvmRefClassPath)))' == '.exe' ">mono $(IkvmRefClassPath)</IkvmRefClassExec>
+            <IkvmRefClassExec Condition=" '$(IkvmRefClassExec)' == '' ">$(IkvmRefClassPath)</IkvmRefClassExec>
+        </PropertyGroup>
+        <Error Text="Could not locate ikvmrefcls executable." Condition=" '$(IkvmRefClassPath)' == '' " />
+        <Message Text="Resolved ikvmrefcls executable from project at '$(IkvmRefClassPath)'." Importance="high" Condition=" '@(IkvmRefClassPath)' != '' " />
+    </Target>
+
+    <Target Name="GenerateRefClassesResponseFile" AfterTargets="CompileJava">
+        <ItemGroup>
+            <_GenerateRefClassesResponseFile Remove="@(_GenerateRefClassesResponseFile)" />
+            <_GenerateRefClassesResponseFile Include="@(Convert->'%(FullPath)')" Condition=" '%(Extension)' == '.class' " />
+        </ItemGroup>
+        <WriteLinesToFile File="$(IntermediateOutputPath)refclasses.rsp" Lines="@(_GenerateRefClassesResponseFile)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+
+        <ItemGroup>
+            <FileWrites Include="$(IntermediateOutputPath)refclasses.rsp" />
+        </ItemGroup>
+    </Target>
+    
+    <Target Name="GenerateRefClasses" BeforeTargets="_CoreCompileResponseFile;_CoreCompile" DependsOnTargets="ResolveIkvmRefClass;GenerateRefClassesResponseFile" Inputs="@(Convert);$(IntermediateOutputPath)refclasses.rsp" Outputs="$(IntermediateOutputPath)refclasses\stamp">
+        <RemoveDir Directories="$(IntermediateOutputPath)refclasses" />
+        <MakeDir Directories="$(IntermediateOutputPath)refclasses" />
+        <Exec Command="&quot;$(IkvmRefClassExec)&quot; -d &quot;$(IntermediateOutputPath)refclasses&quot; &quot;@$(IntermediateOutputPath)refclasses.rsp&quot; " />
+        <Touch Files="$(IntermediateOutputPath)refclasses\stamp" AlwaysCreate="true" ForceTouch="true" />
+    
+        <ItemGroup>
+            <FileWrites Include="$(IntermediateOutputPath)refclasses\**\*.class" />
+            <FileWrites Include="$(IntermediateOutputPath)refclasses\stamp" />
+        </ItemGroup>
+    </Target>
+    
+    <Target Name="ConvertRefClasses" BeforeTargets="_CoreCompileResponseFile;_CoreCompile" DependsOnTargets="GenerateRefClasses">
+        <ItemGroup>
+            <Convert Remove="@(Convert)" Condition=" '%(Extension)' == '.class' " />
+            <Convert Include="$(IntermediateOutputPath)refclasses\**\*.class" />
+        </ItemGroup>
+    </Target>
+    
+    <PropertyGroup>
+        <CoreCompileDependsOn>
+            GenerateRefClassesResponseFile;
+            GenerateRefClasses;
+            ConvertRefClasses;
+            $(CoreCompileDependsOn);
+        </CoreCompileDependsOn>
+    </PropertyGroup>
+
     <Target Name="ConvertRefAssembly">
         <ItemGroup>
             <RefasmerCliTool Include="$(PkgJetBrains_Refasmer_CliTool)\tools\net6.0\any\RefasmerCliTool.dll" />
@@ -40,4 +106,7 @@
     <Import Project="..\IKVM.Java\IKVM.Java.runtime.props" />
     <Import Project="$(MSBuildThisFileDirectory)..\IKVM.NET.Sdk\Sdk\Sdk.targets" />
     <Import Project="..\IKVM.Java\IKVM.Java.runtime.targets" />
+    <ItemGroup>
+      <PackageReference Update="IKVM.ByteCode" Version="9.3.8" />
+    </ItemGroup>
 </Project>
