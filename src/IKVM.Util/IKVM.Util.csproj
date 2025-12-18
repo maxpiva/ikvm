@@ -13,11 +13,10 @@
         <PackageReference Include="System.IO.Compression" Version="4.3.0" />
         <PackageReference Include="System.Memory" Version="4.5.5" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-        <PackageReference Include="IKVM.ByteCode" Version="9.3.6" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\IKVM.CoreLib\IKVM.CoreLib.csproj" />
+        <ProjectReference Include="..\IKVM.CoreLib\IKVM.CoreLib.csproj" />
     </ItemGroup>
 
 </Project>
