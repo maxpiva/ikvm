@@ -117,11 +117,13 @@
   <Project Path="src/IKVM.Tools.Exporter/IKVM.Tools.Exporter.csproj" />
   <Project Path="src/IKVM.Tools.Importer.Tests/IKVM.Tools.Importer.Tests.csproj" />
   <Project Path="src/IKVM.Tools.Importer/IKVM.Tools.Importer.csproj" />
+  <Project Path="src/IKVM.Tools.RefClass/IKVM.Tools.RefClass.csproj" />
   <Project Path="src/IKVM.Tools.Runner/IKVM.Tools.Runner.csproj" />
   <Project Path="src/IKVM.Tools.Tests/IKVM.Tools.Tests.csproj" />
   <Project Path="src/IKVM.Util/IKVM.Util.csproj" />
   <Project Path="src/IKVM/IKVM.csproj" />
   <Project Path="src/ikvmc/ikvmc.csproj" />
+  <Project Path="src/ikvmrefcls/ikvmrefcls.csproj" />
   <Project Path="src/ikvmstub/ikvmstub.csproj" />
   <Project Path="src/jar/jar.ikvmproj" Type="daea77de-8320-43ba-ba7c-ef5c12478ab5" />
   <Project Path="src/jarsigner/jarsigner.ikvmproj" Type="daea77de-8320-43ba-ba7c-ef5c12478ab5" />
