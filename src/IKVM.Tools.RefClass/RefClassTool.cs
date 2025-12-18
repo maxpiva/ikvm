@@ -122,8 +122,6 @@ namespace IKVM.Tools.RefClass
             if (ClassFile.TryRead(clazz, out var cf) == false)
                 return false;
 
-            Console.WriteLine(clazz);
-
             if (cf is null)
                 return false;
 
