@@ -24,7 +24,6 @@
 
 using System;
 
-using IKVM.ByteCode;
 using IKVM.CoreLib.Runtime;
 
 namespace IKVM.CoreLib.Linking
@@ -56,11 +55,11 @@ namespace IKVM.CoreLib.Linking
             arg1 = messageId;
         }
 
-        internal HardError HardError => (HardError)arg2;
+        internal readonly HardError HardError => (HardError)arg2;
 
-        internal int HandlerIndex => (ushort)arg2;
+        internal readonly int HandlerIndex => (ushort)arg2;
 
-        internal int HardErrorMessageId => arg1;
+        internal readonly int HardErrorMessageId => arg1;
 
         internal void PatchOpCode(NormalizedByteCode bc)
         {
@@ -684,7 +683,7 @@ namespace IKVM.CoreLib.Linking
                         throw new ClassFormatException($"Invalid opcode: {instruction.OpCode}");
                 }
 
-                this.normopcode = ByteCodeMetaData.GetNormalizedByteCode(instruction.OpCode);
+                normopcode = ByteCodeMetaData.GetNormalizedByteCode(instruction.OpCode);
                 arg1 = ByteCodeMetaData.GetArg(instruction.OpCode, arg1);
             }
             catch (ArgumentOutOfRangeException)
@@ -693,11 +692,11 @@ namespace IKVM.CoreLib.Linking
             }
         }
 
-        internal int PC => pc;
+        internal readonly int PC => pc;
 
-        internal NormalizedByteCode NormalizedOpCode => normopcode;
+        internal readonly NormalizedByteCode NormalizedOpCode => normopcode;
 
-        internal int Arg1 => arg1;
+        internal readonly int Arg1 => arg1;
 
         internal int TargetIndex
         {
@@ -705,9 +704,9 @@ namespace IKVM.CoreLib.Linking
             set => arg1 = value;
         }
 
-        internal int Arg2 => arg2;
+        internal readonly int Arg2 => arg2;
 
-        internal int NormalizedArg1 => arg1;
+        internal readonly int NormalizedArg1 => arg1;
 
         internal int DefaultTarget
         {
@@ -715,14 +714,14 @@ namespace IKVM.CoreLib.Linking
             set => arg1 = value;
         }
 
-        internal int SwitchEntryCount => switch_entries.Length;
+        internal readonly int SwitchEntryCount => switch_entries.Length;
 
-        internal int GetSwitchValue(int i)
+        internal readonly int GetSwitchValue(int i)
         {
             return switch_entries[i].value;
         }
 
-        internal int GetSwitchTargetIndex(int i)
+        internal readonly int GetSwitchTargetIndex(int i)
         {
             return switch_entries[i].target;
         }
