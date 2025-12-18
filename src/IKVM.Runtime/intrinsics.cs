@@ -83,6 +83,7 @@ namespace IKVM.Runtime
             {
                 return methodName.GetHashCode();
             }
+
         }
 
         static readonly Dictionary<IntrinsicKey, Emitter> intrinsics = Register();
@@ -159,24 +160,19 @@ namespace IKVM.Runtime
             return intrinsics[new IntrinsicKey(context.Method)](context);
         }
 
-        private static bool Object_getClass(EmitIntrinsicContext eic)
+        static bool Object_getClass(EmitIntrinsicContext eic)
         {
             // this is the null-check idiom that javac uses (both in its own source and in the code it generates)
-            if (eic.MatchRange(0, 2)
-                && eic.Match(1, NormalizedByteCode.__pop))
+            if (eic.MatchRange(0, 2) && eic.Match(1, NormalizedByteCode.__pop))
             {
                 eic.Emitter.Emit(OpCodes.Dup);
                 eic.Emitter.EmitNullCheck();
                 return true;
             }
             // this optimizes obj1.getClass() ==/!= obj2.getClass()
-            else if (eic.MatchRange(0, 4)
-                && eic.Match(1, NormalizedByteCode.__aload)
-                && eic.Match(2, NormalizedByteCode.__invokevirtual)
-                && (eic.Match(3, NormalizedByteCode.__if_acmpeq) || eic.Match(3, NormalizedByteCode.__if_acmpne))
-                && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
+            else if (eic.MatchRange(0, 4) && eic.Match(1, NormalizedByteCode.__aload) && eic.Match(2, NormalizedByteCode.__invokevirtual) && (eic.Match(3, NormalizedByteCode.__if_acmpeq) || eic.Match(3, NormalizedByteCode.__if_acmpne)) && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
             {
-                ConstantPoolItemMI cpi = eic.GetMethodref(2);
+                var cpi = eic.GetMethodref(2);
                 if (cpi.Class == "java.lang.Object" && cpi.Name == "getClass" && cpi.Signature == "()Ljava.lang.Class;")
                 {
                     // we can't patch the current opcode, so we have to emit the first call to GetTypeHandle here
@@ -186,15 +182,12 @@ namespace IKVM.Runtime
                 }
             }
             // this optimizes obj.getClass() == Xxx.class
-            else if (eic.MatchRange(0, 3)
-                && eic.Match(1, NormalizedByteCode.__ldc) && eic.GetConstantType(1) == ConstantType.Class
-                && (eic.Match(2, NormalizedByteCode.__if_acmpeq) || eic.Match(2, NormalizedByteCode.__if_acmpne)))
+            else if (eic.MatchRange(0, 3) && eic.Match(1, NormalizedByteCode.__ldc) && eic.GetConstantType(1) == ConstantType.Class && (eic.Match(2, NormalizedByteCode.__if_acmpeq) || eic.Match(2, NormalizedByteCode.__if_acmpne)))
             {
-                RuntimeJavaType tw = eic.GetClassLiteral(1);
+                var tw = eic.GetClassLiteral(1);
                 if (tw.IsGhost || tw.IsGhostArray || tw.IsUnloadable || (tw.IsRemapped && tw.IsFinal && tw is RuntimeManagedJavaType))
-                {
                     return false;
-                }
+
                 eic.Emitter.Emit(OpCodes.Callvirt, eic.Method.DeclaringType.Context.CompilerFactory.GetTypeMethod);
                 eic.Emitter.Emit(OpCodes.Ldtoken, (tw.IsRemapped && tw.IsFinal) ? tw.TypeAsTBD : tw.TypeAsBaseType);
                 eic.Emitter.Emit(OpCodes.Call, eic.Method.DeclaringType.Context.CompilerFactory.GetTypeFromHandleMethod);
@@ -204,12 +197,11 @@ namespace IKVM.Runtime
             return false;
         }
 
-        private static bool Class_desiredAssertionStatus(EmitIntrinsicContext eic)
+        static bool Class_desiredAssertionStatus(EmitIntrinsicContext eic)
         {
-            if (eic.MatchRange(-1, 2)
-                && eic.Match(-1, NormalizedByteCode.__ldc))
+            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
             {
-                RuntimeJavaType classLiteral = eic.GetClassLiteral(-1);
+                var classLiteral = eic.GetClassLiteral(-1);
                 if (!classLiteral.IsUnloadable && classLiteral.ClassLoader.RemoveAsserts)
                 {
                     eic.Emitter.Emit(OpCodes.Pop);
@@ -220,25 +212,25 @@ namespace IKVM.Runtime
             return false;
         }
 
-        private static bool IsSafeForGetClassOptimization(RuntimeJavaType tw)
+        static bool IsSafeForGetClassOptimization(RuntimeJavaType tw)
         {
             // because of ghost arrays, we don't optimize if both types are either java.lang.Object or an array
             return tw != tw.Context.JavaBase.TypeOfJavaLangObject && !tw.IsArray;
         }
 
-        private static bool Float_floatToRawIntBits(EmitIntrinsicContext eic)
+        static bool Float_floatToRawIntBits(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.FloatConverter").AsReflection(), "ToInt");
             return true;
         }
 
-        private static bool Float_intBitsToFloat(EmitIntrinsicContext eic)
+        static bool Float_intBitsToFloat(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.FloatConverter").AsReflection(), "ToFloat");
             return true;
         }
 
-        private static bool Double_doubleToRawLongBits(EmitIntrinsicContext eic)
+        static bool Double_doubleToRawLongBits(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.DoubleConverter").AsReflection(), "ToLong");
             return true;

@@ -176,8 +176,9 @@ namespace IKVM.CoreLib.Runtime
 		__multianewarray = 197,
 		__ifnull = 198,
 		__ifnonnull = 199,
+
 		// This is where the pseudo-bytecodes start
-		__privileged_invokestatic = 235,        // the privileged bytecodes are used for accessing host class members
+		__privileged_invokestatic = 235, // the privileged bytecodes are used for accessing host class members
 		__privileged_invokevirtual = 237,
 		__privileged_invokespecial = 238,
 		__ldc_nothrow = 239,
@@ -195,8 +196,8 @@ namespace IKVM.CoreLib.Runtime
 		__dynamic_invokevirtual = 251,
 		__dynamic_invokespecial = 252,
 		__clone_array = 253,
-		__static_error = 254,   // not a real instruction, this signals an instruction that is compiled as an exception
-		__iconst = 255
+		__static_error = 254, // not a real instruction, this signals an instruction that is compiled as an exception
+		__iconst = 255,
 
 	}
 
