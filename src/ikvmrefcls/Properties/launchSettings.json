@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ikvmrefcls": {
-      "commandName": "Project",
-      "commandLineArgs": "-d \"D:\\ikvm\\src\\IKVM.Java\\obj\\Debug\\net8.0\\ikvmrefcls\" \"D:\\ikvm\\src\\IKVM.Java\\obj\\Debug\\net8.0\\\\ikvmrefcls.rsp\""
-    }
-  }
-}
