@@ -1226,21 +1226,21 @@ namespace IKVM.CoreLib.Linking
             ConstantPoolItemFieldref<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod>? fieldref;
             Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> field;
             if (method.Instructions is [
-                { NormalizedOpCode: NormalizedByteCode.__ldc },
-                { NormalizedOpCode: NormalizedByteCode.__invokevirtual },
-                { NormalizedOpCode: NormalizedByteCode.__ifne },
-                { NormalizedOpCode: NormalizedByteCode.__iconst },
-                { NormalizedOpCode: NormalizedByteCode.__goto },
-                { NormalizedOpCode: NormalizedByteCode.__iconst },
-                { NormalizedOpCode: NormalizedByteCode.__putstatic },
+                { NormalizedOpCode: NormalizedOpCode.Ldc },
+                { NormalizedOpCode: NormalizedOpCode.__invokevirtual },
+                { NormalizedOpCode: NormalizedOpCode.__ifne },
+                { NormalizedOpCode: NormalizedOpCode.__iconst },
+                { NormalizedOpCode: NormalizedOpCode.Goto },
+                { NormalizedOpCode: NormalizedOpCode.__iconst },
+                { NormalizedOpCode: NormalizedOpCode.__putstatic },
                 ..] &&
-                method.Instructions[0].NormalizedOpCode == NormalizedByteCode.__ldc && SafeIsConstantPoolClass(new ClassConstantHandle(checked((ushort)method.Instructions[0].Arg1))) &&
-                method.Instructions[1].NormalizedOpCode == NormalizedByteCode.__invokevirtual && IsDesiredAssertionStatusMethodref(method.Instructions[1].Arg1) &&
-                method.Instructions[2].NormalizedOpCode == NormalizedByteCode.__ifne && method.Instructions[2].TargetIndex == 5 &&
-                method.Instructions[3].NormalizedOpCode == NormalizedByteCode.__iconst && method.Instructions[3].Arg1 == 1 &&
-                method.Instructions[4].NormalizedOpCode == NormalizedByteCode.__goto && method.Instructions[4].TargetIndex == 6 &&
-                method.Instructions[5].NormalizedOpCode == NormalizedByteCode.__iconst && method.Instructions[5].Arg1 == 0 &&
-                method.Instructions[6].NormalizedOpCode == NormalizedByteCode.__putstatic && (fieldref = SafeGetFieldref(checked((ushort)method.Instructions[6].Arg1))) != null &&
+                method.Instructions[0].NormalizedOpCode == NormalizedOpCode.Ldc && SafeIsConstantPoolClass(new ClassConstantHandle(checked((ushort)method.Instructions[0].Arg1))) &&
+                method.Instructions[1].NormalizedOpCode == NormalizedOpCode.__invokevirtual && IsDesiredAssertionStatusMethodref(method.Instructions[1].Arg1) &&
+                method.Instructions[2].NormalizedOpCode == NormalizedOpCode.__ifne && method.Instructions[2].TargetIndex == 5 &&
+                method.Instructions[3].NormalizedOpCode == NormalizedOpCode.__iconst && method.Instructions[3].Arg1 == 1 &&
+                method.Instructions[4].NormalizedOpCode == NormalizedOpCode.Goto && method.Instructions[4].TargetIndex == 6 &&
+                method.Instructions[5].NormalizedOpCode == NormalizedOpCode.__iconst && method.Instructions[5].Arg1 == 0 &&
+                method.Instructions[6].NormalizedOpCode == NormalizedOpCode.__putstatic && (fieldref = SafeGetFieldref(checked((ushort)method.Instructions[6].Arg1))) != null &&
                 fieldref.Class == Name && fieldref.Signature == "Z" &&
                 (field = GetField(fieldref.Name, fieldref.Signature)) != null &&
                 field.IsStatic && field.IsFinal &&
@@ -1249,7 +1249,7 @@ namespace IKVM.CoreLib.Linking
                 !HasExceptionHandlerInRegion(method.ExceptionTable, 0, 7))
             {
                 field.PatchConstantValue(true);
-                method.Instructions[0].PatchOpCode(NormalizedByteCode.__goto, 7);
+                method.Instructions[0].PatchOpCode(NormalizedOpCode.Goto, 7);
                 _flags |= ClassFileFlags.HAS_ASSERTIONS;
             }
         }
@@ -1265,30 +1265,30 @@ namespace IKVM.CoreLib.Linking
             {
                 switch (instructions[i].NormalizedOpCode)
                 {
-                    case NormalizedByteCode.__ifeq:
-                    case NormalizedByteCode.__ifne:
-                    case NormalizedByteCode.__iflt:
-                    case NormalizedByteCode.__ifge:
-                    case NormalizedByteCode.__ifgt:
-                    case NormalizedByteCode.__ifle:
-                    case NormalizedByteCode.__if_icmpeq:
-                    case NormalizedByteCode.__if_icmpne:
-                    case NormalizedByteCode.__if_icmplt:
-                    case NormalizedByteCode.__if_icmpge:
-                    case NormalizedByteCode.__if_icmpgt:
-                    case NormalizedByteCode.__if_icmple:
-                    case NormalizedByteCode.__if_acmpeq:
-                    case NormalizedByteCode.__if_acmpne:
-                    case NormalizedByteCode.__ifnull:
-                    case NormalizedByteCode.__ifnonnull:
-                    case NormalizedByteCode.__goto:
-                    case NormalizedByteCode.__jsr:
+                    case NormalizedOpCode.__ifeq:
+                    case NormalizedOpCode.__ifne:
+                    case NormalizedOpCode.Iflt:
+                    case NormalizedOpCode.__ifge:
+                    case NormalizedOpCode.__ifgt:
+                    case NormalizedOpCode.__ifle:
+                    case NormalizedOpCode.__if_icmpeq:
+                    case NormalizedOpCode.__if_icmpne:
+                    case NormalizedOpCode.__if_icmplt:
+                    case NormalizedOpCode.__if_icmpge:
+                    case NormalizedOpCode.__if_icmpgt:
+                    case NormalizedOpCode.__if_icmple:
+                    case NormalizedOpCode.__if_acmpeq:
+                    case NormalizedOpCode.__if_acmpne:
+                    case NormalizedOpCode.__ifnull:
+                    case NormalizedOpCode.__ifnonnull:
+                    case NormalizedOpCode.Goto:
+                    case NormalizedOpCode.Jsr:
                         if (instructions[i].TargetIndex > regionStart && instructions[i].TargetIndex < regionEnd)
                             return true;
 
                         break;
-                    case NormalizedByteCode.__tableswitch:
-                    case NormalizedByteCode.__lookupswitch:
+                    case NormalizedOpCode.__tableswitch:
+                    case NormalizedOpCode.__lookupswitch:
                         if (instructions[i].DefaultTarget > regionStart && instructions[i].DefaultTarget < regionEnd)
                             return true;
 
@@ -1306,7 +1306,7 @@ namespace IKVM.CoreLib.Linking
         {
             for (int i = checkStart; i < checkEnd; i++)
             {
-                if (instructions[i].NormalizedOpCode == NormalizedByteCode.__putstatic)
+                if (instructions[i].NormalizedOpCode == NormalizedOpCode.__putstatic)
                 {
                     var fieldref = SafeGetFieldref(checked((ushort)instructions[i].Arg1));
                     if (fieldref != null && fieldref.Class == Name && fieldref.Name == field.Name && fieldref.Signature == field.Signature)

@@ -49,9 +49,9 @@ namespace IKVM.Runtime
                 && (flags[i - 1] & InstructionFlags.BranchTarget) == 0
                 && (flags[i - 2] & InstructionFlags.BranchTarget) == 0
                 && (flags[i - 3] & InstructionFlags.BranchTarget) == 0
-                && code[i - 1].NormalizedOpCode == NormalizedByteCode.__ldc_nothrow
-                && code[i - 2].NormalizedOpCode == NormalizedByteCode.__ldc
-                && code[i - 3].NormalizedOpCode == NormalizedByteCode.__ldc)
+                && code[i - 1].NormalizedOpCode == NormalizedOpCode.__ldc_nothrow
+                && code[i - 2].NormalizedOpCode == NormalizedOpCode.Ldc
+                && code[i - 3].NormalizedOpCode == NormalizedOpCode.Ldc)
             {
                 // we now have a structural match, now we need to make sure that the argument values are what we expect
                 RuntimeJavaType tclass = classFile.GetConstantPoolClassType(code[i - 3].Arg1);

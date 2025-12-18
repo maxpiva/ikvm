@@ -37,7 +37,7 @@ namespace IKVM.CoreLib.Linking
     {
 
         ushort pc;
-        NormalizedByteCode normopcode;
+        NormalizedOpCode normopcode;
         int arg1;
         short arg2;
         SwitchEntry[] switch_entries;
@@ -50,7 +50,7 @@ namespace IKVM.CoreLib.Linking
 
         internal void SetHardError(HardError error, int messageId)
         {
-            normopcode = NormalizedByteCode.__static_error;
+            normopcode = NormalizedOpCode.__static_error;
             arg2 = (short)error;
             arg1 = messageId;
         }
@@ -61,18 +61,18 @@ namespace IKVM.CoreLib.Linking
 
         internal readonly int HardErrorMessageId => arg1;
 
-        internal void PatchOpCode(NormalizedByteCode bc)
+        internal void PatchOpCode(NormalizedOpCode bc)
         {
             this.normopcode = bc;
         }
 
-        internal void PatchOpCode(NormalizedByteCode bc, int arg1)
+        internal void PatchOpCode(NormalizedOpCode bc, int arg1)
         {
             this.normopcode = bc;
             this.arg1 = arg1;
         }
 
-        internal void PatchOpCode(NormalizedByteCode bc, int arg1, short arg2)
+        internal void PatchOpCode(NormalizedOpCode bc, int arg1, short arg2)
         {
             this.normopcode = bc;
             this.arg1 = arg1;
@@ -93,7 +93,7 @@ namespace IKVM.CoreLib.Linking
         {
             // TODO what happens if we already have exactly the maximum number of instructions?
             this.pc = pc;
-            this.normopcode = NormalizedByteCode.__nop;
+            this.normopcode = NormalizedOpCode.Nop;
         }
 
         internal void MapSwitchTargets(int[] pcIndexMap)
@@ -694,7 +694,7 @@ namespace IKVM.CoreLib.Linking
 
         internal readonly int PC => pc;
 
-        internal readonly NormalizedByteCode NormalizedOpCode => normopcode;
+        internal readonly NormalizedOpCode NormalizedOpCode => normopcode;
 
         internal readonly int Arg1 => arg1;
 

@@ -718,8 +718,8 @@ namespace IKVM.Runtime
 
                 for (int i = 0; i < m.Instructions.Length; i++)
                 {
-                    NormalizedByteCode bc;
-                    while ((bc = m.Instructions[i].NormalizedOpCode) == NormalizedByteCode.__goto)
+                    NormalizedOpCode bc;
+                    while ((bc = m.Instructions[i].NormalizedOpCode) == NormalizedOpCode.Goto)
                     {
                         int target = m.Instructions[i].TargetIndex;
                         if (target <= i)
@@ -732,7 +732,7 @@ namespace IKVM.Runtime
                         // uses a goto to remove the (now unused) code
                         i = target;
                     }
-                    if (bc == NormalizedByteCode.__getstatic || bc == NormalizedByteCode.__putstatic)
+                    if (bc == NormalizedOpCode.__getstatic || bc == NormalizedOpCode.__putstatic)
                     {
                         var fld = classFile.SafeGetFieldref(checked((ushort)m.Instructions[i].Arg1));
                         if (fld == null || fld.Class != classFile.Name)
@@ -742,7 +742,7 @@ namespace IKVM.Runtime
                         }
                         // don't allow getstatic to load non-primitive fields, because that would
                         // cause the verifier to try to load the type
-                        if (bc == NormalizedByteCode.__getstatic && "L[".IndexOf(fld.Signature[0]) != -1)
+                        if (bc == NormalizedOpCode.__getstatic && "L[".IndexOf(fld.Signature[0]) != -1)
                         {
                             noop = false;
                             return false;
@@ -755,7 +755,7 @@ namespace IKVM.Runtime
                             return false;
                         }
 
-                        if (bc == NormalizedByteCode.__putstatic)
+                        if (bc == NormalizedOpCode.__putstatic)
                         {
                             if (field.IsProperty && field.PropertySetter != null)
                             {
@@ -774,10 +774,10 @@ namespace IKVM.Runtime
                         noop = false;
                         return false;
                     }
-                    else if (bc == NormalizedByteCode.__aconst_null
-                        || (bc == NormalizedByteCode.__iconst && m.Instructions[i].Arg1 == 0)
-                        || bc == NormalizedByteCode.__return
-                        || bc == NormalizedByteCode.__nop)
+                    else if (bc == NormalizedOpCode.__aconst_null
+                        || (bc == NormalizedOpCode.__iconst && m.Instructions[i].Arg1 == 0)
+                        || bc == NormalizedOpCode.__return
+                        || bc == NormalizedOpCode.Nop)
                     {
                         // valid instructions in a potential noop <clinit>
                     }
@@ -2711,7 +2711,7 @@ namespace IKVM.Runtime
                             !m.IsAbstract && !m.IsNative &&
                             (!m.IsFinal || classFile.IsFinal) &&
                             m.Instructions.Length > 0 &&
-                            m.Instructions[0].NormalizedOpCode == NormalizedByteCode.__return)
+                            m.Instructions[0].NormalizedOpCode == NormalizedOpCode.__return)
                         {
                             // we've got an empty finalize method, so we don't need to override the real finalizer
                             // (not having a finalizer makes a huge perf difference)
@@ -2890,7 +2890,7 @@ namespace IKVM.Runtime
                 {
                     foreach (var instr in m.Instructions)
                     {
-                        if (instr.NormalizedOpCode == NormalizedByteCode.__invokespecial)
+                        if (instr.NormalizedOpCode == NormalizedOpCode.__invokespecial)
                         {
                             var cpi = classFile.SafeGetMethodref(instr.Arg1);
                             return cpi != null && cpi.Name == m.Name && cpi.Signature == m.Signature;

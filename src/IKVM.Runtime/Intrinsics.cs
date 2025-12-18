@@ -182,26 +182,26 @@ namespace IKVM.Runtime
         bool Object_getClass(EmitIntrinsicContext eic)
         {
             // this is the null-check idiom that javac uses (both in its own source and in the code it generates)
-            if (eic.MatchRange(0, 2) && eic.Match(1, NormalizedByteCode.__pop))
+            if (eic.MatchRange(0, 2) && eic.Match(1, NormalizedOpCode.Pop))
             {
                 eic.Emitter.Emit(OpCodes.Dup);
                 eic.Emitter.EmitNullCheck();
                 return true;
             }
             // this optimizes obj1.getClass() ==/!= obj2.getClass()
-            else if (eic.MatchRange(0, 4) && eic.Match(1, NormalizedByteCode.__aload) && eic.Match(2, NormalizedByteCode.__invokevirtual) && (eic.Match(3, NormalizedByteCode.__if_acmpeq) || eic.Match(3, NormalizedByteCode.__if_acmpne)) && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
+            else if (eic.MatchRange(0, 4) && eic.Match(1, NormalizedOpCode.__aload) && eic.Match(2, NormalizedOpCode.__invokevirtual) && (eic.Match(3, NormalizedOpCode.__if_acmpeq) || eic.Match(3, NormalizedOpCode.__if_acmpne)) && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
             {
                 var cpi = eic.GetMethodref(2);
                 if (cpi.Class == "java.lang.Object" && cpi.Name == "getClass" && cpi.Signature == "()Ljava.lang.Class;")
                 {
                     // we can't patch the current opcode, so we have to emit the first call to GetTypeHandle here
                     eic.Emitter.Emit(OpCodes.Callvirt, eic.Method.DeclaringType.Context.CompilerFactory.GetTypeMethod);
-                    eic.PatchOpCode(2, NormalizedByteCode.__intrinsic_gettype);
+                    eic.PatchOpCode(2, NormalizedOpCode.__intrinsic_gettype);
                     return true;
                 }
             }
             // this optimizes obj.getClass() == Xxx.class
-            else if (eic.MatchRange(0, 3) && eic.Match(1, NormalizedByteCode.__ldc) && eic.GetConstantType(1) == ConstantType.Class && (eic.Match(2, NormalizedByteCode.__if_acmpeq) || eic.Match(2, NormalizedByteCode.__if_acmpne)))
+            else if (eic.MatchRange(0, 3) && eic.Match(1, NormalizedOpCode.Ldc) && eic.GetConstantType(1) == ConstantType.Class && (eic.Match(2, NormalizedOpCode.__if_acmpeq) || eic.Match(2, NormalizedOpCode.__if_acmpne)))
             {
                 var tw = eic.GetClassLiteral(1);
                 if (tw.IsGhost || tw.IsGhostArray || tw.IsUnloadable || (tw.IsRemapped && tw.IsFinal && tw is RuntimeManagedJavaType))
@@ -210,7 +210,7 @@ namespace IKVM.Runtime
                 eic.Emitter.Emit(OpCodes.Callvirt, eic.Method.DeclaringType.Context.CompilerFactory.GetTypeMethod);
                 eic.Emitter.Emit(OpCodes.Ldtoken, (tw.IsRemapped && tw.IsFinal) ? tw.TypeAsTBD : tw.TypeAsBaseType);
                 eic.Emitter.Emit(OpCodes.Call, eic.Method.DeclaringType.Context.CompilerFactory.GetTypeFromHandleMethod);
-                eic.PatchOpCode(1, NormalizedByteCode.__nop);
+                eic.PatchOpCode(1, NormalizedOpCode.Nop);
                 return true;
             }
 
@@ -219,7 +219,7 @@ namespace IKVM.Runtime
 
         bool Class_desiredAssertionStatus(EmitIntrinsicContext eic)
         {
-            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
+            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedOpCode.Ldc))
             {
                 var classLiteral = eic.GetClassLiteral(-1);
                 if (!classLiteral.IsUnloadable && classLiteral.ClassLoader.RemoveAsserts)
@@ -347,7 +347,7 @@ namespace IKVM.Runtime
                 RuntimeJavaMethod mw;
                 if (MatchInvokeStatic(eic, 1, "java.lang.ClassLoader", "getClassLoader", "(Ljava.lang.Class;)Ljava.lang.ClassLoader;"))
                 {
-                    eic.PatchOpCode(1, NormalizedByteCode.__nop);
+                    eic.PatchOpCode(1, NormalizedOpCode.Nop);
                     mw = eic.Context.TypeWrapper.Context.JavaBase.TypeOfIkvmInternalCallerID.GetMethod("getCallerClassLoader", "()Ljava.lang.ClassLoader;", false);
                 }
                 else
@@ -396,7 +396,7 @@ namespace IKVM.Runtime
 
         bool Util_getInstanceTypeFromClass(EmitIntrinsicContext eic)
         {
-            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
+            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedOpCode.Ldc))
             {
                 var tw = eic.GetClassLiteral(-1);
                 if (tw.IsUnloadable == false)
@@ -455,7 +455,7 @@ namespace IKVM.Runtime
         /// <returns></returns>
         bool Unsafe_ensureClassInitialized(EmitIntrinsicContext eic)
         {
-            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
+            if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedOpCode.Ldc))
             {
                 var classLiteral = eic.GetClassLiteral(-1);
                 if (classLiteral.IsUnloadable == false)
@@ -555,7 +555,7 @@ namespace IKVM.Runtime
             if ((eic.Flags[eic.OpcodeIndex] & InstructionFlags.BranchTarget) != 0 || (eic.Flags[eic.OpcodeIndex - 1] & InstructionFlags.BranchTarget) != 0)
                 return false;
 
-            if ((eic.Match(-1, NormalizedByteCode.__aload) || eic.Match(-1, NormalizedByteCode.__aconst_null)) && eic.Match(-2, NormalizedByteCode.__getstatic))
+            if ((eic.Match(-1, NormalizedOpCode.__aload) || eic.Match(-1, NormalizedOpCode.__aconst_null)) && eic.Match(-2, NormalizedOpCode.__getstatic))
             {
                 var fw = GetUnsafeField(eic, eic.GetFieldref(-2));
                 if (fw != null &&
@@ -630,8 +630,8 @@ namespace IKVM.Runtime
                 eic.Emitter.Emit(OpCodes.Ldind_Ref);
 
                 // remove the redundant checkcast that usually follows
-                if (eic.Code[eic.OpcodeIndex + 1].NormalizedOpCode == NormalizedByteCode.__checkcast && tw.ElementTypeWrapper.IsAssignableTo(eic.ClassFile.GetConstantPoolClassType(eic.Code[eic.OpcodeIndex + 1].Arg1)))
-                    eic.PatchOpCode(1, NormalizedByteCode.__nop);
+                if (eic.Code[eic.OpcodeIndex + 1].NormalizedOpCode == NormalizedOpCode.Checkcast && tw.ElementTypeWrapper.IsAssignableTo(eic.ClassFile.GetConstantPoolClassType(eic.Code[eic.OpcodeIndex + 1].Arg1)))
+                    eic.PatchOpCode(1, NormalizedOpCode.Nop);
 
                 eic.Emitter.ReleaseTempLocal(target);
                 eic.Emitter.ReleaseTempLocal(offset);
@@ -697,9 +697,9 @@ namespace IKVM.Runtime
                 (eic.Flags[eic.OpcodeIndex - 2] & InstructionFlags.BranchTarget) != 0)
                 return false;
 
-            if ((eic.Match(-1, NormalizedByteCode.__aload) || eic.Match(-1, NormalizedByteCode.__aconst_null)) &&
-                (eic.Match(-2, NormalizedByteCode.__aload) || eic.Match(-2, NormalizedByteCode.__aconst_null)) &&
-                eic.Match(-3, NormalizedByteCode.__getstatic))
+            if ((eic.Match(-1, NormalizedOpCode.__aload) || eic.Match(-1, NormalizedOpCode.__aconst_null)) &&
+                (eic.Match(-2, NormalizedOpCode.__aload) || eic.Match(-2, NormalizedOpCode.__aconst_null)) &&
+                eic.Match(-3, NormalizedOpCode.__getstatic))
             {
                 var fw = GetUnsafeField(eic, eic.GetFieldref(-3));
                 if (fw != null &&
@@ -763,9 +763,9 @@ namespace IKVM.Runtime
                     // the pattern we recognize is:
                     // aload
                     // getstatic <offset field>
-                    if (eic.Match(i, NormalizedByteCode.__aload) &&
+                    if (eic.Match(i, NormalizedOpCode.__aload) &&
                         eic.GetStackTypeWrapper(i + 1, 0) == eic.Caller.DeclaringType &&
-                        eic.Match(i + 1, NormalizedByteCode.__getstatic))
+                        eic.Match(i + 1, NormalizedOpCode.__getstatic))
                     {
                         var fw = GetUnsafeField(eic, eic.GetFieldref(i + 1));
                         if (fw != null && !fw.IsStatic && fw.DeclaringType == eic.Caller.DeclaringType)
@@ -869,9 +869,9 @@ namespace IKVM.Runtime
                     // the pattern we recognize is:
                     // aload
                     // getstatic <offset field>
-                    if (eic.Match(i, NormalizedByteCode.__aload) &&
+                    if (eic.Match(i, NormalizedOpCode.__aload) &&
                         eic.GetStackTypeWrapper(i + 1, 0) == eic.Caller.DeclaringType &&
-                        eic.Match(i + 1, NormalizedByteCode.__getstatic))
+                        eic.Match(i + 1, NormalizedOpCode.__getstatic))
                     {
                         var fw = GetUnsafeField(eic, eic.GetFieldref(i + 1));
                         if (fw != null && !fw.IsStatic && fw.DeclaringType == eic.Caller.DeclaringType)
@@ -926,8 +926,8 @@ namespace IKVM.Runtime
                     // the pattern we recognize is:
                     // aload_0 
                     // getstatic <offset field>
-                    if (eic.Match(i, NormalizedByteCode.__aload, 0)
-                        && eic.Match(i + 1, NormalizedByteCode.__getstatic))
+                    if (eic.Match(i, NormalizedOpCode.__aload, 0)
+                        && eic.Match(i + 1, NormalizedOpCode.__getstatic))
                     {
                         RuntimeJavaField fw = GetUnsafeField(eic, eic.GetFieldref(i + 1));
                         if (fw != null && !fw.IsStatic && fw.DeclaringType == eic.Caller.DeclaringType)
@@ -981,9 +981,9 @@ namespace IKVM.Runtime
                     // the pattern we recognize is:
                     // aload
                     // getstatic <offset field>
-                    if (eic.Match(i, NormalizedByteCode.__aload) &&
+                    if (eic.Match(i, NormalizedOpCode.__aload) &&
                         eic.GetStackTypeWrapper(i + 1, 0) == eic.Caller.DeclaringType &&
-                        eic.Match(i + 1, NormalizedByteCode.__getstatic))
+                        eic.Match(i + 1, NormalizedOpCode.__getstatic))
                     {
                         var fw = GetUnsafeField(eic, eic.GetFieldref(i + 1));
                         if (fw != null && !fw.IsStatic && fw.DeclaringType == eic.Caller.DeclaringType)
@@ -1077,16 +1077,16 @@ namespace IKVM.Runtime
 						 */
                         for (int i = 0; i < method.Instructions.Length; i++)
                         {
-                            if (method.Instructions[i].NormalizedOpCode == NormalizedByteCode.__putstatic &&
+                            if (method.Instructions[i].NormalizedOpCode == NormalizedOpCode.__putstatic &&
                                 eic.ClassFile.GetFieldref(checked((ushort)method.Instructions[i].Arg1)) == field)
                             {
                                 if (MatchInvokeVirtual(eic, ref method.Instructions[i - 1], "sun.misc.Unsafe", "objectFieldOffset", "(Ljava.lang.reflect.Field;)J") &&
                                     MatchInvokeVirtual(eic, ref method.Instructions[i - 2], "java.lang.Class", "getDeclaredField", "(Ljava.lang.String;)Ljava.lang.reflect.Field;") &&
                                     MatchLdc(eic, ref method.Instructions[i - 3], ConstantType.String) &&
-                                    (method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__aload || method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__ldc) &&
-                                    method.Instructions[i - 5].NormalizedOpCode == NormalizedByteCode.__getstatic && eic.ClassFile.GetFieldref(checked((ushort)method.Instructions[i - 5].Arg1)).Signature == "Lsun.misc.Unsafe;")
+                                    (method.Instructions[i - 4].NormalizedOpCode == NormalizedOpCode.__aload || method.Instructions[i - 4].NormalizedOpCode == NormalizedOpCode.Ldc) &&
+                                    method.Instructions[i - 5].NormalizedOpCode == NormalizedOpCode.__getstatic && eic.ClassFile.GetFieldref(checked((ushort)method.Instructions[i - 5].Arg1)).Signature == "Lsun.misc.Unsafe;")
                                 {
-                                    if (method.Instructions[i - 4].NormalizedOpCode == NormalizedByteCode.__ldc)
+                                    if (method.Instructions[i - 4].NormalizedOpCode == NormalizedOpCode.Ldc)
                                     {
                                         if (eic.ClassFile.GetConstantPoolClassType(method.Instructions[i - 4].Arg1) == eic.Caller.DeclaringType)
                                         {
@@ -1117,7 +1117,7 @@ namespace IKVM.Runtime
                                     // search backward for the astore that corresponds to the aload (of the class object)
                                     for (int j = i - 6; j > 0; j--)
                                     {
-                                        if (method.Instructions[j].NormalizedOpCode == NormalizedByteCode.__astore &&
+                                        if (method.Instructions[j].NormalizedOpCode == NormalizedOpCode.__astore &&
                                             method.Instructions[j].Arg1 == method.Instructions[i - 4].Arg1 &&
                                             MatchLdc(eic, ref method.Instructions[j - 1], ConstantType.Class) &&
                                             eic.ClassFile.GetConstantPoolClassType(method.Instructions[j - 1].Arg1) == eic.Caller.DeclaringType)
@@ -1159,15 +1159,15 @@ namespace IKVM.Runtime
 
         bool MatchInvokeVirtual(EmitIntrinsicContext eic, ref Instruction instr, string clazz, string name, string sig)
         {
-            return MatchInvoke(eic, ref instr, NormalizedByteCode.__invokevirtual, clazz, name, sig);
+            return MatchInvoke(eic, ref instr, NormalizedOpCode.__invokevirtual, clazz, name, sig);
         }
 
         bool MatchInvokeStatic(EmitIntrinsicContext eic, int offset, string clazz, string name, string sig)
         {
-            return MatchInvoke(eic, ref eic.Code[eic.OpcodeIndex + offset], NormalizedByteCode.__invokestatic, clazz, name, sig);
+            return MatchInvoke(eic, ref eic.Code[eic.OpcodeIndex + offset], NormalizedOpCode.__invokestatic, clazz, name, sig);
         }
 
-        bool MatchInvoke(EmitIntrinsicContext eic, ref Instruction instr, NormalizedByteCode opcode, string clazz, string name, string sig)
+        bool MatchInvoke(EmitIntrinsicContext eic, ref Instruction instr, NormalizedOpCode opcode, string clazz, string name, string sig)
         {
             if (instr.NormalizedOpCode == opcode)
             {
@@ -1180,7 +1180,7 @@ namespace IKVM.Runtime
 
         bool MatchLdc(EmitIntrinsicContext eic, ref Instruction instr, ConstantType constantType)
         {
-            return (instr.NormalizedOpCode == NormalizedByteCode.__ldc || instr.NormalizedOpCode == NormalizedByteCode.__ldc_nothrow) && eic.ClassFile.GetConstantPoolConstantType(instr.NormalizedArg1) == constantType;
+            return (instr.NormalizedOpCode == NormalizedOpCode.Ldc || instr.NormalizedOpCode == NormalizedOpCode.__ldc_nothrow) && eic.ClassFile.GetConstantPoolConstantType(instr.NormalizedArg1) == constantType;
         }
 
 #else

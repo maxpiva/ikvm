@@ -71,12 +71,12 @@ namespace IKVM.Runtime
             return true;
         }
 
-        internal bool Match(int offset, NormalizedByteCode opcode)
+        internal bool Match(int offset, NormalizedOpCode opcode)
         {
             return Code[OpcodeIndex + offset].NormalizedOpCode == opcode;
         }
 
-        internal bool Match(int offset, NormalizedByteCode opcode, int arg)
+        internal bool Match(int offset, NormalizedOpCode opcode, int arg)
         {
             return Code[OpcodeIndex + offset].NormalizedOpCode == opcode && Code[OpcodeIndex + offset].Arg1 == arg;
         }
@@ -111,7 +111,7 @@ namespace IKVM.Runtime
             return ClassFile.GetConstantPoolConstantType(new ConstantHandle(ConstantKind.Unknown, checked((ushort)Code[OpcodeIndex + offset].Arg1)));
         }
 
-        internal void PatchOpCode(int offset, NormalizedByteCode opc)
+        internal void PatchOpCode(int offset, NormalizedOpCode opc)
         {
             Code[OpcodeIndex + offset].PatchOpCode(opc);
         }
