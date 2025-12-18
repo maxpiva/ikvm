@@ -103,17 +103,17 @@ namespace IKVM.CoreLib.Runtime
             return data[(int)bc].wide;
         }
 
-        internal static ByteCodeFlowControl GetFlowControl(NormalizedByteCode bc)
+        internal static OpCodeFlowKind GetFlowControl(NormalizedByteCode bc)
         {
             switch (bc)
             {
                 case NormalizedByteCode.__tableswitch:
                 case NormalizedByteCode.__lookupswitch:
-                    return ByteCodeFlowControl.Switch;
+                    return OpCodeFlowKind.Switch;
 
                 case NormalizedByteCode.__goto:
                 case NormalizedByteCode.__goto_finally:
-                    return ByteCodeFlowControl.Branch;
+                    return OpCodeFlowKind.Branch;
 
                 case NormalizedByteCode.__ifeq:
                 case NormalizedByteCode.__ifne:
@@ -131,7 +131,7 @@ namespace IKVM.CoreLib.Runtime
                 case NormalizedByteCode.__if_acmpne:
                 case NormalizedByteCode.__ifnull:
                 case NormalizedByteCode.__ifnonnull:
-                    return ByteCodeFlowControl.CondBranch;
+                    return OpCodeFlowKind.ConditionalBranch;
 
                 case NormalizedByteCode.__ireturn:
                 case NormalizedByteCode.__lreturn:
@@ -139,15 +139,15 @@ namespace IKVM.CoreLib.Runtime
                 case NormalizedByteCode.__dreturn:
                 case NormalizedByteCode.__areturn:
                 case NormalizedByteCode.__return:
-                    return ByteCodeFlowControl.Return;
+                    return OpCodeFlowKind.Return;
 
                 case NormalizedByteCode.__athrow:
                 case NormalizedByteCode.__athrow_no_unmap:
                 case NormalizedByteCode.__static_error:
-                    return ByteCodeFlowControl.Throw;
+                    return OpCodeFlowKind.Throw;
 
                 default:
-                    return ByteCodeFlowControl.Next;
+                    return OpCodeFlowKind.Next;
             }
         }
 

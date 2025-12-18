@@ -1153,23 +1153,23 @@ namespace IKVM.Runtime
                             {
                                 switch (ByteCodeMetaData.GetFlowControl(inst.NormalizedOpCode))
                                 {
-                                    case ByteCodeFlowControl.Switch:
+                                    case OpCodeFlowKind.Switch:
                                         for (int j = 0; j < inst.SwitchEntryCount; j++)
                                             _state[inst.GetSwitchTargetIndex(j)] += s;
 
                                         _state[inst.DefaultTarget] += s;
                                         break;
-                                    case ByteCodeFlowControl.CondBranch:
+                                    case OpCodeFlowKind.ConditionalBranch:
                                         _state[i + 1] += s;
                                         _state[inst.TargetIndex] += s;
                                         break;
-                                    case ByteCodeFlowControl.Branch:
+                                    case OpCodeFlowKind.Branch:
                                         _state[inst.TargetIndex] += s;
                                         break;
-                                    case ByteCodeFlowControl.Return:
-                                    case ByteCodeFlowControl.Throw:
+                                    case OpCodeFlowKind.Return:
+                                    case OpCodeFlowKind.Throw:
                                         break;
-                                    case ByteCodeFlowControl.Next:
+                                    case OpCodeFlowKind.Next:
                                         _state[i + 1] += s;
                                         break;
                                     default:
@@ -1716,7 +1716,7 @@ namespace IKVM.Runtime
         {
             switch (ByteCodeMetaData.GetFlowControl(code[index].NormalizedOpCode))
             {
-                case ByteCodeFlowControl.Switch:
+                case OpCodeFlowKind.Switch:
                     {
                         for (int i = 0; i < code[index].SwitchEntryCount; i++)
                             flags[code[index].GetSwitchTargetIndex(i)] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
@@ -1724,17 +1724,17 @@ namespace IKVM.Runtime
                         flags[code[index].DefaultTarget] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                         break;
                     }
-                case ByteCodeFlowControl.Branch:
+                case OpCodeFlowKind.Branch:
                     flags[code[index].TargetIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                     break;
-                case ByteCodeFlowControl.CondBranch:
+                case OpCodeFlowKind.ConditionalBranch:
                     flags[code[index].TargetIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                     flags[index + 1] |= InstructionFlags.Reachable;
                     break;
-                case ByteCodeFlowControl.Return:
-                case ByteCodeFlowControl.Throw:
+                case OpCodeFlowKind.Return:
+                case OpCodeFlowKind.Throw:
                     break;
-                case ByteCodeFlowControl.Next:
+                case OpCodeFlowKind.Next:
                     flags[index + 1] |= InstructionFlags.Reachable;
                     break;
                 default:
@@ -2222,13 +2222,13 @@ namespace IKVM.Runtime
 
             switch (ByteCodeMetaData.GetFlowControl(code[i].NormalizedOpCode))
             {
-                case ByteCodeFlowControl.Branch:
-                case ByteCodeFlowControl.CondBranch:
+                case OpCodeFlowKind.Branch:
+                case OpCodeFlowKind.ConditionalBranch:
                     if (code[i].Arg1 - i != code[j].Arg1 - j)
                         return false;
 
                     break;
-                case ByteCodeFlowControl.Switch:
+                case OpCodeFlowKind.Switch:
                     if (code[i].SwitchEntryCount != code[j].SwitchEntryCount)
                         return false;
 
@@ -2283,7 +2283,7 @@ namespace IKVM.Runtime
 
                     switch (ByteCodeMetaData.GetFlowControl(code[i].NormalizedOpCode))
                     {
-                        case ByteCodeFlowControl.Switch:
+                        case OpCodeFlowKind.Switch:
                             {
                                 for (int j = 0; j < code[i].SwitchEntryCount; j++)
                                     UpdateTryBlockExit(exception, code[i].GetSwitchTargetIndex(j), ref exit, ref fail);
@@ -2291,19 +2291,19 @@ namespace IKVM.Runtime
                                 UpdateTryBlockExit(exception, code[i].DefaultTarget, ref exit, ref fail);
                                 break;
                             }
-                        case ByteCodeFlowControl.Branch:
+                        case OpCodeFlowKind.Branch:
                             UpdateTryBlockExit(exception, code[i].TargetIndex, ref exit, ref fail);
                             break;
-                        case ByteCodeFlowControl.CondBranch:
+                        case OpCodeFlowKind.ConditionalBranch:
                             UpdateTryBlockExit(exception, code[i].TargetIndex, ref exit, ref fail);
                             nextIsReachable = true;
                             break;
-                        case ByteCodeFlowControl.Return:
+                        case OpCodeFlowKind.Return:
                             fail = true;
                             break;
-                        case ByteCodeFlowControl.Throw:
+                        case OpCodeFlowKind.Throw:
                             break;
-                        case ByteCodeFlowControl.Next:
+                        case OpCodeFlowKind.Next:
                             nextIsReachable = true;
                             break;
                         default:

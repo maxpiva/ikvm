@@ -214,6 +214,7 @@ namespace IKVM.Runtime
                 eic.PatchOpCode(1, NormalizedByteCode.__nop);
                 return true;
             }
+
             return false;
         }
 
@@ -229,6 +230,7 @@ namespace IKVM.Runtime
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -317,6 +319,7 @@ namespace IKVM.Runtime
                         }
                         break;
                 }
+
                 return true;
             }
             else

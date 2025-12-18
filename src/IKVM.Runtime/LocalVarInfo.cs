@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
+using IKVM.ByteCode;
 using IKVM.CoreLib.Linking;
 using IKVM.CoreLib.Runtime;
 
@@ -447,7 +448,7 @@ namespace IKVM.Runtime
 
                         switch (ByteCodeMetaData.GetFlowControl(instructions[i].NormalizedOpCode))
                         {
-                            case ByteCodeFlowControl.Switch:
+                            case OpCodeFlowKind.Switch:
                                 {
                                     for (int j = 0; j < instructions[i].SwitchEntryCount; j++)
                                         state[instructions[i].GetSwitchTargetIndex(j)].Merge(curr);
@@ -455,17 +456,17 @@ namespace IKVM.Runtime
                                     state[instructions[i].DefaultTarget].Merge(curr);
                                     break;
                                 }
-                            case ByteCodeFlowControl.Branch:
+                            case OpCodeFlowKind.Branch:
                                 state[instructions[i].TargetIndex].Merge(curr);
                                 break;
-                            case ByteCodeFlowControl.CondBranch:
+                            case OpCodeFlowKind.ConditionalBranch:
                                 state[instructions[i].TargetIndex].Merge(curr);
                                 state[i + 1].Merge(curr);
                                 break;
-                            case ByteCodeFlowControl.Return:
-                            case ByteCodeFlowControl.Throw:
+                            case OpCodeFlowKind.Return:
+                            case OpCodeFlowKind.Throw:
                                 break;
-                            case ByteCodeFlowControl.Next:
+                            case OpCodeFlowKind.Next:
                                 state[i + 1].Merge(curr);
                                 break;
                             default:
