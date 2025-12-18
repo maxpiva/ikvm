@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace ikvmrefclsr
+namespace ikvmrefcls
 {
 
     public static class Program
