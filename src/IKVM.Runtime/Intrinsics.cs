@@ -23,6 +23,7 @@
 */
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 
 using IKVM.CoreLib.Diagnostics;
@@ -43,86 +44,105 @@ using System.Reflection.Emit;
 namespace IKVM.Runtime
 {
 
-    static class Intrinsics
+    class Intrinsics
     {
 
-        delegate bool Emitter(EmitIntrinsicContext eic);
-
-        struct IntrinsicKey : IEquatable<IntrinsicKey>
+        /// <summary>
+        /// Defines a unique search criteria for locating a method that can be intrinsified.
+        /// </summary>
+        /// <param name="ClassName"></param>
+        /// <param name="MethodName"></param>
+        /// <param name="MethodSignature"></param>
+        readonly record struct Key(string ClassName, string MethodName, string MethodSignature)
         {
 
-            readonly string className;
-            readonly string methodName;
-            readonly string methodSignature;
+            public readonly string ClassName = string.Intern(ClassName);
 
-            internal IntrinsicKey(string className, string methodName, string methodSignature)
+            public readonly string MethodName = string.Intern(MethodName);
+
+            public readonly string MethodSignature = string.Intern(MethodSignature);
+
+            /// <summary>
+            /// Initializes the instance.
+            /// </summary>
+            /// <param name="mw"></param>
+            internal Key(RuntimeJavaMethod mw) : this(mw.DeclaringType.Name, mw.Name, mw.Signature)
             {
-                this.className = string.Intern(className);
-                this.methodName = string.Intern(methodName);
-                this.methodSignature = string.Intern(methodSignature);
+
             }
 
-            internal IntrinsicKey(RuntimeJavaMethod mw)
+            /// <summary>
+            /// Returns <c>true</c> if this instance is equal to the other instance.
+            /// </summary>
+            /// <param name="other"></param>
+            /// <returns></returns>
+            public readonly bool Equals(Key other)
             {
-                this.className = mw.DeclaringType.Name;
-                this.methodName = mw.Name;
-                this.methodSignature = mw.Signature;
+                return ReferenceEquals(ClassName, other.ClassName) && ReferenceEquals(MethodName, other.MethodName) && ReferenceEquals(MethodSignature, other.MethodSignature);
             }
 
-            public override bool Equals(object obj)
+            /// <summary>
+            /// Returns <c>true</c> if this instance is equal to the other instance.
+            /// </summary>
+            /// <param name="other"></param>
+            /// <returns></returns>
+            public readonly override int GetHashCode()
             {
-                return Equals((IntrinsicKey)obj);
-            }
-
-            public bool Equals(IntrinsicKey other)
-            {
-                return ReferenceEquals(className, other.className) && ReferenceEquals(methodName, other.methodName) && ReferenceEquals(methodSignature, other.methodSignature);
-            }
-
-            public override int GetHashCode()
-            {
-                return methodName.GetHashCode();
+                return ClassName.GetHashCode() ^ MethodName.GetHashCode() ^ MethodSignature.GetHashCode();
             }
 
         }
 
-        static readonly Dictionary<IntrinsicKey, Emitter> intrinsics = Register();
+#if EXPORTER == false
 
-        static Dictionary<IntrinsicKey, Emitter> Register()
+        readonly FrozenDictionary<Key, Func<EmitIntrinsicContext, bool>> _intrinsics;
+
+#endif
+
+        /// <summary>
+        /// Initializes the instance.
+        /// </summary>
+        /// <param name="context"></param>
+        public Intrinsics(RuntimeContext context)
         {
-            var intrinsics = new Dictionary<IntrinsicKey, Emitter>();
-            intrinsics.Add(new IntrinsicKey("java.lang.Object", "getClass", "()Ljava.lang.Class;"), Object_getClass);
-            intrinsics.Add(new IntrinsicKey("java.lang.Class", "desiredAssertionStatus", "()Z"), Class_desiredAssertionStatus);
-            intrinsics.Add(new IntrinsicKey("java.lang.Float", "floatToRawIntBits", "(F)I"), Float_floatToRawIntBits);
-            intrinsics.Add(new IntrinsicKey("java.lang.Float", "intBitsToFloat", "(I)F"), Float_intBitsToFloat);
-            intrinsics.Add(new IntrinsicKey("java.lang.Double", "doubleToRawLongBits", "(D)J"), Double_doubleToRawLongBits);
-            intrinsics.Add(new IntrinsicKey("java.lang.Double", "longBitsToDouble", "(J)D"), Double_longBitsToDouble);
-            intrinsics.Add(new IntrinsicKey("java.lang.System", "arraycopy", "(Ljava.lang.Object;ILjava.lang.Object;II)V"), System_arraycopy);
-            intrinsics.Add(new IntrinsicKey("java.util.concurrent.atomic.AtomicReferenceFieldUpdater", "newUpdater", "(Ljava.lang.Class;Ljava.lang.Class;Ljava.lang.String;)Ljava.util.concurrent.atomic.AtomicReferenceFieldUpdater;"), AtomicReferenceFieldUpdater_newUpdater);
+#if EXPORTER == false
+            _intrinsics = new Dictionary<Key, Func<EmitIntrinsicContext, bool>>()
+            {
+                [new("java.lang.Object", "getClass", "()Ljava.lang.Class;")] = Object_getClass,
+                [new("java.lang.Class", "desiredAssertionStatus", "()Z")] = Class_desiredAssertionStatus,
+                [new("java.lang.Float", "floatToRawIntBits", "(F)I")] = Float_floatToRawIntBits,
+                [new("java.lang.Float", "intBitsToFloat", "(I)F")] = Float_intBitsToFloat,
+                [new("java.lang.Double", "doubleToRawLongBits", "(D)J")] = Double_doubleToRawLongBits,
+                [new("java.lang.Double", "longBitsToDouble", "(J)D")] = Double_longBitsToDouble,
+                [new("java.lang.System", "arraycopy", "(Ljava.lang.Object;ILjava.lang.Object;II)V")] = System_arraycopy,
+                [new("java.util.concurrent.atomic.AtomicReferenceFieldUpdater", "newUpdater", "(Ljava.lang.Class;Ljava.lang.Class;Ljava.lang.String;)Ljava.util.concurrent.atomic.AtomicReferenceFieldUpdater;")] = AtomicReferenceFieldUpdater_newUpdater,
 #if IMPORTER
-            intrinsics.Add(new IntrinsicKey("sun.reflect.Reflection", "getCallerClass", "()Ljava.lang.Class;"), Reflection_getCallerClass);
-            intrinsics.Add(new IntrinsicKey("ikvm.internal.CallerID", "getCallerID", "()Likvm.internal.CallerID;"), CallerID_getCallerID);
+                [new("sun.reflect.Reflection", "getCallerClass", "()Ljava.lang.Class;")] = Reflection_getCallerClass,
+                [new("ikvm.internal.CallerID", "getCallerID", "()Likvm.internal.CallerID;")] = CallerID_getCallerID,
 #endif
-            intrinsics.Add(new IntrinsicKey("ikvm.runtime.Util", "getInstanceTypeFromClass", "(Ljava.lang.Class;)Lcli.System.Type;"), Util_getInstanceTypeFromClass);
+                [new("ikvm.runtime.Util", "getInstanceTypeFromClass", "(Ljava.lang.Class;)Lcli.System.Type;")] = Util_getInstanceTypeFromClass,
 #if IMPORTER
-            // this only applies to the core class library, so makes no sense in dynamic mode
-            intrinsics.Add(new IntrinsicKey("java.lang.Class", "getPrimitiveClass", "(Ljava.lang.String;)Ljava.lang.Class;"), Class_getPrimitiveClass);
+                // this only applies to the core class library, so makes no sense in dynamic mode
+                [new("java.lang.Class", "getPrimitiveClass", "(Ljava.lang.String;)Ljava.lang.Class;")] = Class_getPrimitiveClass,
 #endif
-            intrinsics.Add(new IntrinsicKey("java.lang.ThreadLocal", "<init>", "()V"), ThreadLocal_new);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "ensureClassInitialized", "(Ljava.lang.Class;)V"), Unsafe_ensureClassInitialized);
-            // note that the following intrinsics don't pay off on CLR v2, but they do on CLR v4
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "putObject", "(Ljava.lang.Object;JLjava.lang.Object;)V"), Unsafe_putObject);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "putOrderedObject", "(Ljava.lang.Object;JLjava.lang.Object;)V"), Unsafe_putOrderedObject);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "putObjectVolatile", "(Ljava.lang.Object;JLjava.lang.Object;)V"), Unsafe_putObjectVolatile);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "getObjectVolatile", "(Ljava.lang.Object;J)Ljava.lang.Object;"), Unsafe_getObjectVolatile);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "getObject", "(Ljava.lang.Object;J)Ljava.lang.Object;"), Unsafe_getObjectVolatile);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "compareAndSwapObject", "(Ljava.lang.Object;JLjava.lang.Object;Ljava.lang.Object;)Z"), Unsafe_compareAndSwapObject);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "getAndSetObject", "(Ljava.lang.Object;JLjava.lang.Object;)Ljava.lang.Object;"), Unsafe_getAndSetObject);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "compareAndSwapInt", "(Ljava.lang.Object;JII)Z"), Unsafe_compareAndSwapInt);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "getAndAddInt", "(Ljava.lang.Object;JI)I"), Unsafe_getAndAddInt);
-            intrinsics.Add(new IntrinsicKey("sun.misc.Unsafe", "compareAndSwapLong", "(Ljava.lang.Object;JJJ)Z"), Unsafe_compareAndSwapLong);
-            return intrinsics;
+                [new("java.lang.ThreadLocal", "<init>", "()V")] = ThreadLocal_new,
+                [new("sun.misc.Unsafe", "ensureClassInitialized", "(Ljava.lang.Class;)V")] = Unsafe_ensureClassInitialized,
+                // note that the following intrinsics don't pay off on CLR v2, but they do on CLR v4
+                [new("sun.misc.Unsafe", "putObject", "(Ljava.lang.Object;JLjava.lang.Object;)V")] = Unsafe_putObject,
+                [new("sun.misc.Unsafe", "putOrderedObject", "(Ljava.lang.Object;JLjava.lang.Object;)V")] = Unsafe_putOrderedObject,
+                [new("sun.misc.Unsafe", "putObjectVolatile", "(Ljava.lang.Object;JLjava.lang.Object;)V")] = Unsafe_putObjectVolatile,
+                [new("sun.misc.Unsafe", "getObjectVolatile", "(Ljava.lang.Object;J)Ljava.lang.Object;")] = Unsafe_getObjectVolatile,
+                [new("sun.misc.Unsafe", "getObject", "(Ljava.lang.Object;J)Ljava.lang.Object;")] = Unsafe_getObjectVolatile,
+                [new("sun.misc.Unsafe", "compareAndSwapObject", "(Ljava.lang.Object;JLjava.lang.Object;Ljava.lang.Object;)Z")] = Unsafe_compareAndSwapObject,
+                [new("sun.misc.Unsafe", "getAndSetObject", "(Ljava.lang.Object;JLjava.lang.Object;)Ljava.lang.Object;")] = Unsafe_getAndSetObject,
+                [new("sun.misc.Unsafe", "compareAndSwapInt", "(Ljava.lang.Object;JII)Z")] = Unsafe_compareAndSwapInt,
+                [new("sun.misc.Unsafe", "getAndAddInt", "(Ljava.lang.Object;JI)I")] = Unsafe_getAndAddInt,
+                [new("sun.misc.Unsafe", "compareAndSwapLong", "(Ljava.lang.Object;JJJ)Z")] = Unsafe_compareAndSwapLong,
+            }.ToFrozenDictionary();
+#endif
         }
+
+#if EXPORTER == false
 
         /// <summary>
         /// Emits IL that pushes the index scale for the specified array type onto the stack.
@@ -130,7 +150,7 @@ namespace IKVM.Runtime
         /// <param name="eic"></param>
         /// <param name="tw"></param>
         /// <returns></returns>
-        static void EmitArrayIndexScale(EmitIntrinsicContext eic, RuntimeJavaType tw)
+        void EmitArrayIndexScale(EmitIntrinsicContext eic, RuntimeJavaType tw)
         {
             var et = tw.ElementTypeWrapper;
             if (et == eic.Context.Context.PrimitiveJavaTypeFactory.BYTE || et == eic.Context.Context.PrimitiveJavaTypeFactory.BOOLEAN)
@@ -149,18 +169,18 @@ namespace IKVM.Runtime
                 eic.Emitter.EmitLdc_I4(1);
         }
 
-        internal static bool IsIntrinsic(RuntimeJavaMethod mw)
+        internal bool IsIntrinsic(RuntimeJavaMethod mw)
         {
-            return intrinsics.ContainsKey(new IntrinsicKey(mw)) && mw.DeclaringType.ClassLoader == mw.DeclaringType.Context.JavaBase.TypeOfJavaLangObject.ClassLoader;
+            return _intrinsics.ContainsKey(new Key(mw)) && mw.DeclaringType.ClassLoader == mw.DeclaringType.Context.JavaBase.TypeOfJavaLangObject.ClassLoader;
         }
 
-        internal static bool Emit(EmitIntrinsicContext context)
+        internal bool Emit(EmitIntrinsicContext context)
         {
             // note that intrinsics can always refuse to emit code and the code generator will fall back to a normal method call
-            return intrinsics[new IntrinsicKey(context.Method)](context);
+            return _intrinsics[new Key(context.Method)](context);
         }
 
-        static bool Object_getClass(EmitIntrinsicContext eic)
+        bool Object_getClass(EmitIntrinsicContext eic)
         {
             // this is the null-check idiom that javac uses (both in its own source and in the code it generates)
             if (eic.MatchRange(0, 2) && eic.Match(1, NormalizedByteCode.__pop))
@@ -197,7 +217,7 @@ namespace IKVM.Runtime
             return false;
         }
 
-        static bool Class_desiredAssertionStatus(EmitIntrinsicContext eic)
+        bool Class_desiredAssertionStatus(EmitIntrinsicContext eic)
         {
             if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
             {
@@ -212,37 +232,37 @@ namespace IKVM.Runtime
             return false;
         }
 
-        static bool IsSafeForGetClassOptimization(RuntimeJavaType tw)
+        bool IsSafeForGetClassOptimization(RuntimeJavaType tw)
         {
             // because of ghost arrays, we don't optimize if both types are either java.lang.Object or an array
             return tw != tw.Context.JavaBase.TypeOfJavaLangObject && !tw.IsArray;
         }
 
-        static bool Float_floatToRawIntBits(EmitIntrinsicContext eic)
+        bool Float_floatToRawIntBits(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.FloatConverter").AsReflection(), "ToInt");
             return true;
         }
 
-        static bool Float_intBitsToFloat(EmitIntrinsicContext eic)
+        bool Float_intBitsToFloat(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.FloatConverter").AsReflection(), "ToFloat");
             return true;
         }
 
-        static bool Double_doubleToRawLongBits(EmitIntrinsicContext eic)
+        bool Double_doubleToRawLongBits(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.DoubleConverter").AsReflection(), "ToLong");
             return true;
         }
 
-        static bool Double_longBitsToDouble(EmitIntrinsicContext eic)
+        bool Double_longBitsToDouble(EmitIntrinsicContext eic)
         {
             EmitConversion(eic.Emitter, eic.Method.DeclaringType.Context.Resolver.ResolveRuntimeType("IKVM.Runtime.DoubleConverter").AsReflection(), "ToDouble");
             return true;
         }
 
-        static void EmitConversion(CodeEmitter ilgen, Type converterType, string method)
+        void EmitConversion(CodeEmitter ilgen, Type converterType, string method)
         {
             var converter = ilgen.UnsafeAllocTempLocal(converterType);
             ilgen.Emit(OpCodes.Ldloca, converter);
@@ -254,7 +274,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool System_arraycopy(EmitIntrinsicContext eic)
+        bool System_arraycopy(EmitIntrinsicContext eic)
         {
             // if the array arguments on the stack are of a known array type, we can redirect to an optimized version of arraycopy.
             var dst_type = eic.GetStackTypeWrapper(0, 2);
@@ -305,14 +325,14 @@ namespace IKVM.Runtime
             }
         }
 
-        static bool AtomicReferenceFieldUpdater_newUpdater(EmitIntrinsicContext eic)
+        bool AtomicReferenceFieldUpdater_newUpdater(EmitIntrinsicContext eic)
         {
             return AtomicReferenceFieldUpdaterEmitter.Emit(eic.Context, eic.Caller.DeclaringType, eic.Emitter, eic.ClassFile, eic.OpcodeIndex, eic.Code, eic.Flags);
         }
 
 #if IMPORTER
 
-        static bool Reflection_getCallerClass(EmitIntrinsicContext eic)
+        bool Reflection_getCallerClass(EmitIntrinsicContext eic)
         {
             if (eic.Caller.HasCallerID)
             {
@@ -352,7 +372,7 @@ namespace IKVM.Runtime
             return false;
         }
 
-        private static bool CallerID_getCallerID(EmitIntrinsicContext eic)
+        bool CallerID_getCallerID(EmitIntrinsicContext eic)
         {
             if (eic.Caller.HasCallerID)
             {
@@ -372,7 +392,7 @@ namespace IKVM.Runtime
 
 #endif
 
-        static bool Util_getInstanceTypeFromClass(EmitIntrinsicContext eic)
+        bool Util_getInstanceTypeFromClass(EmitIntrinsicContext eic)
         {
             if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
             {
@@ -395,7 +415,7 @@ namespace IKVM.Runtime
 
 #if IMPORTER
 
-        static bool Class_getPrimitiveClass(EmitIntrinsicContext eic)
+        bool Class_getPrimitiveClass(EmitIntrinsicContext eic)
         {
             eic.Emitter.Emit(OpCodes.Pop);
             eic.Emitter.Emit(OpCodes.Ldnull);
@@ -412,7 +432,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool ThreadLocal_new(EmitIntrinsicContext eic)
+        bool ThreadLocal_new(EmitIntrinsicContext eic)
         {
             // it is only valid to replace a ThreadLocal instantiation by our ThreadStatic based version, if we can prove that the instantiation only happens once
             // (which is the case when we're in <clinit> and there aren't any branches that lead to the current position)
@@ -431,7 +451,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_ensureClassInitialized(EmitIntrinsicContext eic)
+        bool Unsafe_ensureClassInitialized(EmitIntrinsicContext eic)
         {
             if (eic.MatchRange(-1, 2) && eic.Match(-1, NormalizedByteCode.__ldc))
             {
@@ -453,7 +473,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="tw"></param>
         /// <returns></returns>
-        internal static bool IsSupportedArrayTypeForUnsafeOperation(RuntimeJavaType tw)
+        internal bool IsSupportedArrayTypeForUnsafeOperation(RuntimeJavaType tw)
         {
             return tw.IsArray && !tw.IsGhostArray && !tw.ElementTypeWrapper.IsPrimitive && !tw.ElementTypeWrapper.IsNonPrimitiveValueType;
         }
@@ -463,7 +483,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_putObject(EmitIntrinsicContext eic)
+        bool Unsafe_putObject(EmitIntrinsicContext eic)
         {
             return Unsafe_putObjectImpl(eic, false);
         }
@@ -473,7 +493,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_putOrderedObject(EmitIntrinsicContext eic)
+        bool Unsafe_putOrderedObject(EmitIntrinsicContext eic)
         {
             return Unsafe_putObjectImpl(eic, false);
         }
@@ -483,7 +503,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_putObjectVolatile(EmitIntrinsicContext eic)
+        bool Unsafe_putObjectVolatile(EmitIntrinsicContext eic)
         {
             return Unsafe_putObjectImpl(eic, true);
         }
@@ -494,7 +514,7 @@ namespace IKVM.Runtime
         /// <param name="eic"></param>
         /// <param name="isVolatile"></param>
         /// <returns></returns>
-        static bool Unsafe_putObjectImpl(EmitIntrinsicContext eic, bool isVolatile)
+        bool Unsafe_putObjectImpl(EmitIntrinsicContext eic, bool isVolatile)
         {
             var tw = eic.GetStackTypeWrapper(0, 2);
 
@@ -583,7 +603,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_getObjectVolatile(EmitIntrinsicContext eic)
+        bool Unsafe_getObjectVolatile(EmitIntrinsicContext eic)
         {
             // the check here must be kept in sync with the hack in MethodAnalyzer.AnalyzeTypeFlow()
             var tw = eic.GetStackTypeWrapper(0, 1);
@@ -625,7 +645,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_compareAndSwapObject(EmitIntrinsicContext eic)
+        bool Unsafe_compareAndSwapObject(EmitIntrinsicContext eic)
         {
             var tw = eic.GetStackTypeWrapper(0, 3);
 
@@ -783,7 +803,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_getAndSetObject(EmitIntrinsicContext eic)
+        bool Unsafe_getAndSetObject(EmitIntrinsicContext eic)
         {
             var tw = eic.GetStackTypeWrapper(0, 2);
             if (IsSupportedArrayTypeForUnsafeOperation(tw) && eic.GetStackTypeWrapper(0, 0).IsAssignableTo(tw.ElementTypeWrapper))
@@ -824,7 +844,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_compareAndSwapInt(EmitIntrinsicContext eic)
+        bool Unsafe_compareAndSwapInt(EmitIntrinsicContext eic)
         {
             // stack layout at call site:
             // 4 Unsafe (receiver)
@@ -881,7 +901,7 @@ namespace IKVM.Runtime
             }
         }
 
-        private static bool Unsafe_getAndAddInt(EmitIntrinsicContext eic)
+        bool Unsafe_getAndAddInt(EmitIntrinsicContext eic)
         {
             // stack layout at call site:
             // 3 Unsafe (receiver)
@@ -936,7 +956,7 @@ namespace IKVM.Runtime
         /// </summary>
         /// <param name="eic"></param>
         /// <returns></returns>
-        static bool Unsafe_compareAndSwapLong(EmitIntrinsicContext eic)
+        bool Unsafe_compareAndSwapLong(EmitIntrinsicContext eic)
         {
             // stack layout at call site:
             // 4 Unsafe (receiver)
@@ -995,12 +1015,12 @@ namespace IKVM.Runtime
             }
         }
 
-        internal static MethodInfo MakeExchange(RuntimeContext context, Type type)
+        internal MethodInfo MakeExchange(RuntimeContext context, Type type)
         {
             return context.InterlockedMethods.ExchangeOfT.MakeGenericMethod(type);
         }
 
-        static void EmitConsumeUnsafe(EmitIntrinsicContext eic)
+        void EmitConsumeUnsafe(EmitIntrinsicContext eic)
         {
 #if IMPORTER
             if (eic.Caller.DeclaringType.ClassLoader == eic.Context.TypeWrapper.Context.JavaBase.TypeOfJavaLangObject.ClassLoader)
@@ -1016,7 +1036,7 @@ namespace IKVM.Runtime
             }
         }
 
-        static RuntimeJavaField GetUnsafeField(EmitIntrinsicContext eic, ConstantPoolItemFieldref field)
+        RuntimeJavaField GetUnsafeField(EmitIntrinsicContext eic, ConstantPoolItemFieldref field)
         {
             if (eic.Caller.DeclaringType.ClassLoader != eic.Method.DeclaringType.Context.JavaBase.TypeOfJavaLangObject.ClassLoader)
             {
@@ -1135,17 +1155,17 @@ namespace IKVM.Runtime
             return null;
         }
 
-        static bool MatchInvokeVirtual(EmitIntrinsicContext eic, ref Instruction instr, string clazz, string name, string sig)
+        bool MatchInvokeVirtual(EmitIntrinsicContext eic, ref Instruction instr, string clazz, string name, string sig)
         {
             return MatchInvoke(eic, ref instr, NormalizedByteCode.__invokevirtual, clazz, name, sig);
         }
 
-        static bool MatchInvokeStatic(EmitIntrinsicContext eic, int offset, string clazz, string name, string sig)
+        bool MatchInvokeStatic(EmitIntrinsicContext eic, int offset, string clazz, string name, string sig)
         {
             return MatchInvoke(eic, ref eic.Code[eic.OpcodeIndex + offset], NormalizedByteCode.__invokestatic, clazz, name, sig);
         }
 
-        static bool MatchInvoke(EmitIntrinsicContext eic, ref Instruction instr, NormalizedByteCode opcode, string clazz, string name, string sig)
+        bool MatchInvoke(EmitIntrinsicContext eic, ref Instruction instr, NormalizedByteCode opcode, string clazz, string name, string sig)
         {
             if (instr.NormalizedOpCode == opcode)
             {
@@ -1156,10 +1176,20 @@ namespace IKVM.Runtime
             return false;
         }
 
-        static bool MatchLdc(EmitIntrinsicContext eic, ref Instruction instr, ConstantType constantType)
+        bool MatchLdc(EmitIntrinsicContext eic, ref Instruction instr, ConstantType constantType)
         {
             return (instr.NormalizedOpCode == NormalizedByteCode.__ldc || instr.NormalizedOpCode == NormalizedByteCode.__ldc_nothrow) && eic.ClassFile.GetConstantPoolConstantType(instr.NormalizedArg1) == constantType;
         }
+
+#else
+
+
+        internal bool IsIntrinsic(RuntimeJavaMethod mw)
+        {
+            return false;
+        }
+
+#endif
 
     }
 

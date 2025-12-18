@@ -569,7 +569,7 @@ namespace IKVM.Runtime
                                         // HACK to allow the result of Unsafe.getObjectVolatile() (on an array)
                                         // to be used with Unsafe.putObject() we need to propagate the
                                         // element type here as the return type (instead of object)
-                                        if (cpi.GetMethod() != null && cpi.GetMethod().IsIntrinsic && cpi.Class == "sun.misc.Unsafe" && cpi.Name == "getObjectVolatile" && Intrinsics.IsSupportedArrayTypeForUnsafeOperation(s.GetStackSlot(1)))
+                                        if (cpi.GetMethod() != null && cpi.GetMethod().IsIntrinsic && cpi.Class == "sun.misc.Unsafe" && cpi.Name == "getObjectVolatile" && Context.Intrinsics.IsSupportedArrayTypeForUnsafeOperation(s.GetStackSlot(1)))
                                             retType = s.GetStackSlot(1).ElementTypeWrapper;
 
                                         s.MultiPopAnyType(cpi.GetArgTypes().Length);

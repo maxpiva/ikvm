@@ -41,6 +41,7 @@ namespace IKVM.Runtime
         RuntimeManagedByteCodeJavaTypeFactory managedByteCodeJavaTypeFactory;
         RuntimePrimitiveJavaTypeFactory primitiveJavaTypeFactory;
         RuntimeVerifierJavaTypeFactory verifierJavaTypeFactory;
+        Intrinsics intrinsics;
 
 #if IMPORTER == false && EXPORTER == false
         ExceptionHelper exceptionHelper;
@@ -177,6 +178,11 @@ namespace IKVM.Runtime
         /// </summary>
         public RuntimeVerifierJavaTypeFactory VerifierJavaTypeFactory => GetOrCreateSingleton(ref verifierJavaTypeFactory, () => new RuntimeVerifierJavaTypeFactory(this));
 
+        /// <summary>
+        /// Gets the <see cref="Intrinsics"/> associated with this instance.
+        /// </summary>
+        public Intrinsics Intrinsics => GetOrCreateSingleton(ref intrinsics, () => new Intrinsics(this));
+
 #if IMPORTER == false
 
         /// <summary>
@@ -264,7 +270,6 @@ namespace IKVM.Runtime
         /// Gets the <see cref="RuntimeManagedJavaTypeFactory"/> associated with this instance of the runtime.
         /// </summary>
         public RuntimeManagedByteCodeJavaTypeFactory ManagedByteCodeJavaTypeFactory => GetOrCreateSingleton(ref managedByteCodeJavaTypeFactory, () => new RuntimeManagedByteCodeJavaTypeFactory(this));
-
 
 #if IMPORTER || EXPORTER
 
