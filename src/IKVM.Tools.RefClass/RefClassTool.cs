@@ -145,9 +145,8 @@ namespace IKVM.Tools.RefClass
                 foreach (var method in cf.Methods)
                     Translate(cf, cb, method);
 
-                var ab = new AttributeTableBuilder(cb.Constants);
                 foreach (var attribute in cf.Attributes)
-                    Translate(cf, cb, ab, attribute, null);
+                    Translate(cf, cb, cb.Attributes, attribute, null);
 
                 // serialize class to blob
                 var b = new BlobBuilder();
