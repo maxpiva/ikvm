@@ -1151,7 +1151,7 @@ namespace IKVM.Runtime
 
                             try
                             {
-                                switch (ByteCodeMetaData.GetFlowControl(inst.NormalizedOpCode))
+                                switch (OpCodeMetaData.GetFlowKind(inst.NormalizedOpCode))
                                 {
                                     case OpCodeFlowKind.Switch:
                                         for (int j = 0; j < inst.SwitchEntryCount; j++)
@@ -1714,7 +1714,7 @@ namespace IKVM.Runtime
 
         static void MarkSuccessors(Instruction[] code, InstructionFlags[] flags, int index)
         {
-            switch (ByteCodeMetaData.GetFlowControl(code[index].NormalizedOpCode))
+            switch (OpCodeMetaData.GetFlowKind(code[index].NormalizedOpCode))
             {
                 case OpCodeFlowKind.Switch:
                     {
@@ -2003,7 +2003,7 @@ namespace IKVM.Runtime
                         int start = ei.StartIndex;
                         int end = ei.EndIndex;
                         for (int j = start; j < end; j++)
-                            if (ByteCodeMetaData.CanThrowException(instructions[j].NormalizedOpCode))
+                            if (OpCodeMetaData.CanThrowException(instructions[j].NormalizedOpCode))
                                 goto next;
 
                         ar.RemoveAt(i);
@@ -2220,7 +2220,7 @@ namespace IKVM.Runtime
             if (code[i].NormalizedOpCode != code[j].NormalizedOpCode)
                 return false;
 
-            switch (ByteCodeMetaData.GetFlowControl(code[i].NormalizedOpCode))
+            switch (OpCodeMetaData.GetFlowKind(code[i].NormalizedOpCode))
             {
                 case OpCodeFlowKind.Branch:
                 case OpCodeFlowKind.ConditionalBranch:
@@ -2281,7 +2281,7 @@ namespace IKVM.Runtime
                         if (j != exceptionIndex && exceptions[j].StartIndex >= exception.StartIndex && exception.EndIndex <= exceptions[j].EndIndex)
                             UpdateTryBlockExit(exception, exceptions[j].HandlerIndex, ref exit, ref fail);
 
-                    switch (ByteCodeMetaData.GetFlowControl(code[i].NormalizedOpCode))
+                    switch (OpCodeMetaData.GetFlowKind(code[i].NormalizedOpCode))
                     {
                         case OpCodeFlowKind.Switch:
                             {

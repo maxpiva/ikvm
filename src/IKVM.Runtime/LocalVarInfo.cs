@@ -446,7 +446,7 @@ namespace IKVM.Runtime
                             }
                         }
 
-                        switch (ByteCodeMetaData.GetFlowControl(instructions[i].NormalizedOpCode))
+                        switch (OpCodeMetaData.GetFlowKind(instructions[i].NormalizedOpCode))
                         {
                             case OpCodeFlowKind.Switch:
                                 {

@@ -22,7 +22,7 @@
   
 */
 
-namespace IKVM.CoreLib.Runtime
+namespace IKVM.CoreLib.Linking
 {
 
     internal enum NormalizedByteCode : byte

@@ -28,7 +28,6 @@ using System.Collections.Generic;
 
 using IKVM.CoreLib.Diagnostics;
 using IKVM.CoreLib.Linking;
-using IKVM.CoreLib.Runtime;
 
 #if IMPORTER
 using IKVM.Reflection;

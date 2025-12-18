@@ -769,7 +769,7 @@ namespace IKVM.Runtime
                             return false;
                         }
                     }
-                    else if (ByteCodeMetaData.CanThrowException(bc))
+                    else if (OpCodeMetaData.CanThrowException(bc))
                     {
                         noop = false;
                         return false;

@@ -26,7 +26,6 @@ using System.Collections.Generic;
 
 using IKVM.ByteCode;
 using IKVM.CoreLib.Linking;
-using IKVM.CoreLib.Runtime;
 
 namespace IKVM.Runtime
 {

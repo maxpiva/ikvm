@@ -158,7 +158,7 @@ namespace IKVM.Runtime
                         {
                             // storing a field to the current class cannot throw
                         }
-                        else if (ByteCodeMetaData.CanThrowException(m.Instructions[i].NormalizedOpCode))
+                        else if (OpCodeMetaData.CanThrowException(m.Instructions[i].NormalizedOpCode))
                         {
                             emitLineNumbers = true;
                             break;
@@ -1007,7 +1007,7 @@ namespace IKVM.Runtime
                     // fool it by calling a trivial method that loops forever which the CLR JIT will then inline
                     // and see that control flow doesn't continue and hence the lifetime of "this" will be
                     // shorter than the constructor.
-                    switch (ByteCodeMetaData.GetFlowControl(instr.NormalizedOpCode))
+                    switch (OpCodeMetaData.GetFlowKind(instr.NormalizedOpCode))
                     {
                         case OpCodeFlowKind.Return:
                             ilGenerator.Emit(OpCodes.Ldarg_0);
@@ -2471,7 +2471,7 @@ namespace IKVM.Runtime
                 }
 
                 // mark next instruction as inuse
-                switch (ByteCodeMetaData.GetFlowControl(instr.NormalizedOpCode))
+                switch (OpCodeMetaData.GetFlowKind(instr.NormalizedOpCode))
                 {
                     case OpCodeFlowKind.Switch:
                     case OpCodeFlowKind.Branch:
@@ -3015,8 +3015,8 @@ namespace IKVM.Runtime
                     return !mw.IsConstructor || mw.DeclaringType != tw;
                 }
                 if ((flags[index] & InstructionFlags.BranchTarget) != 0
-                    || ByteCodeMetaData.IsBranch(code[index].NormalizedOpCode)
-                    || ByteCodeMetaData.CanThrowException(code[index].NormalizedOpCode))
+                    || OpCodeMetaData.IsBranch(code[index].NormalizedOpCode)
+                    || OpCodeMetaData.CanThrowException(code[index].NormalizedOpCode))
                 {
                     break;
                 }

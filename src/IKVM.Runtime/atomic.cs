@@ -25,7 +25,6 @@
 using System;
 
 using IKVM.CoreLib.Linking;
-using IKVM.CoreLib.Runtime;
 
 #if IMPORTER
 using IKVM.Reflection;

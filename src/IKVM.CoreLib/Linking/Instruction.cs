@@ -683,8 +683,8 @@ namespace IKVM.CoreLib.Linking
                         throw new ClassFormatException($"Invalid opcode: {instruction.OpCode}");
                 }
 
-                normopcode = ByteCodeMetaData.GetNormalizedByteCode(instruction.OpCode);
-                arg1 = ByteCodeMetaData.GetArg(instruction.OpCode, arg1);
+                normopcode = OpCodeMetaData.GetNormalizedByteCode(instruction.OpCode);
+                arg1 = OpCodeMetaData.GetArg0Value(instruction.OpCode, arg1);
             }
             catch (ArgumentOutOfRangeException)
             {
