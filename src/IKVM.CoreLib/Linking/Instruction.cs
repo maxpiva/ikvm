@@ -24,6 +24,7 @@
 
 using System;
 
+using IKVM.ByteCode;
 using IKVM.CoreLib.Runtime;
 
 namespace IKVM.CoreLib.Linking
@@ -683,8 +684,8 @@ namespace IKVM.CoreLib.Linking
                         throw new ClassFormatException($"Invalid opcode: {instruction.OpCode}");
                 }
 
-                this.normopcode = ByteCodeMetaData.GetNormalizedByteCode((IKVM.CoreLib.Runtime.ByteCode)(int)instruction.OpCode);
-                arg1 = ByteCodeMetaData.GetArg((IKVM.CoreLib.Runtime.ByteCode)(int)instruction.OpCode, arg1);
+                this.normopcode = ByteCodeMetaData.GetNormalizedByteCode(instruction.OpCode);
+                arg1 = ByteCodeMetaData.GetArg(instruction.OpCode, arg1);
             }
             catch (ArgumentOutOfRangeException)
             {

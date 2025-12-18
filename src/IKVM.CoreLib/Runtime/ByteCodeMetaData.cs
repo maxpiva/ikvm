@@ -22,6 +22,8 @@
   
 */
 
+using IKVM.ByteCode;
+
 namespace IKVM.CoreLib.Runtime
 {
 
@@ -35,7 +37,7 @@ namespace IKVM.CoreLib.Runtime
         private ByteCodeFlags flags;
         private int arg;
 
-        private ByteCodeMetaData(ByteCode bc, ByteCodeMode reg, ByteCodeModeWide wide, bool cannotThrow)
+        private ByteCodeMetaData(OpCode bc, ByteCodeMode reg, ByteCodeModeWide wide, bool cannotThrow)
         {
             this.reg = reg;
             this.wide = wide;
@@ -49,7 +51,7 @@ namespace IKVM.CoreLib.Runtime
             data[(int)bc] = this;
         }
 
-        private ByteCodeMetaData(ByteCode bc, NormalizedByteCode normbc, ByteCodeMode reg, ByteCodeModeWide wide, bool cannotThrow)
+        private ByteCodeMetaData(OpCode bc, NormalizedByteCode normbc, ByteCodeMode reg, ByteCodeModeWide wide, bool cannotThrow)
         {
             this.reg = reg;
             this.wide = wide;
@@ -63,7 +65,7 @@ namespace IKVM.CoreLib.Runtime
             data[(int)bc] = this;
         }
 
-        private ByteCodeMetaData(ByteCode bc, NormalizedByteCode normbc, int arg, ByteCodeMode reg, ByteCodeModeWide wide, bool cannotThrow)
+        private ByteCodeMetaData(OpCode bc, NormalizedByteCode normbc, int arg, ByteCodeMode reg, ByteCodeModeWide wide, bool cannotThrow)
         {
             this.reg = reg;
             this.wide = wide;
@@ -77,12 +79,12 @@ namespace IKVM.CoreLib.Runtime
             data[(int)bc] = this;
         }
 
-        internal static NormalizedByteCode GetNormalizedByteCode(ByteCode bc)
+        internal static NormalizedByteCode GetNormalizedByteCode(OpCode bc)
         {
             return data[(int)bc].normbc;
         }
 
-        internal static int GetArg(ByteCode bc, int arg)
+        internal static int GetArg(OpCode bc, int arg)
         {
             if ((data[(int)bc].flags & ByteCodeFlags.FixedArg) != 0)
             {
@@ -91,12 +93,12 @@ namespace IKVM.CoreLib.Runtime
             return arg;
         }
 
-        internal static ByteCodeMode GetMode(ByteCode bc)
+        internal static ByteCodeMode GetMode(OpCode bc)
         {
             return data[(int)bc].reg;
         }
 
-        internal static ByteCodeModeWide GetWideMode(ByteCode bc)
+        internal static ByteCodeModeWide GetWideMode(OpCode bc)
         {
             return data[(int)bc].wide;
         }
@@ -189,208 +191,208 @@ namespace IKVM.CoreLib.Runtime
 
         static ByteCodeMetaData()
         {
-            new ByteCodeMetaData(ByteCode.__nop, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__aconst_null, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_m1, NormalizedByteCode.__iconst, -1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_0, NormalizedByteCode.__iconst, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_1, NormalizedByteCode.__iconst, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_2, NormalizedByteCode.__iconst, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_3, NormalizedByteCode.__iconst, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_4, NormalizedByteCode.__iconst, 4, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iconst_5, NormalizedByteCode.__iconst, 5, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lconst_0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lconst_1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fconst_0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fconst_1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fconst_2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dconst_0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dconst_1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__bipush, NormalizedByteCode.__iconst, ByteCodeMode.Immediate_1, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__sipush, NormalizedByteCode.__iconst, ByteCodeMode.Immediate_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ldc, ByteCodeMode.Constant_1, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__ldc_w, NormalizedByteCode.__ldc, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__ldc2_w, NormalizedByteCode.__ldc, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__iload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__lload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__fload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__dload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__aload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__iload_0, NormalizedByteCode.__iload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iload_1, NormalizedByteCode.__iload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iload_2, NormalizedByteCode.__iload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iload_3, NormalizedByteCode.__iload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lload_0, NormalizedByteCode.__lload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lload_1, NormalizedByteCode.__lload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lload_2, NormalizedByteCode.__lload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lload_3, NormalizedByteCode.__lload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fload_0, NormalizedByteCode.__fload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fload_1, NormalizedByteCode.__fload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fload_2, NormalizedByteCode.__fload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fload_3, NormalizedByteCode.__fload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dload_0, NormalizedByteCode.__dload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dload_1, NormalizedByteCode.__dload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dload_2, NormalizedByteCode.__dload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dload_3, NormalizedByteCode.__dload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__aload_0, NormalizedByteCode.__aload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__aload_1, NormalizedByteCode.__aload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__aload_2, NormalizedByteCode.__aload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__aload_3, NormalizedByteCode.__aload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iaload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__laload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__faload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__daload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__aaload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__baload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__caload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__saload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__istore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__lstore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__fstore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__dstore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__astore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__istore_0, NormalizedByteCode.__istore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__istore_1, NormalizedByteCode.__istore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__istore_2, NormalizedByteCode.__istore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__istore_3, NormalizedByteCode.__istore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lstore_0, NormalizedByteCode.__lstore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lstore_1, NormalizedByteCode.__lstore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lstore_2, NormalizedByteCode.__lstore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lstore_3, NormalizedByteCode.__lstore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fstore_0, NormalizedByteCode.__fstore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fstore_1, NormalizedByteCode.__fstore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fstore_2, NormalizedByteCode.__fstore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fstore_3, NormalizedByteCode.__fstore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dstore_0, NormalizedByteCode.__dstore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dstore_1, NormalizedByteCode.__dstore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dstore_2, NormalizedByteCode.__dstore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dstore_3, NormalizedByteCode.__dstore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__astore_0, NormalizedByteCode.__astore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__astore_1, NormalizedByteCode.__astore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__astore_2, NormalizedByteCode.__astore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__astore_3, NormalizedByteCode.__astore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__lastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__fastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__dastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__aastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__bastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__castore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__sastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__pop, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__pop2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dup, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dup_x1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dup_x2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dup2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dup2_x1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dup2_x2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__swap, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iadd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ladd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fadd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dadd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__isub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lsub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fsub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dsub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__imul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lmul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fmul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dmul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__idiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__ldiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__fdiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ddiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__irem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__lrem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__frem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__drem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ineg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lneg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fneg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dneg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ishl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lshl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ishr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lshr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iushr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lushr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iand, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__land, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ior, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lor, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ixor, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lxor, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iinc, ByteCodeMode.Local_1_Immediate_1, ByteCodeModeWide.Local_2_Immediate_2, true);
-            new ByteCodeMetaData(ByteCode.__i2l, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__i2f, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__i2d, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__l2i, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__l2f, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__l2d, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__f2i, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__f2l, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__f2d, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__d2i, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__d2l, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__d2f, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__i2b, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__i2c, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__i2s, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lcmp, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fcmpl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__fcmpg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dcmpl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dcmpg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ifeq, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ifne, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__iflt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ifge, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ifgt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ifle, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_icmpeq, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_icmpne, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_icmplt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_icmpge, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_icmpgt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_icmple, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_acmpeq, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__if_acmpne, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__goto, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__jsr, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ret, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
-            new ByteCodeMetaData(ByteCode.__tableswitch, ByteCodeMode.Tableswitch, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lookupswitch, ByteCodeMode.Lookupswitch, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ireturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__lreturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__freturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__dreturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__areturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__return, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__getstatic, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__putstatic, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__getfield, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__putfield, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__invokevirtual, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__invokespecial, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__invokestatic, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__invokeinterface, ByteCodeMode.Constant_2_1_1, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__invokedynamic, ByteCodeMode.Constant_2_1_1, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__new, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__newarray, ByteCodeMode.Immediate_1, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__anewarray, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__arraylength, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__athrow, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__checkcast, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__instanceof, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__monitorenter, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__monitorexit, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__wide, NormalizedByteCode.__nop, ByteCodeMode.WidePrefix, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__multianewarray, ByteCodeMode.Constant_2_Immediate_1, ByteCodeModeWide.Unused, false);
-            new ByteCodeMetaData(ByteCode.__ifnull, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__ifnonnull, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__goto_w, NormalizedByteCode.__goto, ByteCodeMode.Branch_4, ByteCodeModeWide.Unused, true);
-            new ByteCodeMetaData(ByteCode.__jsr_w, NormalizedByteCode.__jsr, ByteCodeMode.Branch_4, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Nop, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.AconstNull, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IconstM1, NormalizedByteCode.__iconst, -1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iconst0, NormalizedByteCode.__iconst, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iconst1, NormalizedByteCode.__iconst, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iconst2, NormalizedByteCode.__iconst, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iconst3, NormalizedByteCode.__iconst, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iconst4, NormalizedByteCode.__iconst, 4, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iconst5, NormalizedByteCode.__iconst, 5, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lconst0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lconst1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fconst0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fconst1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fconst2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dconst0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dconst1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Bipush, NormalizedByteCode.__iconst, ByteCodeMode.Immediate_1, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Sipush, NormalizedByteCode.__iconst, ByteCodeMode.Immediate_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ldc, ByteCodeMode.Constant_1, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.LdcW, NormalizedByteCode.__ldc, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Ldc2W, NormalizedByteCode.__ldc, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Iload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Lload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Fload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Dload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Aload, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Iload0, NormalizedByteCode.__iload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iload1, NormalizedByteCode.__iload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iload2, NormalizedByteCode.__iload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iload3, NormalizedByteCode.__iload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lload0, NormalizedByteCode.__lload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lload1, NormalizedByteCode.__lload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lload2, NormalizedByteCode.__lload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lload3, NormalizedByteCode.__lload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fload0, NormalizedByteCode.__fload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fload1, NormalizedByteCode.__fload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fload2, NormalizedByteCode.__fload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fload3, NormalizedByteCode.__fload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dload0, NormalizedByteCode.__dload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dload1, NormalizedByteCode.__dload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dload2, NormalizedByteCode.__dload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dload3, NormalizedByteCode.__dload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Aload0, NormalizedByteCode.__aload, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Aload1, NormalizedByteCode.__aload, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Aload2, NormalizedByteCode.__aload, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Aload3, NormalizedByteCode.__aload, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iaload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Laload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Faload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Daload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Aaload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Baload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Caload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Saload, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Istore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Lstore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Fstore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Dstore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Astore, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.Istore0, NormalizedByteCode.__istore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Istore1, NormalizedByteCode.__istore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Istore2, NormalizedByteCode.__istore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Istore3, NormalizedByteCode.__istore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lstore0, NormalizedByteCode.__lstore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lstore1, NormalizedByteCode.__lstore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lstore2, NormalizedByteCode.__lstore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lstore3, NormalizedByteCode.__lstore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fstore0, NormalizedByteCode.__fstore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fstore1, NormalizedByteCode.__fstore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fstore2, NormalizedByteCode.__fstore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fstore3, NormalizedByteCode.__fstore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dstore0, NormalizedByteCode.__dstore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dstore1, NormalizedByteCode.__dstore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dstore2, NormalizedByteCode.__dstore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dstore3, NormalizedByteCode.__dstore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Astore0, NormalizedByteCode.__astore, 0, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Astore1, NormalizedByteCode.__astore, 1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Astore2, NormalizedByteCode.__astore, 2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Astore3, NormalizedByteCode.__astore, 3, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Lastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Fastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Dastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Aastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Bastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Castore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Sastore, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Pop, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Pop2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dup, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.DupX1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.DupX2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dup2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dup2X1, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dup2X2, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Swap, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iadd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ladd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fadd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dadd, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Isub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lsub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fsub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dsub, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Imul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lmul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fmul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dmul, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Idiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Ldiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Fdiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ddiv, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Irem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Lrem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Frem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Drem, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ineg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lneg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fneg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dneg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ishl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lshl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ishr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lshr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iushr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lushr, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iand, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Land, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ior, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lor, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ixor, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lxor, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iinc, ByteCodeMode.Local_1_Immediate_1, ByteCodeModeWide.Local_2_Immediate_2, true);
+            new ByteCodeMetaData(OpCode.I2l, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.I2f, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.I2d, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.L2i, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.L2f, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.L2d, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.F2i, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.F2l, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.F2d, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.D2i, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.D2l, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.D2f, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.I2b, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.I2c, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.I2s, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lcmp, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fcmpl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Fcmpg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dcmpl, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dcmpg, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ifeq, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ifne, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Iflt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ifge, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ifgt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ifle, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfIcmpeq, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfIcmpne, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfIcmplt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfIcmpge, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfIcmpgt, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfIcmple, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfAcmpeq, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfAcmpne, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Goto, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Jsr, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ret, ByteCodeMode.Local_1, ByteCodeModeWide.Local_2, true);
+            new ByteCodeMetaData(OpCode.TableSwitch, ByteCodeMode.Tableswitch, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.LookupSwitch, ByteCodeMode.Lookupswitch, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Ireturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Lreturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Freturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Dreturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Areturn, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Return, ByteCodeMode.Simple, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.GetStatic, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.PutStatic, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.GetField, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.PutField, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.InvokeVirtual, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.InvokeSpecial, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.InvokeStatic, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.InvokeInterface, ByteCodeMode.Constant_2_1_1, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.InvokeDynamic, ByteCodeMode.Constant_2_1_1, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.New, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Newarray, ByteCodeMode.Immediate_1, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Anewarray, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Arraylength, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Athrow, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Checkcast, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.InstanceOf, ByteCodeMode.Constant_2, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.MonitorEnter, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.MonitorExit, ByteCodeMode.Simple, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.Wide, NormalizedByteCode.__nop, ByteCodeMode.WidePrefix, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.Multianewarray, ByteCodeMode.Constant_2_Immediate_1, ByteCodeModeWide.Unused, false);
+            new ByteCodeMetaData(OpCode.IfNull, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.IfNonNull, ByteCodeMode.Branch_2, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.GotoW, NormalizedByteCode.__goto, ByteCodeMode.Branch_4, ByteCodeModeWide.Unused, true);
+            new ByteCodeMetaData(OpCode.JsrW, NormalizedByteCode.__jsr, ByteCodeMode.Branch_4, ByteCodeModeWide.Unused, true);
 
         }
 
