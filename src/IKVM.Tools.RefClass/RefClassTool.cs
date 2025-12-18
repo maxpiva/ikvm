@@ -149,7 +149,7 @@ namespace IKVM.Tools.RefClass
 
                 var ab = new AttributeTableBuilder(cb.Constants);
                 foreach (var attribute in cf.Attributes)
-                    Translate(cf, cb, ab, attribute);
+                    Translate(cf, cb, ab, attribute, null);
 
                 // serialize class to blob
                 var b = new BlobBuilder();
@@ -186,7 +186,7 @@ namespace IKVM.Tools.RefClass
         {
             var ab = new AttributeTableBuilder(cb.Constants);
             foreach (var attribute in field.Attributes)
-                Translate(cf, cb, ab, attribute);
+                Translate(cf, cb, ab, attribute, null);
 
             cb.AddField(field.AccessFlags, cf.Constants.Get(field.Name).Value, cf.Constants.Get(field.Descriptor).Value, ab);
         }
@@ -195,18 +195,20 @@ namespace IKVM.Tools.RefClass
         {
             var ab = new AttributeTableBuilder(cb.Constants);
             foreach (var attribute in method.Attributes)
-                Translate(cf, cb, ab, attribute);
+                Translate(cf, cb, ab, attribute, method);
 
             cb.AddMethod(method.AccessFlags, cf.Constants.Get(method.Name).Value, cf.Constants.Get(method.Descriptor).Value, ab);
         }
 
-        void Translate(ClassFile cf, ClassFileBuilder cb, AttributeTableBuilder ab, IKVM.ByteCode.Decoding.Attribute attribute)
+        void Translate(ClassFile cf, ClassFileBuilder cb, AttributeTableBuilder ab, IKVM.ByteCode.Decoding.Attribute attribute, Method? method)
         {
             switch (cf.Constants.Get(attribute.Name).Value)
             {
-                case AttributeName.Code:
-                    Translate(cf, cb, ab, attribute.AsCode());
+                case AttributeName.Code when method is not null:
+                    Translate(cf, cb, ab, attribute.AsCode(), method.Value);
                     break;
+                case AttributeName.Code:
+                    throw new InvalidOperationException("Code attribute without method.");
                 case AttributeName.LineNumberTable:
                 case AttributeName.StackMapTable:
                 case AttributeName.LocalVariableTable:
@@ -218,15 +220,35 @@ namespace IKVM.Tools.RefClass
             }
         }
 
-        void Translate(ClassFile cf, ClassFileBuilder cb, AttributeTableBuilder ab, CodeAttribute attribute)
+        void Translate(ClassFile cf, ClassFileBuilder cb, AttributeTableBuilder ab, CodeAttribute attribute, Method method)
         {
             var ab2 = new AttributeTableBuilder(cb.Constants);
             foreach (var attribute2 in attribute.Attributes)
-                Translate(cf, cb, ab2, attribute2);
+                Translate(cf, cb, ab2, attribute2, null);
 
-            var b = new BlobBuilder();
-            methodBody.WriteContentTo(b);
-            ab.Code(4, 255, b, e => methodCode.WriteExceptionsTo(ref e), ab2);
+            switch (cf.Constants.Get(method.Name).Value)
+            {
+                case "<init>" when cf.Constants.Get(cf.Super).Name == "cli/System/MulticastDelegate":
+                    // init methods of delegates should continue to call base init
+                    {
+                        var b = new BlobBuilder();
+                        var c = new CodeBuilder(b);
+                        c.Aload0();
+                        c.InvokeSpecial(ConstantHandle.Nil);
+                        c.Return();
+
+                        ab.Code(4, 255, b, e => c.WriteExceptionsTo(ref e), ab2);
+                        break;
+                    }
+
+                default:
+                    {
+                        var b = new BlobBuilder();
+                        methodBody.WriteContentTo(b);
+                        ab.Code(4, 255, b, e => methodCode.WriteExceptionsTo(ref e), ab2);
+                        break;
+                    }
+            }
         }
 
     }
