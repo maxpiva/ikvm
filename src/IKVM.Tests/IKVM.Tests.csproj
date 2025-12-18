@@ -226,7 +226,4 @@
     <Import Sdk="MSTest.Sdk" Project="Sdk.targets" />
     <Import Project="$(MSBuildThisFileDirectory)..\IKVM\buildTransitive\IKVM.targets" />
     <Import Project="$(MSBuildThisFileDirectory)..\IKVM.MSBuild\buildTransitive\IKVM.MSBuild.targets" />
-    <ItemGroup>
-      <PackageReference Update="IKVM.ByteCode" Version="9.3.8" />
-    </ItemGroup>
 </Project>

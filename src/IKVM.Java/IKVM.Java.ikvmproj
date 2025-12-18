@@ -106,7 +106,4 @@
     <Import Project="..\IKVM.Java\IKVM.Java.runtime.props" />
     <Import Project="$(MSBuildThisFileDirectory)..\IKVM.NET.Sdk\Sdk\Sdk.targets" />
     <Import Project="..\IKVM.Java\IKVM.Java.runtime.targets" />
-    <ItemGroup>
-      <PackageReference Update="IKVM.ByteCode" Version="9.3.8" />
-    </ItemGroup>
 </Project>

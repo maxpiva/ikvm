@@ -42,9 +42,5 @@
         <Message Text="Using javac executable found at '$(JavaCompilerPath)'." Importance="high" Condition=" '$(JavaCompilerPath)' != '' " />
         <Error Text="Could not locate javac executable." Condition=" '$(JavaCompilerPath)' == '' " />
     </Target>
-
-    <ItemGroup>
-      <PackageReference Update="IKVM.ByteCode" Version="9.3.8" />
-    </ItemGroup>
     
 </Project>
