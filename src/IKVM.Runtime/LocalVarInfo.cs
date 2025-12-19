@@ -448,7 +448,7 @@ namespace IKVM.Runtime
 
                         switch (OpCodeMetaData.GetFlowKind(instructions[i].NormalizedOpCode))
                         {
-                            case OpCodeFlowKind.Switch:
+                            case OpCodeFlowControl.Switch:
                                 {
                                     for (int j = 0; j < instructions[i].SwitchEntryCount; j++)
                                         state[instructions[i].GetSwitchTargetIndex(j)].Merge(curr);
@@ -456,17 +456,17 @@ namespace IKVM.Runtime
                                     state[instructions[i].DefaultTarget].Merge(curr);
                                     break;
                                 }
-                            case OpCodeFlowKind.Branch:
+                            case OpCodeFlowControl.Branch:
                                 state[instructions[i].TargetIndex].Merge(curr);
                                 break;
-                            case OpCodeFlowKind.ConditionalBranch:
+                            case OpCodeFlowControl.ConditionalBranch:
                                 state[instructions[i].TargetIndex].Merge(curr);
                                 state[i + 1].Merge(curr);
                                 break;
-                            case OpCodeFlowKind.Return:
-                            case OpCodeFlowKind.Throw:
+                            case OpCodeFlowControl.Return:
+                            case OpCodeFlowControl.Throw:
                                 break;
-                            case OpCodeFlowKind.Next:
+                            case OpCodeFlowControl.Next:
                                 state[i + 1].Merge(curr);
                                 break;
                             default:

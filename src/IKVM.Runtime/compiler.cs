@@ -1009,20 +1009,20 @@ namespace IKVM.Runtime
                     // shorter than the constructor.
                     switch (OpCodeMetaData.GetFlowKind(instr.NormalizedOpCode))
                     {
-                        case OpCodeFlowKind.Return:
+                        case OpCodeFlowControl.Return:
                             ilGenerator.Emit(OpCodes.Ldarg_0);
                             ilGenerator.Emit(OpCodes.Call, finish.Context.CompilerFactory.KeepAliveMethod);
                             break;
-                        case OpCodeFlowKind.Branch:
-                        case OpCodeFlowKind.ConditionalBranch:
+                        case OpCodeFlowControl.Branch:
+                        case OpCodeFlowControl.ConditionalBranch:
                             if (instr.TargetIndex <= i)
                             {
                                 ilGenerator.Emit(OpCodes.Ldarg_0);
                                 ilGenerator.Emit(OpCodes.Call, finish.Context.CompilerFactory.KeepAliveMethod);
                             }
                             break;
-                        case OpCodeFlowKind.Throw:
-                        case OpCodeFlowKind.Switch:
+                        case OpCodeFlowControl.Throw:
+                        case OpCodeFlowControl.Switch:
                             if (ma.GetLocalTypeWrapper(i, 0) != finish.Context.VerifierJavaTypeFactory.UninitializedThis)
                             {
                                 ilGenerator.Emit(OpCodes.Ldarg_0);
@@ -2473,14 +2473,14 @@ namespace IKVM.Runtime
                 // mark next instruction as inuse
                 switch (OpCodeMetaData.GetFlowKind(instr.NormalizedOpCode))
                 {
-                    case OpCodeFlowKind.Switch:
-                    case OpCodeFlowKind.Branch:
-                    case OpCodeFlowKind.Return:
-                    case OpCodeFlowKind.Throw:
+                    case OpCodeFlowControl.Switch:
+                    case OpCodeFlowControl.Branch:
+                    case OpCodeFlowControl.Return:
+                    case OpCodeFlowControl.Throw:
                         instructionIsForwardReachable = false;
                         break;
-                    case OpCodeFlowKind.ConditionalBranch:
-                    case OpCodeFlowKind.Next:
+                    case OpCodeFlowControl.ConditionalBranch:
+                    case OpCodeFlowControl.Next:
                         instructionIsForwardReachable = true;
                         Debug.Assert((flags[i + 1] & InstructionFlags.Reachable) != 0);
                         // don't fall through end of try block
