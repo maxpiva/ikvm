@@ -50,7 +50,7 @@ namespace IKVM.CoreLib.Linking
 
         internal void SetHardError(HardError error, int messageId)
         {
-            normopcode = NormalizedOpCode.__static_error;
+            normopcode = NormalizedOpCode.StaticError;
             arg2 = (short)error;
             arg1 = messageId;
         }

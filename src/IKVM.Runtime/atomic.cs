@@ -49,7 +49,7 @@ namespace IKVM.Runtime
                 && (flags[i - 1] & InstructionFlags.BranchTarget) == 0
                 && (flags[i - 2] & InstructionFlags.BranchTarget) == 0
                 && (flags[i - 3] & InstructionFlags.BranchTarget) == 0
-                && code[i - 1].NormalizedOpCode == NormalizedOpCode.__ldc_nothrow
+                && code[i - 1].NormalizedOpCode == NormalizedOpCode.LdcNothrow
                 && code[i - 2].NormalizedOpCode == NormalizedOpCode.Ldc
                 && code[i - 3].NormalizedOpCode == NormalizedOpCode.Ldc)
             {

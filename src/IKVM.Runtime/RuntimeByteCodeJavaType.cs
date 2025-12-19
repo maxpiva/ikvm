@@ -258,9 +258,9 @@ namespace IKVM.Runtime
                 throw new VerifyError("Delegate constructor must be public");
             }
             if (constructor.Instructions.Length < 3
-                || constructor.Instructions[0].NormalizedOpCode != NormalizedOpCode.__aload
+                || constructor.Instructions[0].NormalizedOpCode != NormalizedOpCode.Aload
                 || constructor.Instructions[0].NormalizedArg1 != 0
-                || constructor.Instructions[1].NormalizedOpCode != NormalizedOpCode.__invokespecial
+                || constructor.Instructions[1].NormalizedOpCode != NormalizedOpCode.InvokeSpecial
                 || constructor.Instructions[2].NormalizedOpCode != NormalizedOpCode.Return)
             {
                 throw new VerifyError("Delegate constructor must be empty");

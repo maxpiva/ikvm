@@ -123,11 +123,11 @@ namespace IKVM.CoreLib.Linking
                         case NormalizedOpCode.Ifge:
                         case NormalizedOpCode.Ifgt:
                         case NormalizedOpCode.Ifle:
-                        case NormalizedOpCode.__if_icmpeq:
-                        case NormalizedOpCode.__if_icmpne:
-                        case NormalizedOpCode.__if_icmplt:
-                        case NormalizedOpCode.__if_icmpge:
-                        case NormalizedOpCode.__if_icmpgt:
+                        case NormalizedOpCode.Ificmpeq:
+                        case NormalizedOpCode.Ificmpne:
+                        case NormalizedOpCode.Ificmplt:
+                        case NormalizedOpCode.Ificmpge:
+                        case NormalizedOpCode.Ificmpgt:
                         case NormalizedOpCode.Ificmple:
                         case NormalizedOpCode.Ifacmpeq:
                         case NormalizedOpCode.Ifacmpne:

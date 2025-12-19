@@ -732,7 +732,7 @@ namespace IKVM.Runtime
                         // uses a goto to remove the (now unused) code
                         i = target;
                     }
-                    if (bc == NormalizedOpCode.Getstatic || bc == NormalizedOpCode.__putstatic)
+                    if (bc == NormalizedOpCode.GetStatic || bc == NormalizedOpCode.PutStatic)
                     {
                         var fld = classFile.SafeGetFieldref(checked((ushort)m.Instructions[i].Arg1));
                         if (fld == null || fld.Class != classFile.Name)
@@ -742,7 +742,7 @@ namespace IKVM.Runtime
                         }
                         // don't allow getstatic to load non-primitive fields, because that would
                         // cause the verifier to try to load the type
-                        if (bc == NormalizedOpCode.Getstatic && "L[".IndexOf(fld.Signature[0]) != -1)
+                        if (bc == NormalizedOpCode.GetStatic && "L[".IndexOf(fld.Signature[0]) != -1)
                         {
                             noop = false;
                             return false;
@@ -755,7 +755,7 @@ namespace IKVM.Runtime
                             return false;
                         }
 
-                        if (bc == NormalizedOpCode.__putstatic)
+                        if (bc == NormalizedOpCode.PutStatic)
                         {
                             if (field.IsProperty && field.PropertySetter != null)
                             {
@@ -774,8 +774,8 @@ namespace IKVM.Runtime
                         noop = false;
                         return false;
                     }
-                    else if (bc == NormalizedOpCode.__aconst_null
-                        || (bc == NormalizedOpCode.__iconst && m.Instructions[i].Arg1 == 0)
+                    else if (bc == NormalizedOpCode.AconstNull
+                        || (bc == NormalizedOpCode.Iconst && m.Instructions[i].Arg1 == 0)
                         || bc == NormalizedOpCode.Return
                         || bc == NormalizedOpCode.Nop)
                     {
@@ -2890,7 +2890,7 @@ namespace IKVM.Runtime
                 {
                     foreach (var instr in m.Instructions)
                     {
-                        if (instr.NormalizedOpCode == NormalizedOpCode.__invokespecial)
+                        if (instr.NormalizedOpCode == NormalizedOpCode.InvokeSpecial)
                         {
                             var cpi = classFile.SafeGetMethodref(instr.Arg1);
                             return cpi != null && cpi.Name == m.Name && cpi.Signature == m.Signature;

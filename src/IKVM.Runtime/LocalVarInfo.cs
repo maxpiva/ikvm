@@ -153,7 +153,7 @@ namespace IKVM.Runtime
                 }
                 else
                 {
-                    if (instructions[i].NormalizedOpCode == NormalizedOpCode.__invokespecial || instructions[i].NormalizedOpCode == NormalizedOpCode.__dynamic_invokespecial)
+                    if (instructions[i].NormalizedOpCode == NormalizedOpCode.InvokeSpecial || instructions[i].NormalizedOpCode == NormalizedOpCode.DynamicInvokeSpecial)
                     {
                         invokespecialLocalVars[i] = new LocalVar[method.MaxLocals];
                         for (int j = 0; j < invokespecialLocalVars[i].Length; j++)
@@ -219,23 +219,23 @@ namespace IKVM.Runtime
         static bool IsLoadLocal(NormalizedOpCode bc)
         {
             return bc is
-                NormalizedOpCode.__aload or
+                NormalizedOpCode.Aload or
                 NormalizedOpCode.Iload or
-                NormalizedOpCode.__lload or
-                NormalizedOpCode.__fload or
-                NormalizedOpCode.__dload or
-                NormalizedOpCode.__iinc or
+                NormalizedOpCode.Lload or
+                NormalizedOpCode.Fload or
+                NormalizedOpCode.Dload or
+                NormalizedOpCode.Iinc or
                 NormalizedOpCode.Ret;
         }
 
         static bool IsStoreLocal(NormalizedOpCode bc)
         {
             return bc is
-                NormalizedOpCode.__astore or
-                NormalizedOpCode.__istore or
-                NormalizedOpCode.__lstore or
-                NormalizedOpCode.__fstore or
-                NormalizedOpCode.__dstore;
+                NormalizedOpCode.Astore or
+                NormalizedOpCode.Istore or
+                NormalizedOpCode.Lstore or
+                NormalizedOpCode.Fstore or
+                NormalizedOpCode.Dstore;
         }
 
         struct FindLocalVarState
@@ -386,7 +386,7 @@ namespace IKVM.Runtime
                             if (exceptions[j].StartIndex <= i && i < exceptions[j].EndIndex)
                                 state[exceptions[j].HandlerIndex].Merge(curr);
 
-                        if (IsLoadLocal(instructions[i].NormalizedOpCode) && (instructions[i].NormalizedOpCode != NormalizedOpCode.__aload || !RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(i + 1, 0))))
+                        if (IsLoadLocal(instructions[i].NormalizedOpCode) && (instructions[i].NormalizedOpCode != NormalizedOpCode.Aload || !RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(i + 1, 0))))
                         {
                             localStoreReaders[i] ??= new Dictionary<int, string>();
 
@@ -394,7 +394,7 @@ namespace IKVM.Runtime
                                 localStoreReaders[i][curr.sites[instructions[i].NormalizedArg1][j]] = "";
                         }
 
-                        if (IsStoreLocal(instructions[i].NormalizedOpCode) && (instructions[i].NormalizedOpCode != NormalizedOpCode.__astore || !RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(i, 0))))
+                        if (IsStoreLocal(instructions[i].NormalizedOpCode) && (instructions[i].NormalizedOpCode != NormalizedOpCode.Astore || !RuntimeVerifierJavaType.IsFaultBlockException(codeInfo.GetRawStackTypeWrapper(i, 0))))
                         {
                             curr.Store(i, instructions[i].NormalizedArg1);
 
@@ -405,7 +405,7 @@ namespace IKVM.Runtime
                                     state[exceptions[j].HandlerIndex].Merge(curr);
                         }
 
-                        if (instructions[i].NormalizedOpCode == NormalizedOpCode.__invokespecial)
+                        if (instructions[i].NormalizedOpCode == NormalizedOpCode.InvokeSpecial)
                         {
                             var cpi = classFile.GetMethodref(instructions[i].Arg1);
                             if (ReferenceEquals(cpi.Name, StringConstants.INIT))
@@ -418,7 +418,7 @@ namespace IKVM.Runtime
                                             curr.Store(i, j);
                             }
                         }
-                        else if (instructions[i].NormalizedOpCode == NormalizedOpCode.__goto_finally)
+                        else if (instructions[i].NormalizedOpCode == NormalizedOpCode.GotoFinally)
                         {
                             int handler = instructions[i].HandlerIndex;
 
@@ -497,11 +497,11 @@ namespace IKVM.Runtime
                 }
                 else
                 {
-                    if (method.Instructions[store].NormalizedOpCode == NormalizedOpCode.__invokespecial)
+                    if (method.Instructions[store].NormalizedOpCode == NormalizedOpCode.InvokeSpecial)
                     {
                         type = InstructionState.FindCommonBaseType(context, type, codeInfo.GetLocalTypeWrapper(store + 1, localIndex));
                     }
-                    else if (method.Instructions[store].NormalizedOpCode == NormalizedOpCode.__static_error)
+                    else if (method.Instructions[store].NormalizedOpCode == NormalizedOpCode.StaticError)
                     {
                         // it's an __invokespecial that turned into a __static_error
                         // (since a __static_error doesn't continue, we don't need to set type)

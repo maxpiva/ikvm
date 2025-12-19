@@ -116,7 +116,7 @@ namespace IKVM.CoreLib.Linking
                     return OpCodeFlowKind.Switch;
 
                 case NormalizedOpCode.Goto:
-                case NormalizedOpCode.__goto_finally:
+                case NormalizedOpCode.GotoFinally:
                     return OpCodeFlowKind.Branch;
 
                 case NormalizedOpCode.Ifeq:
@@ -125,11 +125,11 @@ namespace IKVM.CoreLib.Linking
                 case NormalizedOpCode.Ifge:
                 case NormalizedOpCode.Ifgt:
                 case NormalizedOpCode.Ifle:
-                case NormalizedOpCode.__if_icmpeq:
-                case NormalizedOpCode.__if_icmpne:
-                case NormalizedOpCode.__if_icmplt:
-                case NormalizedOpCode.__if_icmpge:
-                case NormalizedOpCode.__if_icmpgt:
+                case NormalizedOpCode.Ificmpeq:
+                case NormalizedOpCode.Ificmpne:
+                case NormalizedOpCode.Ificmplt:
+                case NormalizedOpCode.Ificmpge:
+                case NormalizedOpCode.Ificmpgt:
                 case NormalizedOpCode.Ificmple:
                 case NormalizedOpCode.Ifacmpeq:
                 case NormalizedOpCode.Ifacmpne:
@@ -146,8 +146,8 @@ namespace IKVM.CoreLib.Linking
                     return OpCodeFlowKind.Return;
 
                 case NormalizedOpCode.Athrow:
-                case NormalizedOpCode.__athrow_no_unmap:
-                case NormalizedOpCode.__static_error:
+                case NormalizedOpCode.AthrowNoUnmap:
+                case NormalizedOpCode.StaticError:
                     return OpCodeFlowKind.Throw;
 
                 default:
@@ -159,20 +159,20 @@ namespace IKVM.CoreLib.Linking
         {
             switch (opcode)
             {
-                case NormalizedOpCode.__dynamic_invokeinterface:
-                case NormalizedOpCode.__dynamic_invokestatic:
-                case NormalizedOpCode.__dynamic_invokevirtual:
-                case NormalizedOpCode.__dynamic_getstatic:
-                case NormalizedOpCode.__dynamic_putstatic:
-                case NormalizedOpCode.__dynamic_getfield:
-                case NormalizedOpCode.__dynamic_putfield:
-                case NormalizedOpCode.__clone_array:
-                case NormalizedOpCode.__static_error:
-                case NormalizedOpCode.__methodhandle_invoke:
-                case NormalizedOpCode.__methodhandle_link:
+                case NormalizedOpCode.DynamicInvokeInterface:
+                case NormalizedOpCode.DynamicInvokeStatic:
+                case NormalizedOpCode.DynamicInvokeVirtual:
+                case NormalizedOpCode.DynamicGetStatic:
+                case NormalizedOpCode.DynamicPutStatic:
+                case NormalizedOpCode.DynamicGetField:
+                case NormalizedOpCode.DynamicPutField:
+                case NormalizedOpCode.CloneArray:
+                case NormalizedOpCode.StaticError:
+                case NormalizedOpCode.MethodHandleInvoke:
+                case NormalizedOpCode.MethodHandleLink:
                     return true;
-                case NormalizedOpCode.__iconst:
-                case NormalizedOpCode.__ldc_nothrow:
+                case NormalizedOpCode.Iconst:
+                case NormalizedOpCode.LdcNothrow:
                     return false;
                 default:
                     return (_data[(int)opcode]._flags & OpCodeFlags.CannotThrow) == 0;
@@ -197,13 +197,13 @@ namespace IKVM.CoreLib.Linking
         {
             new OpCodeMetaData(OpCode.Nop, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.AconstNull, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.IconstM1, NormalizedOpCode.__iconst, -1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Iconst0, NormalizedOpCode.__iconst, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Iconst1, NormalizedOpCode.__iconst, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Iconst2, NormalizedOpCode.__iconst, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Iconst3, NormalizedOpCode.__iconst, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Iconst4, NormalizedOpCode.__iconst, 4, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Iconst5, NormalizedOpCode.__iconst, 5, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.IconstM1, NormalizedOpCode.Iconst, -1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Iconst0, NormalizedOpCode.Iconst, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Iconst1, NormalizedOpCode.Iconst, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Iconst2, NormalizedOpCode.Iconst, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Iconst3, NormalizedOpCode.Iconst, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Iconst4, NormalizedOpCode.Iconst, 4, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Iconst5, NormalizedOpCode.Iconst, 5, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Lconst0, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Lconst1, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Fconst0, OpCodeArgumentKind.Simple, true);
@@ -211,8 +211,8 @@ namespace IKVM.CoreLib.Linking
             new OpCodeMetaData(OpCode.Fconst2, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Dconst0, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Dconst1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Bipush, NormalizedOpCode.__iconst, OpCodeArgumentKind.ImmediateS1, true);
-            new OpCodeMetaData(OpCode.Sipush, NormalizedOpCode.__iconst, OpCodeArgumentKind.ImmediateS2, true);
+            new OpCodeMetaData(OpCode.Bipush, NormalizedOpCode.Iconst, OpCodeArgumentKind.ImmediateS1, true);
+            new OpCodeMetaData(OpCode.Sipush, NormalizedOpCode.Iconst, OpCodeArgumentKind.ImmediateS2, true);
             new OpCodeMetaData(OpCode.Ldc, OpCodeArgumentKind.Constant1, false);
             new OpCodeMetaData(OpCode.LdcW, NormalizedOpCode.Ldc, OpCodeArgumentKind.Constant2, false);
             new OpCodeMetaData(OpCode.Ldc2W, NormalizedOpCode.Ldc, OpCodeArgumentKind.Constant2, false);
@@ -225,22 +225,22 @@ namespace IKVM.CoreLib.Linking
             new OpCodeMetaData(OpCode.Iload1, NormalizedOpCode.Iload, 1, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Iload2, NormalizedOpCode.Iload, 2, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Iload3, NormalizedOpCode.Iload, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lload0, NormalizedOpCode.__lload, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lload1, NormalizedOpCode.__lload, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lload2, NormalizedOpCode.__lload, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lload3, NormalizedOpCode.__lload, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fload0, NormalizedOpCode.__fload, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fload1, NormalizedOpCode.__fload, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fload2, NormalizedOpCode.__fload, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fload3, NormalizedOpCode.__fload, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dload0, NormalizedOpCode.__dload, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dload1, NormalizedOpCode.__dload, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dload2, NormalizedOpCode.__dload, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dload3, NormalizedOpCode.__dload, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Aload0, NormalizedOpCode.__aload, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Aload1, NormalizedOpCode.__aload, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Aload2, NormalizedOpCode.__aload, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Aload3, NormalizedOpCode.__aload, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lload0, NormalizedOpCode.Lload, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lload1, NormalizedOpCode.Lload, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lload2, NormalizedOpCode.Lload, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lload3, NormalizedOpCode.Lload, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fload0, NormalizedOpCode.Fload, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fload1, NormalizedOpCode.Fload, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fload2, NormalizedOpCode.Fload, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fload3, NormalizedOpCode.Fload, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dload0, NormalizedOpCode.Dload, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dload1, NormalizedOpCode.Dload, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dload2, NormalizedOpCode.Dload, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dload3, NormalizedOpCode.Dload, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Aload0, NormalizedOpCode.Aload, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Aload1, NormalizedOpCode.Aload, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Aload2, NormalizedOpCode.Aload, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Aload3, NormalizedOpCode.Aload, 3, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Iaload, OpCodeArgumentKind.Simple, false);
             new OpCodeMetaData(OpCode.Laload, OpCodeArgumentKind.Simple, false);
             new OpCodeMetaData(OpCode.Faload, OpCodeArgumentKind.Simple, false);
@@ -254,26 +254,26 @@ namespace IKVM.CoreLib.Linking
             new OpCodeMetaData(OpCode.Fstore, OpCodeArgumentKind.Local1, true);
             new OpCodeMetaData(OpCode.Dstore, OpCodeArgumentKind.Local1, true);
             new OpCodeMetaData(OpCode.Astore, OpCodeArgumentKind.Local1, true);
-            new OpCodeMetaData(OpCode.Istore0, NormalizedOpCode.__istore, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Istore1, NormalizedOpCode.__istore, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Istore2, NormalizedOpCode.__istore, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Istore3, NormalizedOpCode.__istore, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lstore0, NormalizedOpCode.__lstore, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lstore1, NormalizedOpCode.__lstore, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lstore2, NormalizedOpCode.__lstore, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Lstore3, NormalizedOpCode.__lstore, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fstore0, NormalizedOpCode.__fstore, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fstore1, NormalizedOpCode.__fstore, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fstore2, NormalizedOpCode.__fstore, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Fstore3, NormalizedOpCode.__fstore, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dstore0, NormalizedOpCode.__dstore, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dstore1, NormalizedOpCode.__dstore, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dstore2, NormalizedOpCode.__dstore, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Dstore3, NormalizedOpCode.__dstore, 3, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Astore0, NormalizedOpCode.__astore, 0, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Astore1, NormalizedOpCode.__astore, 1, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Astore2, NormalizedOpCode.__astore, 2, OpCodeArgumentKind.Simple, true);
-            new OpCodeMetaData(OpCode.Astore3, NormalizedOpCode.__astore, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Istore0, NormalizedOpCode.Istore, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Istore1, NormalizedOpCode.Istore, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Istore2, NormalizedOpCode.Istore, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Istore3, NormalizedOpCode.Istore, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lstore0, NormalizedOpCode.Lstore, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lstore1, NormalizedOpCode.Lstore, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lstore2, NormalizedOpCode.Lstore, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Lstore3, NormalizedOpCode.Lstore, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fstore0, NormalizedOpCode.Fstore, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fstore1, NormalizedOpCode.Fstore, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fstore2, NormalizedOpCode.Fstore, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Fstore3, NormalizedOpCode.Fstore, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dstore0, NormalizedOpCode.Dstore, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dstore1, NormalizedOpCode.Dstore, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dstore2, NormalizedOpCode.Dstore, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Dstore3, NormalizedOpCode.Dstore, 3, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Astore0, NormalizedOpCode.Astore, 0, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Astore1, NormalizedOpCode.Astore, 1, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Astore2, NormalizedOpCode.Astore, 2, OpCodeArgumentKind.Simple, true);
+            new OpCodeMetaData(OpCode.Astore3, NormalizedOpCode.Astore, 3, OpCodeArgumentKind.Simple, true);
             new OpCodeMetaData(OpCode.Iastore, OpCodeArgumentKind.Simple, false);
             new OpCodeMetaData(OpCode.Lastore, OpCodeArgumentKind.Simple, false);
             new OpCodeMetaData(OpCode.Fastore, OpCodeArgumentKind.Simple, false);

@@ -1227,20 +1227,20 @@ namespace IKVM.CoreLib.Linking
             Field<TLinkingType, TLinkingMember, TLinkingField, TLinkingMethod> field;
             if (method.Instructions is [
                 { NormalizedOpCode: NormalizedOpCode.Ldc },
-                { NormalizedOpCode: NormalizedOpCode.__invokevirtual },
+                { NormalizedOpCode: NormalizedOpCode.InvokeVirtual },
                 { NormalizedOpCode: NormalizedOpCode.Ifne },
-                { NormalizedOpCode: NormalizedOpCode.__iconst },
+                { NormalizedOpCode: NormalizedOpCode.Iconst },
                 { NormalizedOpCode: NormalizedOpCode.Goto },
-                { NormalizedOpCode: NormalizedOpCode.__iconst },
-                { NormalizedOpCode: NormalizedOpCode.__putstatic },
+                { NormalizedOpCode: NormalizedOpCode.Iconst },
+                { NormalizedOpCode: NormalizedOpCode.PutStatic },
                 ..] &&
                 method.Instructions[0].NormalizedOpCode == NormalizedOpCode.Ldc && SafeIsConstantPoolClass(new ClassConstantHandle(checked((ushort)method.Instructions[0].Arg1))) &&
-                method.Instructions[1].NormalizedOpCode == NormalizedOpCode.__invokevirtual && IsDesiredAssertionStatusMethodref(method.Instructions[1].Arg1) &&
+                method.Instructions[1].NormalizedOpCode == NormalizedOpCode.InvokeVirtual && IsDesiredAssertionStatusMethodref(method.Instructions[1].Arg1) &&
                 method.Instructions[2].NormalizedOpCode == NormalizedOpCode.Ifne && method.Instructions[2].TargetIndex == 5 &&
-                method.Instructions[3].NormalizedOpCode == NormalizedOpCode.__iconst && method.Instructions[3].Arg1 == 1 &&
+                method.Instructions[3].NormalizedOpCode == NormalizedOpCode.Iconst && method.Instructions[3].Arg1 == 1 &&
                 method.Instructions[4].NormalizedOpCode == NormalizedOpCode.Goto && method.Instructions[4].TargetIndex == 6 &&
-                method.Instructions[5].NormalizedOpCode == NormalizedOpCode.__iconst && method.Instructions[5].Arg1 == 0 &&
-                method.Instructions[6].NormalizedOpCode == NormalizedOpCode.__putstatic && (fieldref = SafeGetFieldref(checked((ushort)method.Instructions[6].Arg1))) != null &&
+                method.Instructions[5].NormalizedOpCode == NormalizedOpCode.Iconst && method.Instructions[5].Arg1 == 0 &&
+                method.Instructions[6].NormalizedOpCode == NormalizedOpCode.PutStatic && (fieldref = SafeGetFieldref(checked((ushort)method.Instructions[6].Arg1))) != null &&
                 fieldref.Class == Name && fieldref.Signature == "Z" &&
                 (field = GetField(fieldref.Name, fieldref.Signature)) != null &&
                 field.IsStatic && field.IsFinal &&
@@ -1271,11 +1271,11 @@ namespace IKVM.CoreLib.Linking
                     case NormalizedOpCode.Ifge:
                     case NormalizedOpCode.Ifgt:
                     case NormalizedOpCode.Ifle:
-                    case NormalizedOpCode.__if_icmpeq:
-                    case NormalizedOpCode.__if_icmpne:
-                    case NormalizedOpCode.__if_icmplt:
-                    case NormalizedOpCode.__if_icmpge:
-                    case NormalizedOpCode.__if_icmpgt:
+                    case NormalizedOpCode.Ificmpeq:
+                    case NormalizedOpCode.Ificmpne:
+                    case NormalizedOpCode.Ificmplt:
+                    case NormalizedOpCode.Ificmpge:
+                    case NormalizedOpCode.Ificmpgt:
                     case NormalizedOpCode.Ificmple:
                     case NormalizedOpCode.Ifacmpeq:
                     case NormalizedOpCode.Ifacmpne:
@@ -1306,7 +1306,7 @@ namespace IKVM.CoreLib.Linking
         {
             for (int i = checkStart; i < checkEnd; i++)
             {
-                if (instructions[i].NormalizedOpCode == NormalizedOpCode.__putstatic)
+                if (instructions[i].NormalizedOpCode == NormalizedOpCode.PutStatic)
                 {
                     var fieldref = SafeGetFieldref(checked((ushort)instructions[i].Arg1));
                     if (fieldref != null && fieldref.Class == Name && fieldref.Name == field.Name && fieldref.Signature == field.Signature)
