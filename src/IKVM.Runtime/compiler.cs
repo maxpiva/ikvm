@@ -150,7 +150,7 @@ namespace IKVM.Runtime
                         {
                             // storing a field in the current object cannot throw
                         }
-                        else if (m.Instructions[i].NormalizedOpCode == NormalizedOpCode.__getstatic && classFile.GetFieldref(checked((ushort)m.Instructions[i].Arg1)).GetClassType() == clazz)
+                        else if (m.Instructions[i].NormalizedOpCode == NormalizedOpCode.Getstatic && classFile.GetFieldref(checked((ushort)m.Instructions[i].Arg1)).GetClassType() == clazz)
                         {
                             // loading a field from the current class cannot throw
                         }
@@ -1034,7 +1034,7 @@ namespace IKVM.Runtime
 
                 switch (instr.NormalizedOpCode)
                 {
-                    case NormalizedOpCode.__getstatic:
+                    case NormalizedOpCode.Getstatic:
                         {
                             var cpi = classFile.GetFieldref(checked((ushort)instr.Arg1));
                             if (cpi.GetClassType() != clazz)
@@ -1459,18 +1459,18 @@ namespace IKVM.Runtime
                     case NormalizedOpCode.__clone_array:
                         ilGenerator.Emit(OpCodes.Callvirt, RuntimeArrayJavaType.GetCloneMethod(finish.Context));
                         break;
-                    case NormalizedOpCode.__return:
-                    case NormalizedOpCode.__areturn:
-                    case NormalizedOpCode.__ireturn:
-                    case NormalizedOpCode.__lreturn:
-                    case NormalizedOpCode.__freturn:
-                    case NormalizedOpCode.__dreturn:
+                    case NormalizedOpCode.Return:
+                    case NormalizedOpCode.Areturn:
+                    case NormalizedOpCode.Ireturn:
+                    case NormalizedOpCode.Lreturn:
+                    case NormalizedOpCode.Freturn:
+                    case NormalizedOpCode.Dreturn:
                         {
                             if (block.IsNested)
                             {
                                 // if we're inside an exception block, copy TOS to local, emit "leave" and push item onto our "todo" list
                                 CodeEmitterLocal local = null;
-                                if (instr.NormalizedOpCode != NormalizedOpCode.__return)
+                                if (instr.NormalizedOpCode != NormalizedOpCode.Return)
                                 {
                                     var retTypeWrapper = mw.ReturnType;
                                     retTypeWrapper.EmitConvStackTypeToSignatureType(ilGenerator, ma.GetStackTypeWrapper(i, 0));
@@ -1510,7 +1510,7 @@ namespace IKVM.Runtime
                                 // if there is junk on the stack (other than the return value), we must pop it off
                                 // because in .NET this is invalid (unlike in Java)
                                 var stackHeight = ma.GetStackHeight(i);
-                                if (instr.NormalizedOpCode == NormalizedOpCode.__return)
+                                if (instr.NormalizedOpCode == NormalizedOpCode.Return)
                                 {
                                     if (stackHeight != 0 || x64hack)
                                         ilGenerator.EmitClearStack();
@@ -1633,7 +1633,7 @@ namespace IKVM.Runtime
                             // we don't actually allocate the object here, the call to <init> will be converted into a newobj instruction
                             break;
                         }
-                    case NormalizedOpCode.__multianewarray:
+                    case NormalizedOpCode.Multianewarray:
                         {
                             var localArray = ilGenerator.UnsafeAllocTempLocal(finish.Context.Resolver.ResolveCoreType(typeof(int).FullName).MakeArrayType().AsReflection());
                             var localInt = ilGenerator.UnsafeAllocTempLocal(finish.Context.Types.Int32);
@@ -1754,7 +1754,7 @@ namespace IKVM.Runtime
 
                             break;
                         }
-                    case NormalizedOpCode.__instanceof:
+                    case NormalizedOpCode.Instanceof:
                         {
                             var wrapper = classFile.GetConstantPoolClassType(instr.Arg1);
                             if (wrapper.IsUnloadable)
@@ -1867,7 +1867,7 @@ namespace IKVM.Runtime
 
                             break;
                         }
-                    case NormalizedOpCode.__arraylength:
+                    case NormalizedOpCode.Arraylength:
                         if (ma.GetRawStackTypeWrapper(i, 0).IsUnloadable)
                         {
                             ilGenerator.Emit(OpCodes.Castclass, finish.Context.Types.Array);
@@ -1899,7 +1899,7 @@ namespace IKVM.Runtime
                     case NormalizedOpCode.__if_icmpne:
                         ilGenerator.EmitBne_Un(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__if_icmple:
+                    case NormalizedOpCode.Ificmple:
                         ilGenerator.EmitBle(block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.__if_icmplt:
@@ -1911,30 +1911,30 @@ namespace IKVM.Runtime
                     case NormalizedOpCode.__if_icmpgt:
                         ilGenerator.EmitBgt(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__ifle:
+                    case NormalizedOpCode.Ifle:
                         ilGenerator.Emit_if_le_lt_ge_gt(CodeEmitter.Comparison.LessOrEqual, block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.Iflt:
                         ilGenerator.Emit_if_le_lt_ge_gt(CodeEmitter.Comparison.LessThan, block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__ifge:
+                    case NormalizedOpCode.Ifge:
                         ilGenerator.Emit_if_le_lt_ge_gt(CodeEmitter.Comparison.GreaterOrEqual, block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__ifgt:
+                    case NormalizedOpCode.Ifgt:
                         ilGenerator.Emit_if_le_lt_ge_gt(CodeEmitter.Comparison.GreaterThan, block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__ifne:
-                    case NormalizedOpCode.__ifnonnull:
+                    case NormalizedOpCode.Ifne:
+                    case NormalizedOpCode.Ifnonnull:
                         ilGenerator.EmitBrtrue(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__ifeq:
-                    case NormalizedOpCode.__ifnull:
+                    case NormalizedOpCode.Ifeq:
+                    case NormalizedOpCode.Ifnull:
                         ilGenerator.EmitBrfalse(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__if_acmpeq:
+                    case NormalizedOpCode.Ifacmpeq:
                         ilGenerator.EmitBeq(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.__if_acmpne:
+                    case NormalizedOpCode.Ifacmpne:
                         ilGenerator.EmitBne_Un(block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.Goto:
@@ -2303,10 +2303,10 @@ namespace IKVM.Runtime
                             ilGenerator.Emit(OpCodes.Pop);
                         }
                         break;
-                    case NormalizedOpCode.__monitorenter:
+                    case NormalizedOpCode.Monitorenter:
                         ilGenerator.EmitMonitorEnter();
                         break;
-                    case NormalizedOpCode.__monitorexit:
+                    case NormalizedOpCode.Monitorexit:
                         ilGenerator.EmitMonitorExit();
                         break;
                     case NormalizedOpCode.__athrow_no_unmap:
@@ -2331,7 +2331,7 @@ namespace IKVM.Runtime
                             ilGenerator.Emit(OpCodes.Throw);
                         }
                         break;
-                    case NormalizedOpCode.__tableswitch:
+                    case NormalizedOpCode.TableSwitch:
                         {
                             // note that a tableswitch always has at least one entry
                             // (otherwise it would have failed verification)
@@ -2349,7 +2349,7 @@ namespace IKVM.Runtime
                             ilGenerator.EmitBr(block.GetLabel(instr.DefaultTarget));
                             break;
                         }
-                    case NormalizedOpCode.__lookupswitch:
+                    case NormalizedOpCode.LookupSwitch:
                         for (int j = 0; j < instr.SwitchEntryCount; j++)
                         {
                             ilGenerator.Emit(OpCodes.Dup);

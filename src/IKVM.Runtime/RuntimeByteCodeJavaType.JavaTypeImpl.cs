@@ -732,7 +732,7 @@ namespace IKVM.Runtime
                         // uses a goto to remove the (now unused) code
                         i = target;
                     }
-                    if (bc == NormalizedOpCode.__getstatic || bc == NormalizedOpCode.__putstatic)
+                    if (bc == NormalizedOpCode.Getstatic || bc == NormalizedOpCode.__putstatic)
                     {
                         var fld = classFile.SafeGetFieldref(checked((ushort)m.Instructions[i].Arg1));
                         if (fld == null || fld.Class != classFile.Name)
@@ -742,7 +742,7 @@ namespace IKVM.Runtime
                         }
                         // don't allow getstatic to load non-primitive fields, because that would
                         // cause the verifier to try to load the type
-                        if (bc == NormalizedOpCode.__getstatic && "L[".IndexOf(fld.Signature[0]) != -1)
+                        if (bc == NormalizedOpCode.Getstatic && "L[".IndexOf(fld.Signature[0]) != -1)
                         {
                             noop = false;
                             return false;
@@ -776,7 +776,7 @@ namespace IKVM.Runtime
                     }
                     else if (bc == NormalizedOpCode.__aconst_null
                         || (bc == NormalizedOpCode.__iconst && m.Instructions[i].Arg1 == 0)
-                        || bc == NormalizedOpCode.__return
+                        || bc == NormalizedOpCode.Return
                         || bc == NormalizedOpCode.Nop)
                     {
                         // valid instructions in a potential noop <clinit>
@@ -2711,7 +2711,7 @@ namespace IKVM.Runtime
                             !m.IsAbstract && !m.IsNative &&
                             (!m.IsFinal || classFile.IsFinal) &&
                             m.Instructions.Length > 0 &&
-                            m.Instructions[0].NormalizedOpCode == NormalizedOpCode.__return)
+                            m.Instructions[0].NormalizedOpCode == NormalizedOpCode.Return)
                         {
                             // we've got an empty finalize method, so we don't need to override the real finalizer
                             // (not having a finalizer makes a huge perf difference)

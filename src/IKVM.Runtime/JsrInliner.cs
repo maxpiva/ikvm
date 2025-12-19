@@ -184,14 +184,14 @@ namespace IKVM.Runtime
 
                         switch (inliner.m.Instructions[instructionIndex].NormalizedOpCode)
                         {
-                            case NormalizedOpCode.__tableswitch:
-                            case NormalizedOpCode.__lookupswitch:
-                            case NormalizedOpCode.__ireturn:
-                            case NormalizedOpCode.__lreturn:
-                            case NormalizedOpCode.__freturn:
-                            case NormalizedOpCode.__dreturn:
-                            case NormalizedOpCode.__areturn:
-                            case NormalizedOpCode.__return:
+                            case NormalizedOpCode.TableSwitch:
+                            case NormalizedOpCode.LookupSwitch:
+                            case NormalizedOpCode.Ireturn:
+                            case NormalizedOpCode.Lreturn:
+                            case NormalizedOpCode.Freturn:
+                            case NormalizedOpCode.Dreturn:
+                            case NormalizedOpCode.Areturn:
+                            case NormalizedOpCode.Return:
                             case NormalizedOpCode.Athrow:
                             case NormalizedOpCode.Goto:
                                 Emit(inliner.m.Instructions[instructionIndex]);
@@ -231,8 +231,8 @@ namespace IKVM.Runtime
                 {
                     switch (inliner.codeCopy[instructionIndex].NormalizedOpCode)
                     {
-                        case NormalizedOpCode.__lookupswitch:
-                        case NormalizedOpCode.__tableswitch:
+                        case NormalizedOpCode.LookupSwitch:
+                        case NormalizedOpCode.TableSwitch:
                             {
                                 var targets = new int[inliner.codeCopy[instructionIndex].SwitchEntryCount];
                                 for (int i = 0; i < targets.Length; i++)
@@ -242,22 +242,22 @@ namespace IKVM.Runtime
                                 inliner.codeCopy[instructionIndex].DefaultTarget = branchMap[inliner.codeCopy[instructionIndex].DefaultTarget];
                             }
                             break;
-                        case NormalizedOpCode.__ifeq:
-                        case NormalizedOpCode.__ifne:
+                        case NormalizedOpCode.Ifeq:
+                        case NormalizedOpCode.Ifne:
                         case NormalizedOpCode.Iflt:
-                        case NormalizedOpCode.__ifge:
-                        case NormalizedOpCode.__ifgt:
-                        case NormalizedOpCode.__ifle:
+                        case NormalizedOpCode.Ifge:
+                        case NormalizedOpCode.Ifgt:
+                        case NormalizedOpCode.Ifle:
                         case NormalizedOpCode.__if_icmpeq:
                         case NormalizedOpCode.__if_icmpne:
                         case NormalizedOpCode.__if_icmplt:
                         case NormalizedOpCode.__if_icmpge:
                         case NormalizedOpCode.__if_icmpgt:
-                        case NormalizedOpCode.__if_icmple:
-                        case NormalizedOpCode.__if_acmpeq:
-                        case NormalizedOpCode.__if_acmpne:
-                        case NormalizedOpCode.__ifnull:
-                        case NormalizedOpCode.__ifnonnull:
+                        case NormalizedOpCode.Ificmple:
+                        case NormalizedOpCode.Ifacmpeq:
+                        case NormalizedOpCode.Ifacmpne:
+                        case NormalizedOpCode.Ifnull:
+                        case NormalizedOpCode.Ifnonnull:
                         case NormalizedOpCode.Goto:
                         case NormalizedOpCode.Jsr:
                             inliner.codeCopy[instructionIndex].TargetIndex = branchMap[inliner.codeCopy[instructionIndex].TargetIndex];
@@ -558,7 +558,7 @@ namespace IKVM.Runtime
                                         s.PopPrimitive();
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.__arraylength:
+                                    case NormalizedOpCode.Arraylength:
                                         s.PopObjectType();
                                         s.PushPrimitive();
                                         break;
@@ -570,28 +570,28 @@ namespace IKVM.Runtime
                                     case NormalizedOpCode.__if_icmplt:
                                     case NormalizedOpCode.__if_icmpge:
                                     case NormalizedOpCode.__if_icmpgt:
-                                    case NormalizedOpCode.__if_icmple:
+                                    case NormalizedOpCode.Ificmple:
                                         s.PopPrimitive();
                                         s.PopPrimitive();
                                         break;
-                                    case NormalizedOpCode.__ifeq:
-                                    case NormalizedOpCode.__ifge:
-                                    case NormalizedOpCode.__ifgt:
-                                    case NormalizedOpCode.__ifle:
+                                    case NormalizedOpCode.Ifeq:
+                                    case NormalizedOpCode.Ifge:
+                                    case NormalizedOpCode.Ifgt:
+                                    case NormalizedOpCode.Ifle:
                                     case NormalizedOpCode.Iflt:
-                                    case NormalizedOpCode.__ifne:
+                                    case NormalizedOpCode.Ifne:
                                         s.PopPrimitive();
                                         break;
-                                    case NormalizedOpCode.__ifnonnull:
-                                    case NormalizedOpCode.__ifnull:
+                                    case NormalizedOpCode.Ifnonnull:
+                                    case NormalizedOpCode.Ifnull:
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.__if_acmpeq:
-                                    case NormalizedOpCode.__if_acmpne:
+                                    case NormalizedOpCode.Ifacmpeq:
+                                    case NormalizedOpCode.Ifacmpne:
                                         s.PopObjectType();
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.__getstatic:
+                                    case NormalizedOpCode.Getstatic:
                                         s.PushType(GetFieldref(instr.Arg1).Signature);
                                         break;
                                     case NormalizedOpCode.__putstatic:
@@ -728,7 +728,7 @@ namespace IKVM.Runtime
                                     case NormalizedOpCode.New:
                                         s.PushObject();
                                         break;
-                                    case NormalizedOpCode.__multianewarray:
+                                    case NormalizedOpCode.Multianewarray:
                                         {
                                             if (instr.Arg2 < 1)
                                                 throw new VerifyError("Illegal dimension argument");
@@ -892,25 +892,25 @@ namespace IKVM.Runtime
 
                                             break;
                                         }
-                                    case NormalizedOpCode.__monitorenter:
-                                    case NormalizedOpCode.__monitorexit:
+                                    case NormalizedOpCode.Monitorenter:
+                                    case NormalizedOpCode.Monitorexit:
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.__return:
+                                    case NormalizedOpCode.Return:
                                         break;
-                                    case NormalizedOpCode.__areturn:
+                                    case NormalizedOpCode.Areturn:
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.__ireturn:
+                                    case NormalizedOpCode.Ireturn:
                                         s.PopPrimitive();
                                         break;
-                                    case NormalizedOpCode.__lreturn:
+                                    case NormalizedOpCode.Lreturn:
                                         s.PopWidePrimitive();
                                         break;
-                                    case NormalizedOpCode.__freturn:
+                                    case NormalizedOpCode.Freturn:
                                         s.PopPrimitive();
                                         break;
-                                    case NormalizedOpCode.__dreturn:
+                                    case NormalizedOpCode.Dreturn:
                                         s.PopWidePrimitive();
                                         break;
                                     case NormalizedOpCode.__fload:
@@ -968,7 +968,7 @@ namespace IKVM.Runtime
                                         s.PopObjectType();
                                         s.PushObject();
                                         break;
-                                    case NormalizedOpCode.__instanceof:
+                                    case NormalizedOpCode.Instanceof:
                                         s.PopObjectType();
                                         s.PushPrimitive();
                                         break;
@@ -977,8 +977,8 @@ namespace IKVM.Runtime
                                     case NormalizedOpCode.Athrow:
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.__tableswitch:
-                                    case NormalizedOpCode.__lookupswitch:
+                                    case NormalizedOpCode.TableSwitch:
+                                    case NormalizedOpCode.LookupSwitch:
                                         s.PopPrimitive();
                                         break;
                                     case NormalizedOpCode.__i2b:
@@ -1076,30 +1076,30 @@ namespace IKVM.Runtime
                                     // another big switch to handle the opcode targets
                                     switch (instr.NormalizedOpCode)
                                     {
-                                        case NormalizedOpCode.__tableswitch:
-                                        case NormalizedOpCode.__lookupswitch:
+                                        case NormalizedOpCode.TableSwitch:
+                                        case NormalizedOpCode.LookupSwitch:
                                             for (int j = 0; j < instr.SwitchEntryCount; j++)
                                             {
                                                 _state[instr.GetSwitchTargetIndex(j)] += s;
                                             }
                                             _state[instr.DefaultTarget] += s;
                                             break;
-                                        case NormalizedOpCode.__ifeq:
-                                        case NormalizedOpCode.__ifne:
+                                        case NormalizedOpCode.Ifeq:
+                                        case NormalizedOpCode.Ifne:
                                         case NormalizedOpCode.Iflt:
-                                        case NormalizedOpCode.__ifge:
-                                        case NormalizedOpCode.__ifgt:
-                                        case NormalizedOpCode.__ifle:
+                                        case NormalizedOpCode.Ifge:
+                                        case NormalizedOpCode.Ifgt:
+                                        case NormalizedOpCode.Ifle:
                                         case NormalizedOpCode.__if_icmpeq:
                                         case NormalizedOpCode.__if_icmpne:
                                         case NormalizedOpCode.__if_icmplt:
                                         case NormalizedOpCode.__if_icmpge:
                                         case NormalizedOpCode.__if_icmpgt:
-                                        case NormalizedOpCode.__if_icmple:
-                                        case NormalizedOpCode.__if_acmpeq:
-                                        case NormalizedOpCode.__if_acmpne:
-                                        case NormalizedOpCode.__ifnull:
-                                        case NormalizedOpCode.__ifnonnull:
+                                        case NormalizedOpCode.Ificmple:
+                                        case NormalizedOpCode.Ifacmpeq:
+                                        case NormalizedOpCode.Ifacmpne:
+                                        case NormalizedOpCode.Ifnull:
+                                        case NormalizedOpCode.Ifnonnull:
                                             _state[i + 1] += s;
                                             _state[instr.TargetIndex] += s;
                                             break;
@@ -1144,12 +1144,12 @@ namespace IKVM.Runtime
 
                                                 break;
                                             }
-                                        case NormalizedOpCode.__ireturn:
-                                        case NormalizedOpCode.__lreturn:
-                                        case NormalizedOpCode.__freturn:
-                                        case NormalizedOpCode.__dreturn:
-                                        case NormalizedOpCode.__areturn:
-                                        case NormalizedOpCode.__return:
+                                        case NormalizedOpCode.Ireturn:
+                                        case NormalizedOpCode.Lreturn:
+                                        case NormalizedOpCode.Freturn:
+                                        case NormalizedOpCode.Dreturn:
+                                        case NormalizedOpCode.Areturn:
+                                        case NormalizedOpCode.Return:
                                         case NormalizedOpCode.Athrow:
                                             break;
                                         default:
@@ -1201,8 +1201,8 @@ namespace IKVM.Runtime
                             // mark the successor instructions
                             switch (instructions[i].NormalizedOpCode)
                             {
-                                case NormalizedOpCode.__tableswitch:
-                                case NormalizedOpCode.__lookupswitch:
+                                case NormalizedOpCode.TableSwitch:
+                                case NormalizedOpCode.LookupSwitch:
                                     {
                                         var hasbackbranch = false;
                                         for (int j = 0; j < instructions[i].SwitchEntryCount; j++)
@@ -1218,22 +1218,22 @@ namespace IKVM.Runtime
                                 case NormalizedOpCode.Goto:
                                     flags[instructions[i].TargetIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                                     break;
-                                case NormalizedOpCode.__ifeq:
-                                case NormalizedOpCode.__ifne:
+                                case NormalizedOpCode.Ifeq:
+                                case NormalizedOpCode.Ifne:
                                 case NormalizedOpCode.Iflt:
-                                case NormalizedOpCode.__ifge:
-                                case NormalizedOpCode.__ifgt:
-                                case NormalizedOpCode.__ifle:
+                                case NormalizedOpCode.Ifge:
+                                case NormalizedOpCode.Ifgt:
+                                case NormalizedOpCode.Ifle:
                                 case NormalizedOpCode.__if_icmpeq:
                                 case NormalizedOpCode.__if_icmpne:
                                 case NormalizedOpCode.__if_icmplt:
                                 case NormalizedOpCode.__if_icmpge:
                                 case NormalizedOpCode.__if_icmpgt:
-                                case NormalizedOpCode.__if_icmple:
-                                case NormalizedOpCode.__if_acmpeq:
-                                case NormalizedOpCode.__if_acmpne:
-                                case NormalizedOpCode.__ifnull:
-                                case NormalizedOpCode.__ifnonnull:
+                                case NormalizedOpCode.Ificmple:
+                                case NormalizedOpCode.Ifacmpeq:
+                                case NormalizedOpCode.Ifacmpne:
+                                case NormalizedOpCode.Ifnull:
+                                case NormalizedOpCode.Ifnonnull:
                                     flags[instructions[i].TargetIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                                     flags[i + 1] |= InstructionFlags.Reachable;
                                     break;
@@ -1251,12 +1251,12 @@ namespace IKVM.Runtime
                                     // We handle ret in the loop below.
                                     didJsrOrRet = true;
                                     break;
-                                case NormalizedOpCode.__ireturn:
-                                case NormalizedOpCode.__lreturn:
-                                case NormalizedOpCode.__freturn:
-                                case NormalizedOpCode.__dreturn:
-                                case NormalizedOpCode.__areturn:
-                                case NormalizedOpCode.__return:
+                                case NormalizedOpCode.Ireturn:
+                                case NormalizedOpCode.Lreturn:
+                                case NormalizedOpCode.Freturn:
+                                case NormalizedOpCode.Dreturn:
+                                case NormalizedOpCode.Areturn:
+                                case NormalizedOpCode.Return:
                                 case NormalizedOpCode.Athrow:
                                     break;
                                 default:

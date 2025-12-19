@@ -261,7 +261,7 @@ namespace IKVM.Runtime
                 || constructor.Instructions[0].NormalizedOpCode != NormalizedOpCode.__aload
                 || constructor.Instructions[0].NormalizedArg1 != 0
                 || constructor.Instructions[1].NormalizedOpCode != NormalizedOpCode.__invokespecial
-                || constructor.Instructions[2].NormalizedOpCode != NormalizedOpCode.__return)
+                || constructor.Instructions[2].NormalizedOpCode != NormalizedOpCode.Return)
             {
                 throw new VerifyError("Delegate constructor must be empty");
             }

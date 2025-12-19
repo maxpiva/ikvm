@@ -1228,7 +1228,7 @@ namespace IKVM.CoreLib.Linking
             if (method.Instructions is [
                 { NormalizedOpCode: NormalizedOpCode.Ldc },
                 { NormalizedOpCode: NormalizedOpCode.__invokevirtual },
-                { NormalizedOpCode: NormalizedOpCode.__ifne },
+                { NormalizedOpCode: NormalizedOpCode.Ifne },
                 { NormalizedOpCode: NormalizedOpCode.__iconst },
                 { NormalizedOpCode: NormalizedOpCode.Goto },
                 { NormalizedOpCode: NormalizedOpCode.__iconst },
@@ -1236,7 +1236,7 @@ namespace IKVM.CoreLib.Linking
                 ..] &&
                 method.Instructions[0].NormalizedOpCode == NormalizedOpCode.Ldc && SafeIsConstantPoolClass(new ClassConstantHandle(checked((ushort)method.Instructions[0].Arg1))) &&
                 method.Instructions[1].NormalizedOpCode == NormalizedOpCode.__invokevirtual && IsDesiredAssertionStatusMethodref(method.Instructions[1].Arg1) &&
-                method.Instructions[2].NormalizedOpCode == NormalizedOpCode.__ifne && method.Instructions[2].TargetIndex == 5 &&
+                method.Instructions[2].NormalizedOpCode == NormalizedOpCode.Ifne && method.Instructions[2].TargetIndex == 5 &&
                 method.Instructions[3].NormalizedOpCode == NormalizedOpCode.__iconst && method.Instructions[3].Arg1 == 1 &&
                 method.Instructions[4].NormalizedOpCode == NormalizedOpCode.Goto && method.Instructions[4].TargetIndex == 6 &&
                 method.Instructions[5].NormalizedOpCode == NormalizedOpCode.__iconst && method.Instructions[5].Arg1 == 0 &&
@@ -1265,30 +1265,30 @@ namespace IKVM.CoreLib.Linking
             {
                 switch (instructions[i].NormalizedOpCode)
                 {
-                    case NormalizedOpCode.__ifeq:
-                    case NormalizedOpCode.__ifne:
+                    case NormalizedOpCode.Ifeq:
+                    case NormalizedOpCode.Ifne:
                     case NormalizedOpCode.Iflt:
-                    case NormalizedOpCode.__ifge:
-                    case NormalizedOpCode.__ifgt:
-                    case NormalizedOpCode.__ifle:
+                    case NormalizedOpCode.Ifge:
+                    case NormalizedOpCode.Ifgt:
+                    case NormalizedOpCode.Ifle:
                     case NormalizedOpCode.__if_icmpeq:
                     case NormalizedOpCode.__if_icmpne:
                     case NormalizedOpCode.__if_icmplt:
                     case NormalizedOpCode.__if_icmpge:
                     case NormalizedOpCode.__if_icmpgt:
-                    case NormalizedOpCode.__if_icmple:
-                    case NormalizedOpCode.__if_acmpeq:
-                    case NormalizedOpCode.__if_acmpne:
-                    case NormalizedOpCode.__ifnull:
-                    case NormalizedOpCode.__ifnonnull:
+                    case NormalizedOpCode.Ificmple:
+                    case NormalizedOpCode.Ifacmpeq:
+                    case NormalizedOpCode.Ifacmpne:
+                    case NormalizedOpCode.Ifnull:
+                    case NormalizedOpCode.Ifnonnull:
                     case NormalizedOpCode.Goto:
                     case NormalizedOpCode.Jsr:
                         if (instructions[i].TargetIndex > regionStart && instructions[i].TargetIndex < regionEnd)
                             return true;
 
                         break;
-                    case NormalizedOpCode.__tableswitch:
-                    case NormalizedOpCode.__lookupswitch:
+                    case NormalizedOpCode.TableSwitch:
+                    case NormalizedOpCode.LookupSwitch:
                         if (instructions[i].DefaultTarget > regionStart && instructions[i].DefaultTarget < regionEnd)
                             return true;
 

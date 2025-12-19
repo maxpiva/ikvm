@@ -111,38 +111,38 @@ namespace IKVM.CoreLib.Linking
         {
             switch (opcode)
             {
-                case NormalizedOpCode.__tableswitch:
-                case NormalizedOpCode.__lookupswitch:
+                case NormalizedOpCode.TableSwitch:
+                case NormalizedOpCode.LookupSwitch:
                     return OpCodeFlowKind.Switch;
 
                 case NormalizedOpCode.Goto:
                 case NormalizedOpCode.__goto_finally:
                     return OpCodeFlowKind.Branch;
 
-                case NormalizedOpCode.__ifeq:
-                case NormalizedOpCode.__ifne:
+                case NormalizedOpCode.Ifeq:
+                case NormalizedOpCode.Ifne:
                 case NormalizedOpCode.Iflt:
-                case NormalizedOpCode.__ifge:
-                case NormalizedOpCode.__ifgt:
-                case NormalizedOpCode.__ifle:
+                case NormalizedOpCode.Ifge:
+                case NormalizedOpCode.Ifgt:
+                case NormalizedOpCode.Ifle:
                 case NormalizedOpCode.__if_icmpeq:
                 case NormalizedOpCode.__if_icmpne:
                 case NormalizedOpCode.__if_icmplt:
                 case NormalizedOpCode.__if_icmpge:
                 case NormalizedOpCode.__if_icmpgt:
-                case NormalizedOpCode.__if_icmple:
-                case NormalizedOpCode.__if_acmpeq:
-                case NormalizedOpCode.__if_acmpne:
-                case NormalizedOpCode.__ifnull:
-                case NormalizedOpCode.__ifnonnull:
+                case NormalizedOpCode.Ificmple:
+                case NormalizedOpCode.Ifacmpeq:
+                case NormalizedOpCode.Ifacmpne:
+                case NormalizedOpCode.Ifnull:
+                case NormalizedOpCode.Ifnonnull:
                     return OpCodeFlowKind.ConditionalBranch;
 
-                case NormalizedOpCode.__ireturn:
-                case NormalizedOpCode.__lreturn:
-                case NormalizedOpCode.__freturn:
-                case NormalizedOpCode.__dreturn:
-                case NormalizedOpCode.__areturn:
-                case NormalizedOpCode.__return:
+                case NormalizedOpCode.Ireturn:
+                case NormalizedOpCode.Lreturn:
+                case NormalizedOpCode.Freturn:
+                case NormalizedOpCode.Dreturn:
+                case NormalizedOpCode.Areturn:
+                case NormalizedOpCode.Return:
                     return OpCodeFlowKind.Return;
 
                 case NormalizedOpCode.Athrow:

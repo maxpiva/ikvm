@@ -370,7 +370,7 @@ namespace IKVM.Runtime
                                     s.PopInt();
                                     s.PopObjectType(_context.MethodAnalyzerFactory.FloatArrayType);
                                     break;
-                                case NormalizedOpCode.__arraylength:
+                                case NormalizedOpCode.Arraylength:
                                     s.PopArrayType();
                                     s.PushInt();
                                     break;
@@ -382,30 +382,30 @@ namespace IKVM.Runtime
                                 case NormalizedOpCode.__if_icmplt:
                                 case NormalizedOpCode.__if_icmpge:
                                 case NormalizedOpCode.__if_icmpgt:
-                                case NormalizedOpCode.__if_icmple:
+                                case NormalizedOpCode.Ificmple:
                                     s.PopInt();
                                     s.PopInt();
                                     break;
-                                case NormalizedOpCode.__ifeq:
-                                case NormalizedOpCode.__ifge:
-                                case NormalizedOpCode.__ifgt:
-                                case NormalizedOpCode.__ifle:
+                                case NormalizedOpCode.Ifeq:
+                                case NormalizedOpCode.Ifge:
+                                case NormalizedOpCode.Ifgt:
+                                case NormalizedOpCode.Ifle:
                                 case NormalizedOpCode.Iflt:
-                                case NormalizedOpCode.__ifne:
+                                case NormalizedOpCode.Ifne:
                                     s.PopInt();
                                     break;
-                                case NormalizedOpCode.__ifnonnull:
-                                case NormalizedOpCode.__ifnull:
+                                case NormalizedOpCode.Ifnonnull:
+                                case NormalizedOpCode.Ifnull:
                                     // TODO it might be legal to use an unitialized ref here
                                     s.PopObjectType();
                                     break;
-                                case NormalizedOpCode.__if_acmpeq:
-                                case NormalizedOpCode.__if_acmpne:
+                                case NormalizedOpCode.Ifacmpeq:
+                                case NormalizedOpCode.Ifacmpne:
                                     // TODO it might be legal to use an unitialized ref here
                                     s.PopObjectType();
                                     s.PopObjectType();
                                     break;
-                                case NormalizedOpCode.__getstatic:
+                                case NormalizedOpCode.Getstatic:
                                 case NormalizedOpCode.__dynamic_getstatic:
                                     // special support for when we're being called from IsSideEffectFreeStaticInitializer
                                     if (_method == null)
@@ -745,7 +745,7 @@ namespace IKVM.Runtime
                                         s.PushType(type);
                                         break;
                                     }
-                                case NormalizedOpCode.__multianewarray:
+                                case NormalizedOpCode.Multianewarray:
                                     {
                                         if (inst.Arg2 < 1)
                                             throw new VerifyError("Illegal dimension argument");
@@ -948,13 +948,13 @@ namespace IKVM.Runtime
 
                                         break;
                                     }
-                                case NormalizedOpCode.__monitorenter:
-                                case NormalizedOpCode.__monitorexit:
+                                case NormalizedOpCode.Monitorenter:
+                                case NormalizedOpCode.Monitorexit:
                                     // TODO these bytecodes are allowed on an uninitialized object, but
                                     // we don't support that at the moment...
                                     s.PopObjectType();
                                     break;
-                                case NormalizedOpCode.__return:
+                                case NormalizedOpCode.Return:
                                     // mw is null if we're called from IsSideEffectFreeStaticInitializer
                                     if (_method != null)
                                     {
@@ -965,10 +965,10 @@ namespace IKVM.Runtime
                                         s.CheckUninitializedThis();
                                     }
                                     break;
-                                case NormalizedOpCode.__areturn:
+                                case NormalizedOpCode.Areturn:
                                     s.PopObjectType(_method.ReturnType);
                                     break;
-                                case NormalizedOpCode.__ireturn:
+                                case NormalizedOpCode.Ireturn:
                                     {
                                         s.PopInt();
                                         if (!_method.ReturnType.IsIntOnStackPrimitive)
@@ -976,19 +976,19 @@ namespace IKVM.Runtime
 
                                         break;
                                     }
-                                case NormalizedOpCode.__lreturn:
+                                case NormalizedOpCode.Lreturn:
                                     s.PopLong();
                                     if (_method.ReturnType != _context.PrimitiveJavaTypeFactory.LONG)
                                         throw new VerifyError("Wrong return type in function");
 
                                     break;
-                                case NormalizedOpCode.__freturn:
+                                case NormalizedOpCode.Freturn:
                                     s.PopFloat();
                                     if (_method.ReturnType != _context.PrimitiveJavaTypeFactory.FLOAT)
                                         throw new VerifyError("Wrong return type in function");
 
                                     break;
-                                case NormalizedOpCode.__dreturn:
+                                case NormalizedOpCode.Dreturn:
                                     s.PopDouble();
                                     if (_method.ReturnType != _context.PrimitiveJavaTypeFactory.DOUBLE)
                                         throw new VerifyError("Wrong return type in function");
@@ -1052,7 +1052,7 @@ namespace IKVM.Runtime
                                     s.PopObjectType();
                                     s.PushType(GetConstantPoolClassType(inst.Arg1));
                                     break;
-                                case NormalizedOpCode.__instanceof:
+                                case NormalizedOpCode.Instanceof:
                                     s.PopObjectType();
                                     s.PushInt();
                                     break;
@@ -1065,8 +1065,8 @@ namespace IKVM.Runtime
                                     else
                                         s.PopObjectType(_context.JavaBase.TypeOfjavaLangThrowable);
                                     break;
-                                case NormalizedOpCode.__tableswitch:
-                                case NormalizedOpCode.__lookupswitch:
+                                case NormalizedOpCode.TableSwitch:
+                                case NormalizedOpCode.LookupSwitch:
                                     s.PopInt();
                                     break;
                                 case NormalizedOpCode.__i2b:
@@ -1407,8 +1407,8 @@ namespace IKVM.Runtime
                     var instructions = method.Instructions;
                     for (int i = 0; i < instructions.Length; i++)
                     {
-                        if (instructions[i].NormalizedOpCode == NormalizedOpCode.__getstatic &&
-                            instructions[i + 1].NormalizedOpCode == NormalizedOpCode.__ifne &&
+                        if (instructions[i].NormalizedOpCode == NormalizedOpCode.Getstatic &&
+                            instructions[i + 1].NormalizedOpCode == NormalizedOpCode.Ifne &&
                             instructions[i + 1].TargetIndex > i &&
                             (flags[i + 1] & InstructionFlags.BranchTarget) == 0)
                         {
@@ -1447,7 +1447,7 @@ namespace IKVM.Runtime
                                 break;
                             case NormalizedOpCode.__getfield:
                             case NormalizedOpCode.__putfield:
-                            case NormalizedOpCode.__getstatic:
+                            case NormalizedOpCode.Getstatic:
                             case NormalizedOpCode.__putstatic:
                                 PatchFieldAccess(wrapper, mw, ref instructions[i], stack);
                                 break;
@@ -1498,7 +1498,7 @@ namespace IKVM.Runtime
 
                                     break;
                                 }
-                            case NormalizedOpCode.__multianewarray:
+                            case NormalizedOpCode.Multianewarray:
                             case NormalizedOpCode.__anewarray:
                                 {
                                     var tw = _classFile.GetConstantPoolClassType(instructions[i].Arg1);
@@ -1514,7 +1514,7 @@ namespace IKVM.Runtime
                                     break;
                                 }
                             case NormalizedOpCode.Checkcast:
-                            case NormalizedOpCode.__instanceof:
+                            case NormalizedOpCode.Instanceof:
                                 {
                                     var tw = _classFile.GetConstantPoolClassType(instructions[i].Arg1);
                                     if (tw.IsUnloadable)
@@ -1766,7 +1766,7 @@ namespace IKVM.Runtime
                     if (index + 2 < instructions.Length &&
                         ei.EndIndex == index + 2 &&
                         instructions[index].NormalizedOpCode == NormalizedOpCode.__aload &&
-                        instructions[index + 1].NormalizedOpCode == NormalizedOpCode.__monitorexit &&
+                        instructions[index + 1].NormalizedOpCode == NormalizedOpCode.Monitorexit &&
                         instructions[index + 2].NormalizedOpCode == NormalizedOpCode.Athrow)
                     {
                         // this is the async exception guard that Jikes and the Eclipse Java Compiler produce
@@ -1777,7 +1777,7 @@ namespace IKVM.Runtime
                         ei.EndIndex == index + 3 &&
                         instructions[index].NormalizedOpCode == NormalizedOpCode.__astore &&
                         instructions[index + 1].NormalizedOpCode == NormalizedOpCode.__aload &&
-                        instructions[index + 2].NormalizedOpCode == NormalizedOpCode.__monitorexit &&
+                        instructions[index + 2].NormalizedOpCode == NormalizedOpCode.Monitorexit &&
                         instructions[index + 3].NormalizedOpCode == NormalizedOpCode.__aload &&
                         instructions[index + 4].NormalizedOpCode == NormalizedOpCode.Athrow &&
                         instructions[index].NormalizedArg1 == instructions[index + 3].NormalizedArg1)
@@ -1861,8 +1861,8 @@ namespace IKVM.Runtime
                     {
                         switch (instructions[j].NormalizedOpCode)
                         {
-                            case NormalizedOpCode.__tableswitch:
-                            case NormalizedOpCode.__lookupswitch:
+                            case NormalizedOpCode.TableSwitch:
+                            case NormalizedOpCode.LookupSwitch:
                                 // start at -1 to have an opportunity to handle the default offset
                                 for (int k = -1; k < instructions[j].SwitchEntryCount; k++)
                                 {
@@ -1877,22 +1877,22 @@ namespace IKVM.Runtime
                                     }
                                 }
                                 break;
-                            case NormalizedOpCode.__ifeq:
-                            case NormalizedOpCode.__ifne:
+                            case NormalizedOpCode.Ifeq:
+                            case NormalizedOpCode.Ifne:
                             case NormalizedOpCode.Iflt:
-                            case NormalizedOpCode.__ifge:
-                            case NormalizedOpCode.__ifgt:
-                            case NormalizedOpCode.__ifle:
+                            case NormalizedOpCode.Ifge:
+                            case NormalizedOpCode.Ifgt:
+                            case NormalizedOpCode.Ifle:
                             case NormalizedOpCode.__if_icmpeq:
                             case NormalizedOpCode.__if_icmpne:
                             case NormalizedOpCode.__if_icmplt:
                             case NormalizedOpCode.__if_icmpge:
                             case NormalizedOpCode.__if_icmpgt:
-                            case NormalizedOpCode.__if_icmple:
-                            case NormalizedOpCode.__if_acmpeq:
-                            case NormalizedOpCode.__if_acmpne:
-                            case NormalizedOpCode.__ifnull:
-                            case NormalizedOpCode.__ifnonnull:
+                            case NormalizedOpCode.Ificmple:
+                            case NormalizedOpCode.Ifacmpeq:
+                            case NormalizedOpCode.Ifacmpne:
+                            case NormalizedOpCode.Ifnull:
+                            case NormalizedOpCode.Ifnonnull:
                             case NormalizedOpCode.Goto:
                                 {
                                     int targetIndex = instructions[j].Arg1;
@@ -1979,12 +1979,12 @@ namespace IKVM.Runtime
                                 case NormalizedOpCode.Pop:
                                 case NormalizedOpCode.__pop2:
                                     break;
-                                case NormalizedOpCode.__return:
-                                case NormalizedOpCode.__areturn:
-                                case NormalizedOpCode.__ireturn:
-                                case NormalizedOpCode.__lreturn:
-                                case NormalizedOpCode.__freturn:
-                                case NormalizedOpCode.__dreturn:
+                                case NormalizedOpCode.Return:
+                                case NormalizedOpCode.Areturn:
+                                case NormalizedOpCode.Ireturn:
+                                case NormalizedOpCode.Lreturn:
+                                case NormalizedOpCode.Freturn:
+                                case NormalizedOpCode.Dreturn:
                                     break;
                                 case NormalizedOpCode.Goto:
                                     // if there is a branch that stays inside the block, we should keep the block
@@ -2026,12 +2026,12 @@ namespace IKVM.Runtime
         static bool IsReturn(NormalizedOpCode bc)
         {
             return bc is
-                NormalizedOpCode.__return or
-                NormalizedOpCode.__areturn or
-                NormalizedOpCode.__dreturn or
-                NormalizedOpCode.__ireturn or
-                NormalizedOpCode.__freturn or
-                NormalizedOpCode.__lreturn;
+                NormalizedOpCode.Return or
+                NormalizedOpCode.Areturn or
+                NormalizedOpCode.Dreturn or
+                NormalizedOpCode.Ireturn or
+                NormalizedOpCode.Freturn or
+                NormalizedOpCode.Lreturn;
         }
 
         static bool AnalyzePotentialFaultBlocks(CodeInfo codeInfo, Method method, UntangledExceptionTable exceptions)
@@ -2062,12 +2062,12 @@ namespace IKVM.Runtime
                             {
                                 switch (code[j].NormalizedOpCode)
                                 {
-                                    case NormalizedOpCode.__return:
-                                    case NormalizedOpCode.__areturn:
-                                    case NormalizedOpCode.__ireturn:
-                                    case NormalizedOpCode.__lreturn:
-                                    case NormalizedOpCode.__freturn:
-                                    case NormalizedOpCode.__dreturn:
+                                    case NormalizedOpCode.Return:
+                                    case NormalizedOpCode.Areturn:
+                                    case NormalizedOpCode.Ireturn:
+                                    case NormalizedOpCode.Lreturn:
+                                    case NormalizedOpCode.Freturn:
+                                    case NormalizedOpCode.Dreturn:
                                         goto not_fault_block;
                                     case NormalizedOpCode.Athrow:
                                         for (int k = i + 1; k < exceptions.Length; k++)
@@ -2161,7 +2161,7 @@ namespace IKVM.Runtime
             return
                 code[index].NormalizedOpCode == NormalizedOpCode.__astore &&
                 code[index + 1].NormalizedOpCode == NormalizedOpCode.__aload &&
-                code[index + 2].NormalizedOpCode == NormalizedOpCode.__monitorexit &&
+                code[index + 2].NormalizedOpCode == NormalizedOpCode.Monitorexit &&
                 code[index + 3].NormalizedOpCode == NormalizedOpCode.__aload &&
                 code[index + 3].Arg1 == code[index].Arg1 &&
                 code[index + 4].NormalizedOpCode == NormalizedOpCode.Athrow;
@@ -2570,7 +2570,7 @@ namespace IKVM.Runtime
                         thisType = SigTypeToClassName(stack.PopObjectType(GetFieldref(instr.Arg1).GetClassType()), cpi.GetClassType(), wrapper);
                     }
                     break;
-                case NormalizedOpCode.__getstatic:
+                case NormalizedOpCode.Getstatic:
                     isStatic = true;
                     write = false;
                     thisType = null;
@@ -2635,7 +2635,7 @@ namespace IKVM.Runtime
                 {
                     switch (instr.NormalizedOpCode)
                     {
-                        case NormalizedOpCode.__getstatic:
+                        case NormalizedOpCode.Getstatic:
                             instr.PatchOpCode(NormalizedOpCode.__dynamic_getstatic);
                             break;
                         case NormalizedOpCode.__putstatic:
