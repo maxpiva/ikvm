@@ -123,16 +123,16 @@ namespace IKVM.CoreLib.Linking
                         case NormalizedOpCode.Ifge:
                         case NormalizedOpCode.Ifgt:
                         case NormalizedOpCode.Ifle:
-                        case NormalizedOpCode.Ificmpeq:
-                        case NormalizedOpCode.Ificmpne:
-                        case NormalizedOpCode.Ificmplt:
-                        case NormalizedOpCode.Ificmpge:
-                        case NormalizedOpCode.Ificmpgt:
-                        case NormalizedOpCode.Ificmple:
-                        case NormalizedOpCode.Ifacmpeq:
-                        case NormalizedOpCode.Ifacmpne:
-                        case NormalizedOpCode.Ifnull:
-                        case NormalizedOpCode.Ifnonnull:
+                        case NormalizedOpCode.IfIcmpeq:
+                        case NormalizedOpCode.IfIcmpne:
+                        case NormalizedOpCode.IfIcmplt:
+                        case NormalizedOpCode.IfIcmpge:
+                        case NormalizedOpCode.IfIcmpgt:
+                        case NormalizedOpCode.IfIcmple:
+                        case NormalizedOpCode.IfAcmpeq:
+                        case NormalizedOpCode.IfAcmpne:
+                        case NormalizedOpCode.IfNull:
+                        case NormalizedOpCode.IfNonNull:
                         case NormalizedOpCode.Goto:
                         case NormalizedOpCode.Jsr:
                             this._instructions[i].SetTargetIndex(pcIndexMap[this._instructions[i].Arg1 + this._instructions[i].PC]);

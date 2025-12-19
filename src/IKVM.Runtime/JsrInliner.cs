@@ -248,16 +248,16 @@ namespace IKVM.Runtime
                         case NormalizedOpCode.Ifge:
                         case NormalizedOpCode.Ifgt:
                         case NormalizedOpCode.Ifle:
-                        case NormalizedOpCode.Ificmpeq:
-                        case NormalizedOpCode.Ificmpne:
-                        case NormalizedOpCode.Ificmplt:
-                        case NormalizedOpCode.Ificmpge:
-                        case NormalizedOpCode.Ificmpgt:
-                        case NormalizedOpCode.Ificmple:
-                        case NormalizedOpCode.Ifacmpeq:
-                        case NormalizedOpCode.Ifacmpne:
-                        case NormalizedOpCode.Ifnull:
-                        case NormalizedOpCode.Ifnonnull:
+                        case NormalizedOpCode.IfIcmpeq:
+                        case NormalizedOpCode.IfIcmpne:
+                        case NormalizedOpCode.IfIcmplt:
+                        case NormalizedOpCode.IfIcmpge:
+                        case NormalizedOpCode.IfIcmpgt:
+                        case NormalizedOpCode.IfIcmple:
+                        case NormalizedOpCode.IfAcmpeq:
+                        case NormalizedOpCode.IfAcmpne:
+                        case NormalizedOpCode.IfNull:
+                        case NormalizedOpCode.IfNonNull:
                         case NormalizedOpCode.Goto:
                         case NormalizedOpCode.Jsr:
                             inliner.codeCopy[instructionIndex].TargetIndex = branchMap[inliner.codeCopy[instructionIndex].TargetIndex];
@@ -565,12 +565,12 @@ namespace IKVM.Runtime
                                     case NormalizedOpCode.Iconst:
                                         s.PushPrimitive();
                                         break;
-                                    case NormalizedOpCode.Ificmpeq:
-                                    case NormalizedOpCode.Ificmpne:
-                                    case NormalizedOpCode.Ificmplt:
-                                    case NormalizedOpCode.Ificmpge:
-                                    case NormalizedOpCode.Ificmpgt:
-                                    case NormalizedOpCode.Ificmple:
+                                    case NormalizedOpCode.IfIcmpeq:
+                                    case NormalizedOpCode.IfIcmpne:
+                                    case NormalizedOpCode.IfIcmplt:
+                                    case NormalizedOpCode.IfIcmpge:
+                                    case NormalizedOpCode.IfIcmpgt:
+                                    case NormalizedOpCode.IfIcmple:
                                         s.PopPrimitive();
                                         s.PopPrimitive();
                                         break;
@@ -582,12 +582,12 @@ namespace IKVM.Runtime
                                     case NormalizedOpCode.Ifne:
                                         s.PopPrimitive();
                                         break;
-                                    case NormalizedOpCode.Ifnonnull:
-                                    case NormalizedOpCode.Ifnull:
+                                    case NormalizedOpCode.IfNonNull:
+                                    case NormalizedOpCode.IfNull:
                                         s.PopObjectType();
                                         break;
-                                    case NormalizedOpCode.Ifacmpeq:
-                                    case NormalizedOpCode.Ifacmpne:
+                                    case NormalizedOpCode.IfAcmpeq:
+                                    case NormalizedOpCode.IfAcmpne:
                                         s.PopObjectType();
                                         s.PopObjectType();
                                         break;
@@ -892,8 +892,8 @@ namespace IKVM.Runtime
 
                                             break;
                                         }
-                                    case NormalizedOpCode.Monitorenter:
-                                    case NormalizedOpCode.Monitorexit:
+                                    case NormalizedOpCode.MonitorEnter:
+                                    case NormalizedOpCode.MonitorExit:
                                         s.PopObjectType();
                                         break;
                                     case NormalizedOpCode.Return:
@@ -968,7 +968,7 @@ namespace IKVM.Runtime
                                         s.PopObjectType();
                                         s.PushObject();
                                         break;
-                                    case NormalizedOpCode.Instanceof:
+                                    case NormalizedOpCode.InstanceOf:
                                         s.PopObjectType();
                                         s.PushPrimitive();
                                         break;
@@ -1090,16 +1090,16 @@ namespace IKVM.Runtime
                                         case NormalizedOpCode.Ifge:
                                         case NormalizedOpCode.Ifgt:
                                         case NormalizedOpCode.Ifle:
-                                        case NormalizedOpCode.Ificmpeq:
-                                        case NormalizedOpCode.Ificmpne:
-                                        case NormalizedOpCode.Ificmplt:
-                                        case NormalizedOpCode.Ificmpge:
-                                        case NormalizedOpCode.Ificmpgt:
-                                        case NormalizedOpCode.Ificmple:
-                                        case NormalizedOpCode.Ifacmpeq:
-                                        case NormalizedOpCode.Ifacmpne:
-                                        case NormalizedOpCode.Ifnull:
-                                        case NormalizedOpCode.Ifnonnull:
+                                        case NormalizedOpCode.IfIcmpeq:
+                                        case NormalizedOpCode.IfIcmpne:
+                                        case NormalizedOpCode.IfIcmplt:
+                                        case NormalizedOpCode.IfIcmpge:
+                                        case NormalizedOpCode.IfIcmpgt:
+                                        case NormalizedOpCode.IfIcmple:
+                                        case NormalizedOpCode.IfAcmpeq:
+                                        case NormalizedOpCode.IfAcmpne:
+                                        case NormalizedOpCode.IfNull:
+                                        case NormalizedOpCode.IfNonNull:
                                             _state[i + 1] += s;
                                             _state[instr.TargetIndex] += s;
                                             break;
@@ -1224,16 +1224,16 @@ namespace IKVM.Runtime
                                 case NormalizedOpCode.Ifge:
                                 case NormalizedOpCode.Ifgt:
                                 case NormalizedOpCode.Ifle:
-                                case NormalizedOpCode.Ificmpeq:
-                                case NormalizedOpCode.Ificmpne:
-                                case NormalizedOpCode.Ificmplt:
-                                case NormalizedOpCode.Ificmpge:
-                                case NormalizedOpCode.Ificmpgt:
-                                case NormalizedOpCode.Ificmple:
-                                case NormalizedOpCode.Ifacmpeq:
-                                case NormalizedOpCode.Ifacmpne:
-                                case NormalizedOpCode.Ifnull:
-                                case NormalizedOpCode.Ifnonnull:
+                                case NormalizedOpCode.IfIcmpeq:
+                                case NormalizedOpCode.IfIcmpne:
+                                case NormalizedOpCode.IfIcmplt:
+                                case NormalizedOpCode.IfIcmpge:
+                                case NormalizedOpCode.IfIcmpgt:
+                                case NormalizedOpCode.IfIcmple:
+                                case NormalizedOpCode.IfAcmpeq:
+                                case NormalizedOpCode.IfAcmpne:
+                                case NormalizedOpCode.IfNull:
+                                case NormalizedOpCode.IfNonNull:
                                     flags[instructions[i].TargetIndex] |= InstructionFlags.Reachable | InstructionFlags.BranchTarget;
                                     flags[i + 1] |= InstructionFlags.Reachable;
                                     break;

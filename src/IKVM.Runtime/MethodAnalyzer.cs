@@ -377,12 +377,12 @@ namespace IKVM.Runtime
                                 case NormalizedOpCode.Iconst:
                                     s.PushInt();
                                     break;
-                                case NormalizedOpCode.Ificmpeq:
-                                case NormalizedOpCode.Ificmpne:
-                                case NormalizedOpCode.Ificmplt:
-                                case NormalizedOpCode.Ificmpge:
-                                case NormalizedOpCode.Ificmpgt:
-                                case NormalizedOpCode.Ificmple:
+                                case NormalizedOpCode.IfIcmpeq:
+                                case NormalizedOpCode.IfIcmpne:
+                                case NormalizedOpCode.IfIcmplt:
+                                case NormalizedOpCode.IfIcmpge:
+                                case NormalizedOpCode.IfIcmpgt:
+                                case NormalizedOpCode.IfIcmple:
                                     s.PopInt();
                                     s.PopInt();
                                     break;
@@ -394,13 +394,13 @@ namespace IKVM.Runtime
                                 case NormalizedOpCode.Ifne:
                                     s.PopInt();
                                     break;
-                                case NormalizedOpCode.Ifnonnull:
-                                case NormalizedOpCode.Ifnull:
+                                case NormalizedOpCode.IfNonNull:
+                                case NormalizedOpCode.IfNull:
                                     // TODO it might be legal to use an unitialized ref here
                                     s.PopObjectType();
                                     break;
-                                case NormalizedOpCode.Ifacmpeq:
-                                case NormalizedOpCode.Ifacmpne:
+                                case NormalizedOpCode.IfAcmpeq:
+                                case NormalizedOpCode.IfAcmpne:
                                     // TODO it might be legal to use an unitialized ref here
                                     s.PopObjectType();
                                     s.PopObjectType();
@@ -948,8 +948,8 @@ namespace IKVM.Runtime
 
                                         break;
                                     }
-                                case NormalizedOpCode.Monitorenter:
-                                case NormalizedOpCode.Monitorexit:
+                                case NormalizedOpCode.MonitorEnter:
+                                case NormalizedOpCode.MonitorExit:
                                     // TODO these bytecodes are allowed on an uninitialized object, but
                                     // we don't support that at the moment...
                                     s.PopObjectType();
@@ -1052,7 +1052,7 @@ namespace IKVM.Runtime
                                     s.PopObjectType();
                                     s.PushType(GetConstantPoolClassType(inst.Arg1));
                                     break;
-                                case NormalizedOpCode.Instanceof:
+                                case NormalizedOpCode.InstanceOf:
                                     s.PopObjectType();
                                     s.PushInt();
                                     break;
@@ -1514,7 +1514,7 @@ namespace IKVM.Runtime
                                     break;
                                 }
                             case NormalizedOpCode.Checkcast:
-                            case NormalizedOpCode.Instanceof:
+                            case NormalizedOpCode.InstanceOf:
                                 {
                                     var tw = _classFile.GetConstantPoolClassType(instructions[i].Arg1);
                                     if (tw.IsUnloadable)
@@ -1766,7 +1766,7 @@ namespace IKVM.Runtime
                     if (index + 2 < instructions.Length &&
                         ei.EndIndex == index + 2 &&
                         instructions[index].NormalizedOpCode == NormalizedOpCode.Aload &&
-                        instructions[index + 1].NormalizedOpCode == NormalizedOpCode.Monitorexit &&
+                        instructions[index + 1].NormalizedOpCode == NormalizedOpCode.MonitorExit &&
                         instructions[index + 2].NormalizedOpCode == NormalizedOpCode.Athrow)
                     {
                         // this is the async exception guard that Jikes and the Eclipse Java Compiler produce
@@ -1777,7 +1777,7 @@ namespace IKVM.Runtime
                         ei.EndIndex == index + 3 &&
                         instructions[index].NormalizedOpCode == NormalizedOpCode.Astore &&
                         instructions[index + 1].NormalizedOpCode == NormalizedOpCode.Aload &&
-                        instructions[index + 2].NormalizedOpCode == NormalizedOpCode.Monitorexit &&
+                        instructions[index + 2].NormalizedOpCode == NormalizedOpCode.MonitorExit &&
                         instructions[index + 3].NormalizedOpCode == NormalizedOpCode.Aload &&
                         instructions[index + 4].NormalizedOpCode == NormalizedOpCode.Athrow &&
                         instructions[index].NormalizedArg1 == instructions[index + 3].NormalizedArg1)
@@ -1883,16 +1883,16 @@ namespace IKVM.Runtime
                             case NormalizedOpCode.Ifge:
                             case NormalizedOpCode.Ifgt:
                             case NormalizedOpCode.Ifle:
-                            case NormalizedOpCode.Ificmpeq:
-                            case NormalizedOpCode.Ificmpne:
-                            case NormalizedOpCode.Ificmplt:
-                            case NormalizedOpCode.Ificmpge:
-                            case NormalizedOpCode.Ificmpgt:
-                            case NormalizedOpCode.Ificmple:
-                            case NormalizedOpCode.Ifacmpeq:
-                            case NormalizedOpCode.Ifacmpne:
-                            case NormalizedOpCode.Ifnull:
-                            case NormalizedOpCode.Ifnonnull:
+                            case NormalizedOpCode.IfIcmpeq:
+                            case NormalizedOpCode.IfIcmpne:
+                            case NormalizedOpCode.IfIcmplt:
+                            case NormalizedOpCode.IfIcmpge:
+                            case NormalizedOpCode.IfIcmpgt:
+                            case NormalizedOpCode.IfIcmple:
+                            case NormalizedOpCode.IfAcmpeq:
+                            case NormalizedOpCode.IfAcmpne:
+                            case NormalizedOpCode.IfNull:
+                            case NormalizedOpCode.IfNonNull:
                             case NormalizedOpCode.Goto:
                                 {
                                     int targetIndex = instructions[j].Arg1;
@@ -2161,7 +2161,7 @@ namespace IKVM.Runtime
             return
                 code[index].NormalizedOpCode == NormalizedOpCode.Astore &&
                 code[index + 1].NormalizedOpCode == NormalizedOpCode.Aload &&
-                code[index + 2].NormalizedOpCode == NormalizedOpCode.Monitorexit &&
+                code[index + 2].NormalizedOpCode == NormalizedOpCode.MonitorExit &&
                 code[index + 3].NormalizedOpCode == NormalizedOpCode.Aload &&
                 code[index + 3].Arg1 == code[index].Arg1 &&
                 code[index + 4].NormalizedOpCode == NormalizedOpCode.Athrow;

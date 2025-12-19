@@ -189,7 +189,7 @@ namespace IKVM.Runtime
                 return true;
             }
             // this optimizes obj1.getClass() ==/!= obj2.getClass()
-            else if (eic.MatchRange(0, 4) && eic.Match(1, NormalizedOpCode.Aload) && eic.Match(2, NormalizedOpCode.InvokeVirtual) && (eic.Match(3, NormalizedOpCode.Ifacmpeq) || eic.Match(3, NormalizedOpCode.Ifacmpne)) && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
+            else if (eic.MatchRange(0, 4) && eic.Match(1, NormalizedOpCode.Aload) && eic.Match(2, NormalizedOpCode.InvokeVirtual) && (eic.Match(3, NormalizedOpCode.IfAcmpeq) || eic.Match(3, NormalizedOpCode.IfAcmpne)) && (IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(0, 0)) || IsSafeForGetClassOptimization(eic.GetStackTypeWrapper(2, 0))))
             {
                 var cpi = eic.GetMethodref(2);
                 if (cpi.Class == "java.lang.Object" && cpi.Name == "getClass" && cpi.Signature == "()Ljava.lang.Class;")
@@ -201,7 +201,7 @@ namespace IKVM.Runtime
                 }
             }
             // this optimizes obj.getClass() == Xxx.class
-            else if (eic.MatchRange(0, 3) && eic.Match(1, NormalizedOpCode.Ldc) && eic.GetConstantType(1) == ConstantType.Class && (eic.Match(2, NormalizedOpCode.Ifacmpeq) || eic.Match(2, NormalizedOpCode.Ifacmpne)))
+            else if (eic.MatchRange(0, 3) && eic.Match(1, NormalizedOpCode.Ldc) && eic.GetConstantType(1) == ConstantType.Class && (eic.Match(2, NormalizedOpCode.IfAcmpeq) || eic.Match(2, NormalizedOpCode.IfAcmpne)))
             {
                 var tw = eic.GetClassLiteral(1);
                 if (tw.IsGhost || tw.IsGhostArray || tw.IsUnloadable || (tw.IsRemapped && tw.IsFinal && tw is RuntimeManagedJavaType))

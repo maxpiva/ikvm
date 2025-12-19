@@ -1754,7 +1754,7 @@ namespace IKVM.Runtime
 
                             break;
                         }
-                    case NormalizedOpCode.Instanceof:
+                    case NormalizedOpCode.InstanceOf:
                         {
                             var wrapper = classFile.GetConstantPoolClassType(instr.Arg1);
                             if (wrapper.IsUnloadable)
@@ -1893,22 +1893,22 @@ namespace IKVM.Runtime
                     case NormalizedOpCode.Dcmpg:
                         ilGenerator.Emit_dcmpg();
                         break;
-                    case NormalizedOpCode.Ificmpeq:
+                    case NormalizedOpCode.IfIcmpeq:
                         ilGenerator.EmitBeq(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ificmpne:
+                    case NormalizedOpCode.IfIcmpne:
                         ilGenerator.EmitBne_Un(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ificmple:
+                    case NormalizedOpCode.IfIcmple:
                         ilGenerator.EmitBle(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ificmplt:
+                    case NormalizedOpCode.IfIcmplt:
                         ilGenerator.EmitBlt(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ificmpge:
+                    case NormalizedOpCode.IfIcmpge:
                         ilGenerator.EmitBge(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ificmpgt:
+                    case NormalizedOpCode.IfIcmpgt:
                         ilGenerator.EmitBgt(block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.Ifle:
@@ -1924,17 +1924,17 @@ namespace IKVM.Runtime
                         ilGenerator.Emit_if_le_lt_ge_gt(CodeEmitter.Comparison.GreaterThan, block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.Ifne:
-                    case NormalizedOpCode.Ifnonnull:
+                    case NormalizedOpCode.IfNonNull:
                         ilGenerator.EmitBrtrue(block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.Ifeq:
-                    case NormalizedOpCode.Ifnull:
+                    case NormalizedOpCode.IfNull:
                         ilGenerator.EmitBrfalse(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ifacmpeq:
+                    case NormalizedOpCode.IfAcmpeq:
                         ilGenerator.EmitBeq(block.GetLabel(instr.TargetIndex));
                         break;
-                    case NormalizedOpCode.Ifacmpne:
+                    case NormalizedOpCode.IfAcmpne:
                         ilGenerator.EmitBne_Un(block.GetLabel(instr.TargetIndex));
                         break;
                     case NormalizedOpCode.Goto:
@@ -2303,10 +2303,10 @@ namespace IKVM.Runtime
                             ilGenerator.Emit(OpCodes.Pop);
                         }
                         break;
-                    case NormalizedOpCode.Monitorenter:
+                    case NormalizedOpCode.MonitorEnter:
                         ilGenerator.EmitMonitorEnter();
                         break;
-                    case NormalizedOpCode.Monitorexit:
+                    case NormalizedOpCode.MonitorExit:
                         ilGenerator.EmitMonitorExit();
                         break;
                     case NormalizedOpCode.AthrowNoUnmap:
