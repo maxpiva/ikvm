@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentAssertions" Version="6.8.0" />
+        <PackageReference Include="FluentAssertions" Version="8.8.0" />
     </ItemGroup>
 
     <ItemGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net461'))">
@@ -16,8 +16,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\IKVM.Java.Tests.Util\IKVM.Java.Tests.Util.csproj" />
-        <ProjectReference Include="..\IKVM.Runtime\IKVM.Runtime.csproj" />
-        <ProjectReference Include="..\IKVM.Java\IKVM.Java.ikvmproj" />
         <ProjectReference Include="..\IKVM.Image\IKVM.Image.csproj" />
         <ProjectReference Include="..\IKVM.Tools.Importer\IKVM.Tools.Importer.csproj" />
         <ProjectReference Include="..\IKVM.Tests.Util\IKVM.Tests.Util.csproj" />
@@ -70,5 +68,6 @@
         </None>
     </ItemGroup>
 
+    <Import Project="$(MSBuildThisFileDirectory)..\..\IKVM.deps.targets" />
     <Import Project="$(MSBuildThisFileDirectory)..\..\IKVM.refs.targets" />
 </Project>

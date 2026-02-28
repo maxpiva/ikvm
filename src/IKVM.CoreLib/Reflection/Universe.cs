@@ -134,7 +134,7 @@ namespace IKVM.Reflection
         /// Initializes a new instance.
         /// </summary>
         /// <param name="coreLibName"></param>
-        public Universe(string coreLibName = null) :
+        public Universe(string? coreLibName = null) :
             this(UniverseOptions.None, coreLibName)
         {
 
@@ -145,7 +145,7 @@ namespace IKVM.Reflection
         /// </summary>
         /// <param name="options"></param>
         /// <param name="coreLibName"></param>
-        public Universe(UniverseOptions options, string coreLibName = null)
+        public Universe(UniverseOptions options, string? coreLibName = null)
         {
             this.options = options;
             this.coreLibName = coreLibName ?? DefaultCoreLibName;

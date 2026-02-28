@@ -95,8 +95,8 @@ namespace IKVM.Tools.Runner.Importer
                 }
             }
 
-            if (options.Platform is not null)
-                w.WriteLine($"-platform {options.Platform.ToString().ToLowerInvariant()}");
+            if (options.Platform is IkvmImporterPlatform platform)
+                w.WriteLine($"-platform {platform.ToString().ToLowerInvariant()}");
 
             if (options.KeyFile is not null)
                 w.WriteLine($"-keyfile \"{options.KeyFile}\"");
@@ -287,9 +287,18 @@ namespace IKVM.Tools.Runner.Importer
 
                         try
                         {
+#if NET7_0_OR_GREATER
+                            var mod = File.GetUnixFileMode(exe);
+                            var prm = mod | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+                            if (mod != prm)
+                                File.SetUnixFileMode(exe, prm);
+#else
                             var psx = Mono.Unix.UnixFileSystemInfo.GetFileSystemEntry(exe);
-                            if (psx.FileAccessPermissions.HasFlag(Mono.Unix.FileAccessPermissions.UserExecute) == false)
-                                psx.FileAccessPermissions |= Mono.Unix.FileAccessPermissions.UserExecute;
+                            var mod = psx.FileAccessPermissions;
+                            var prm = mod | Mono.Unix.FileAccessPermissions.UserExecute | Mono.Unix.FileAccessPermissions.GroupExecute | Mono.Unix.FileAccessPermissions.OtherExecute;
+                            if (mod != prm)
+                                psx.FileAccessPermissions = prm;
+#endif
                         }
                         catch (Exception e)
                         {

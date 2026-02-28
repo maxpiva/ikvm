@@ -142,12 +142,12 @@ namespace IKVM.Reflection
             return h;
         }
 
-        internal static T NullSafeElementAt<T>(T[] array, int index)
+        internal static T? NullSafeElementAt<T>(T[]? array, int index)
         {
             return array == null ? default : array[index];
         }
 
-        internal static int NullSafeLength<T>(T[] array)
+        internal static int NullSafeLength<T>(T[]? array)
         {
             return array == null ? 0 : array.Length;
         }

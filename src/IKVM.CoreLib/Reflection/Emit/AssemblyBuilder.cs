@@ -634,7 +634,7 @@ namespace IKVM.Reflection.Emit
             return list.ToArray();
         }
 
-        internal override Type FindType(TypeName typeName)
+        internal override Type? FindType(TypeName typeName)
         {
             foreach (var mb in modules)
             {
@@ -643,7 +643,7 @@ namespace IKVM.Reflection.Emit
                     return type;
             }
 
-            foreach (Module module in addedModules)
+            foreach (var module in addedModules)
             {
                 var type = module.FindType(typeName);
                 if (type != null)
@@ -653,7 +653,7 @@ namespace IKVM.Reflection.Emit
             return null;
         }
 
-        internal override Type FindTypeIgnoreCase(TypeName lowerCaseName)
+        internal override Type? FindTypeIgnoreCase(TypeName lowerCaseName)
         {
             foreach (var mb in modules)
             {
@@ -687,7 +687,7 @@ namespace IKVM.Reflection.Emit
 
         public override MethodInfo EntryPoint => entryPoint;
 
-        public override AssemblyName[] GetReferencedAssemblies() => Array.Empty<AssemblyName>();
+        public override AssemblyName[] GetReferencedAssemblies() => [];
 
         public override Module[] GetLoadedModules(bool getResourceModules)
         {
@@ -709,7 +709,7 @@ namespace IKVM.Reflection.Emit
             return list.ToArray();
         }
 
-        public override Module GetModule(string name)
+        public override Module? GetModule(string name)
         {
             foreach (var module in modules)
                 if (module.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
@@ -759,7 +759,7 @@ namespace IKVM.Reflection.Emit
             return new Universe().DefineDynamicAssembly(name, access, assemblyAttributes);
         }
 
-        internal override IList<CustomAttributeData> GetCustomAttributesData(Type attributeType)
+        internal override IList<CustomAttributeData> GetCustomAttributesData(Type? attributeType)
         {
             var list = new List<CustomAttributeData>();
             foreach (var cab in customAttributes)

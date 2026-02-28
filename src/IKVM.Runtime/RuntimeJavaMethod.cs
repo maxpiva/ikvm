@@ -23,14 +23,12 @@
 */
 using System;
 using System.Diagnostics;
-
-using IKVM.Attributes;
-
 using System.Linq;
-using IKVM.CoreLib.Diagnostics;
 using System.Threading;
 
-
+using IKVM.Attributes;
+using IKVM.CoreLib.Linking;
+using IKVM.CoreLib.Runtime;
 
 #if IMPORTER || EXPORTER
 using IKVM.Reflection;
@@ -45,7 +43,9 @@ using System.Reflection.Emit;
 namespace IKVM.Runtime
 {
 
-    abstract class RuntimeJavaMethod : RuntimeJavaMember
+    abstract class RuntimeJavaMethod :
+        RuntimeJavaMember,
+        ILinkingMethod<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod>
     {
 
         MethodBase method;
@@ -81,7 +81,7 @@ namespace IKVM.Runtime
 
         internal virtual bool EmitIntrinsic(EmitIntrinsicContext context)
         {
-            return Intrinsics.Emit(context);
+            return context.Context.Context.Intrinsics.Emit(context);
         }
 
 #endif // EMITTERS
@@ -108,7 +108,7 @@ namespace IKVM.Runtime
             Debug.Assert(((returnType == null) == (parameterTypes == null)) || (returnType == declaringType.Context.PrimitiveJavaTypeFactory.VOID));
             this.returnTypeWrapper = returnType;
             this.parameterTypeWrappers = parameterTypes;
-            if (Intrinsics.IsIntrinsic(this))
+            if (DeclaringType.Context.Intrinsics.IsIntrinsic(this))
                 SetIntrinsicFlag();
 
             UpdateNonPublicTypeInSignatureFlag();
@@ -604,6 +604,12 @@ namespace IKVM.Runtime
                 return IsProtected && (DeclaringType == DeclaringType.Context.JavaBase.TypeOfJavaLangObject || DeclaringType == DeclaringType.Context.JavaBase.TypeOfjavaLangThrowable) && (Name == StringConstants.CLONE || Name == StringConstants.FINALIZE);
             }
         }
+
+        void ILinkingMethod<RuntimeJavaType, RuntimeJavaMember, RuntimeJavaField, RuntimeJavaMethod>.Link(LoadMode mode)
+        {
+            Link(mode);
+        }
+
     }
 
 }

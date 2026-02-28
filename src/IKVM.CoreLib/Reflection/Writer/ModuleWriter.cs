@@ -95,10 +95,10 @@ namespace IKVM.Reflection.Writer
         /// <param name="entryPoint"></param>
         /// <param name="peStream"></param>
         /// <param name="pdbStream"></param>
-        internal static void WriteModule(StrongNameKeyPair keyPair, byte[] publicKey, IKVM.Reflection.Emit.ModuleBuilder module, IKVM.Reflection.Emit.PEFileKinds fileKind, PortableExecutableKinds portableExecutableKind, ImageFileMachine imageFileMachine, ModuleResourceSectionBuilder nativeResources, MethodInfo entryPoint, string peFileName, Stream peStream, string pdbFileName, Stream pdbStream)
+        internal static void WriteModule(StrongNameKeyPair keyPair, byte[] publicKey, IKVM.Reflection.Emit.ModuleBuilder module, IKVM.Reflection.Emit.PEFileKinds fileKind, PortableExecutableKinds portableExecutableKind, ImageFileMachine imageFileMachine, ModuleResourceSectionBuilder nativeResources, MethodInfo entryPoint, string? peFileName, Stream? peStream, string? pdbFileName, Stream? pdbStream)
         {
-            FileStream disposablePeStream = null;
-            FileStream disposePdbStream = null;
+            FileStream? disposablePeStream = null;
+            FileStream? disposePdbStream = null;
 
             // default values for PE file output
             peFileName ??= module.FullyQualifiedName;
@@ -137,7 +137,7 @@ namespace IKVM.Reflection.Writer
         /// <param name="peStream"></param>
         /// <param name="pdbFileName"></param>
         /// <param name="pdbStream"></param>
-        static void WriteModuleImpl(StrongNameKeyPair keyPair, byte[] publicKey, IKVM.Reflection.Emit.ModuleBuilder module, IKVM.Reflection.Emit.PEFileKinds fileKind, PortableExecutableKinds portableExecutableKind, ImageFileMachine imageFileMachine, ModuleResourceSectionBuilder nativeResources, MethodInfo entryPoint, string peFileName, Stream peStream, string pdbFileName, Stream pdbStream)
+        static void WriteModuleImpl(StrongNameKeyPair keyPair, byte[] publicKey, IKVM.Reflection.Emit.ModuleBuilder module, IKVM.Reflection.Emit.PEFileKinds fileKind, PortableExecutableKinds portableExecutableKind, ImageFileMachine imageFileMachine, ModuleResourceSectionBuilder nativeResources, MethodInfo entryPoint, string peFileName, Stream peStream, string? pdbFileName, Stream? pdbStream)
         {
             // add some empty entries at the top just to ensure they are present
             module.Metadata.GetOrAddString("");
@@ -223,7 +223,8 @@ namespace IKVM.Reflection.Writer
                         pdbFileName = Path.GetFileName(pdbFileName);
 
                     // add code view entry describing the external PDB
-                    debugBuilder.AddCodeViewEntry(PadPdbPath(pdbFileName), pdbContentId, pdb.FormatVersion);
+                    if (pdbFileName != null)
+                        debugBuilder.AddCodeViewEntry(PadPdbPath(pdbFileName), pdbContentId, pdb.FormatVersion);
 
                     // output PDB to external stream
                     pdbContent.WriteContentTo(pdbStream);
